@@ -10,11 +10,14 @@ public record ClientRegistrationRequest(
         @Pattern(regexp = RegexConstants.USER_NAME_REGEX, message = MessageConstants.INVALID_USERNAME)
         String username,
 
-        @Pattern(regexp = RegexConstants.NAME_REGEX, message = MessageConstants.INVALID_FORMAT_FOR_NAME)
+        @Pattern(regexp = RegexConstants.NAME_REGEX, message = MessageConstants.INVALID_NAME)
         String firstName,
 
-        @Pattern(regexp = RegexConstants.USER_NAME_REGEX, message = MessageConstants.INVALID_FORMAT_FOR_NAME)
+        @Pattern(regexp = RegexConstants.USER_NAME_REGEX, message = MessageConstants.INVALID_NAME)
         String lastName,
+
+        @Pattern(regexp = RegexConstants.PHONE_NUMBER_REGEX, message = MessageConstants.INVALID_PHONE_NUMBER)
+        String phoneNumber,
 
         @Pattern(regexp = RegexConstants.PASSWORD_REGEX, message = MessageConstants.INVALID_PASSWORD)
         String password,

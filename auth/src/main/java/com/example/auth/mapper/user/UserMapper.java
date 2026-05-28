@@ -2,6 +2,7 @@ package com.example.auth.mapper.user;
 
 import com.example.auth.model.entity.User;
 import com.example.auth.model.payload.request.ClientRegistrationRequest;
+import com.example.auth.model.payload.request.StaffRegistrationRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -10,4 +11,6 @@ import org.mapstruct.MappingConstants;
 public interface UserMapper {
     @Mapping(target = "password", source = "password", qualifiedByName = "encodePassword")
     User map(ClientRegistrationRequest request);
+
+    User map(StaffRegistrationRequest request);
 }

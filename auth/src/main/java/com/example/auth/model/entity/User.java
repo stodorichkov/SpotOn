@@ -14,11 +14,11 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
     private String lastName;
+
+    private String phoneNumber;
 
     @Column(nullable = false)
     private String password;

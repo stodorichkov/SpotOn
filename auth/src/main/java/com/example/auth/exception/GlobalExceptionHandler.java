@@ -10,7 +10,6 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,18 +24,27 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         log.info(ex.getMessage(), ex);
 
-        return Optional.of(ex)
-                .filter(MethodArgumentNotValidException.class::isInstance)
-                .map(MethodArgumentNotValidException.class::cast)
-                .map(validationEx -> validationEx
-                        .getBindingResult()
-                        .getFieldErrors()
-                        .stream()
-                        .map(FieldError::getDefaultMessage)
-                        .collect(Collectors.joining(" "))
-                )
-                .orElseGet(ex::getMessage)
-                .transform(ResponseEntity.badRequest()::body);
+        String message;
+
+        if (ex instanceof MethodArgumentNotValidException validationEx) {
+            message = validationEx.getBindingResult()
+                    .getFieldErrors()
+                    .stream()
+                    .map(FieldError::getDefaultMessage)
+                    .collect(Collectors.joining(" "));
+        } else {
+            message = ex.getMessage();
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handle(AccessDeniedException ex) {
+        log.error(ex.getMessage());
+        log.info(ex.getMessage(), ex);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
     @ExceptionHandler(NotFoundException.class)
