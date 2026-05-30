@@ -22,7 +22,7 @@ public class RegistrationController {
     @PostMapping("/client")
     @ResponseStatus(HttpStatus.CREATED)
     public void registerClient(@Valid @RequestBody ClientRegistrationRequest request) {
-        registrationService.registerClient(request);
+        this.registrationService.registerClient(request);
     }
 
     @PostMapping("/employee")
@@ -31,9 +31,9 @@ public class RegistrationController {
             @RequestHeader(value = AuthorizationConstants.HEADER_USER_ROLE, required = false) String userRoleHeader,
             @Valid @RequestBody StaffRegistrationRequest request
     ) {
-        authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
 
-        return registrationService.registerStaff(request, RoleEnum.EMPLOYEE);
+        return this.registrationService.registerStaff(request, RoleEnum.EMPLOYEE);
     }
 
     @PostMapping("/manager")
@@ -42,8 +42,8 @@ public class RegistrationController {
             @RequestHeader(value = AuthorizationConstants.HEADER_USER_ROLE, required = false) String userRoleHeader,
             @Valid @RequestBody StaffRegistrationRequest request
     ) {
-        authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
 
-        return registrationService.registerStaff(request, RoleEnum.MANAGER);
+        return this.registrationService.registerStaff(request, RoleEnum.MANAGER);
     }
 }

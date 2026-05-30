@@ -1,14 +1,12 @@
 package com.example.auth.controller;
 
+import com.example.auth.constants.AuthorizationConstants;
 import com.example.auth.model.payload.request.LoginRequest;
 import com.example.auth.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,8 +14,17 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    @ResponseStatus(HttpStatus.CREATED)
-    public String loginUser(@Valid @RequestBody LoginRequest request) {
-        return authenticationService.login(request);
+    @ResponseStatus(HttpStatus.OK)
+    public String login(@Valid @RequestBody LoginRequest request) {
+        return this.authenticationService.login(request);
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.OK)
+    public void logout(
+            @RequestHeader(value = AuthorizationConstants.HEADER_USER_JTI) String jti,
+            @RequestHeader(value = AuthorizationConstants.HEADER_USER_EXPIRATION) Long expirationMs
+    ) {
+        this.authenticationService.logout(jti, expirationMs);
     }
 }
