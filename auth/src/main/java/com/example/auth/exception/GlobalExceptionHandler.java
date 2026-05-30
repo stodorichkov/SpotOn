@@ -39,6 +39,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handle(UnauthorizedException ex) {
+        log.error(ex.getMessage());
+        log.info(ex.getMessage(), ex);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handle(AccessDeniedException ex) {
         log.error(ex.getMessage());

@@ -22,7 +22,7 @@ public record ClientRegistrationRequest(
         @Pattern(regexp = RegexConstants.PASSWORD_REGEX, message = MessageConstants.INVALID_PASSWORD)
         String password,
 
-        @NotBlank(message = MessageConstants.FIELD_CANNOT_BE_BLANK)
+        @NotBlank(message = MessageConstants.BLANK_FIELD)
         String confirm
 ) {
     @AssertTrue(message = MessageConstants.PASSWORD_MISMATCH)

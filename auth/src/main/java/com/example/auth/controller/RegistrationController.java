@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/register")
+@RequiredArgsConstructor
 public class RegistrationController {
     private final RegistrationService registrationService;
     private final AuthorizationService authorizationService;

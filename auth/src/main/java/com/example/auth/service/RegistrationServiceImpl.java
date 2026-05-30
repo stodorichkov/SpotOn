@@ -1,10 +1,10 @@
 package com.example.auth.service;
 
 import com.example.auth.constants.MessageConstants;
+import com.example.auth.constants.RegistrationConstants;
 import com.example.auth.exception.BadRequestException;
 
 import com.example.auth.exception.NotFoundException;
-import com.example.auth.mapper.user.PasswordMappingHelper;
 import com.example.auth.mapper.user.UserMapper;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
@@ -16,6 +16,7 @@ import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
-    private final PasswordMappingHelper passwordMappingHelper;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Value("${admin.username}")
     private String adminUsername;
@@ -51,15 +52,14 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public StaffRegistrationResponse registerStaff(StaffRegistrationRequest request, RoleEnum roleName)
-    {
+    public StaffRegistrationResponse registerStaff(StaffRegistrationRequest request, RoleEnum roleName) {
         final var role = this.getRole(roleName);
         final var username = this.generateUsername(roleName);
         final var password = this.generatePassword();
 
         final var user = this.userMapper.map(request);
         user.setUsername(username);
-        user.setPassword(passwordMappingHelper.encode(password));
+        user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         this.userRepository.save(user);
 
@@ -68,8 +68,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public void registerAdmin()
-    {
+    public void registerAdmin() {
         if (this.userRepository.findByUsername(this.adminUsername).isPresent()) {
             return;
         }
@@ -78,7 +77,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         final var user = new User();
         user.setUsername(this.adminUsername);
-        user.setPassword(passwordMappingHelper.encode(adminPassword));
+        user.setPassword(passwordEncoder.encode(adminPassword));
         user.setRole(role);
         this.userRepository.saveAndFlush(user);
 
@@ -91,9 +90,9 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     private String generateUsername(RoleEnum roleName) {
-        var prefix = "e";
+        var prefix = RegistrationConstants.USERNAME_PREFIX_EMPLOYEE;
         if (roleName == RoleEnum.MANAGER) {
-            prefix = "m";
+            prefix = RegistrationConstants.USERNAME_PREFIX_MANAGER;
         }
 
         final var timestamp = System.currentTimeMillis();
