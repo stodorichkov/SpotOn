@@ -40,4 +40,15 @@ public class UserController {
 
         return this.userService.getUser(id);
     }
+
+    @PatchMapping("/employee/{id}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    public void deactivateEmployee(
+            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
+            @PathVariable Long id
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+
+        this.userService.deactivateEmployee(id);
+    }
 }

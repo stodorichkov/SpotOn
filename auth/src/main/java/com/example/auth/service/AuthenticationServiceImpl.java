@@ -2,6 +2,7 @@ package com.example.auth.service;
 
 import com.example.auth.constants.AuthenticationConstants;
 import com.example.auth.constants.MessageConstants;
+import com.example.auth.constants.RedisConstants;
 import com.example.auth.exception.AccessDeniedException;
 import com.example.auth.exception.UnauthorizedException;
 import com.example.auth.model.entity.User;
@@ -54,7 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         final var remainingTimeMs = expirationMs - System.currentTimeMillis();
 
         if (remainingTimeMs > 0) {
-            final var redisKey = AuthenticationConstants.REDIS_BLACKLIST + jti;
+            final var redisKey = RedisConstants.BLACKLIST + jti;
 
             this.redisTemplate.opsForValue().set(
                     redisKey,

@@ -1,21 +1,32 @@
 package com.example.auth.service;
 
 import com.example.auth.constants.MessageConstants;
+import com.example.auth.constants.RedisConstants;
+import com.example.auth.exception.AccessDeniedException;
 import com.example.auth.exception.NotFoundException;
 import com.example.auth.mapper.user.UserMapper;
+import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;
 import com.example.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final StringRedisTemplate redisTemplate;
+
+    @Value("${jwt.expiration}")
+    private long jwtExpirationMs;
 
     @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
@@ -28,5 +39,26 @@ public class UserServiceImpl implements UserService {
         return this.userRepository.findById(id)
                 .map(this.userMapper::mapToUserDetailsResponse)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
+    }
+
+    @Override
+    public void deactivateEmployee(Long id) {
+        final var user = this.userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
+
+        if (!user.getRole().getName().equals(RoleEnum.EMPLOYEE)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        user.setActive(false);
+        this.userRepository.save(user);
+
+        final var redisKey = RedisConstants.DEACTIVATE + id;
+        this.redisTemplate.opsForValue().set(
+                redisKey,
+                "",
+                jwtExpirationMs,
+                TimeUnit.MILLISECONDS
+        );
     }
 }
