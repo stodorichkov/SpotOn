@@ -1,12 +1,10 @@
 package com.example.auth.model.payload.response;
 
-public record UserDetailsResponse(
-        Long id,
+public record ProfileResponse(
         String username,
         String firstName,
         String lastName,
         String phoneNumber,
-        String roleName,
-        boolean active
+        String roleName
 ) {
 }

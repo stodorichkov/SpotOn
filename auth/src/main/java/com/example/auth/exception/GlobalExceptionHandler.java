@@ -10,6 +10,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,23 +21,24 @@ public class GlobalExceptionHandler {
             MissingRequestHeaderException.class,
             MethodArgumentNotValidException.class
     })
-    public ResponseEntity<String> handle(Exception ex) {
+    public ResponseEntity<?> handle(Exception ex) {
         log.error(ex.getMessage());
         log.info(ex.getMessage(), ex);
 
-        String message;
-
         if (ex instanceof MethodArgumentNotValidException validationEx) {
-            message = validationEx.getBindingResult()
+            final var errors = validationEx.getBindingResult()
                     .getFieldErrors()
                     .stream()
-                    .map(FieldError::getDefaultMessage)
-                    .collect(Collectors.joining(" "));
-        } else {
-            message = ex.getMessage();
-        }
+                    .collect(Collectors.toMap(
+                            FieldError::getField,
+                            error -> Optional.ofNullable(error.getDefaultMessage()).orElse(""),
+                            (existingMessage, newMessage) -> existingMessage + " " + newMessage
+                    ));
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
     }
 
     @ExceptionHandler(UnauthorizedException.class)

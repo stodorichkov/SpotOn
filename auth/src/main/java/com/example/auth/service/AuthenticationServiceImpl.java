@@ -2,6 +2,7 @@ package com.example.auth.service;
 
 import com.example.auth.constants.AuthenticationConstants;
 import com.example.auth.constants.MessageConstants;
+import com.example.auth.exception.AccessDeniedException;
 import com.example.auth.exception.UnauthorizedException;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.payload.request.LoginRequest;
@@ -39,6 +40,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (!this.passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UnauthorizedException(MessageConstants.INVALID_USERNAME_PASSWORD);
+        }
+
+        if (!user.isActive()) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
         return this.generateJWT(user);

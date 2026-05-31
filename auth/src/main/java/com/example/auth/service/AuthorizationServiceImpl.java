@@ -12,18 +12,10 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
-    public void hasRole(String userRoleHeader, RoleEnum requiredRole) {
-        Arrays.stream(RoleEnum.values())
-                .filter(role -> role == requiredRole && role.name().equalsIgnoreCase(userRoleHeader.trim()))
-                .findFirst()
-                .orElseThrow(() -> new AccessDeniedException(MessageConstants.ROLE_NOT_MATCHED));
-    }
-
-    @Override
-    public void hasAnyRole(String userRoleHeader, RoleEnum... requiredRoles) {
+    public void hasRole(String userRoleHeader, RoleEnum... requiredRoles) {
         Arrays.stream(requiredRoles)
                 .filter(role -> role.name().equalsIgnoreCase(userRoleHeader.trim()))
                 .findFirst()
-                .orElseThrow(() -> new AccessDeniedException(MessageConstants.ANY_ROLE_NOT_MATCHED));
+                .orElseThrow(() -> new AccessDeniedException(MessageConstants.ACCESS_DENIED));
     }
 }

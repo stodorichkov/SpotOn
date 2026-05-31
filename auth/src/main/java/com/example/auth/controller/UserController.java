@@ -30,7 +30,7 @@ public class UserController {
         return this.userService.getUsers(pageable);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
     public UserDetailsResponse getUser(
             @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
