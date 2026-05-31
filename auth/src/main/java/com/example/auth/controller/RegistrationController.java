@@ -28,7 +28,7 @@ public class RegistrationController {
     @PostMapping("/employee")
     @ResponseStatus(HttpStatus.CREATED)
     public StaffRegistrationResponse registerEmployee(
-            @RequestHeader(value = AuthorizationConstants.HEADER_USER_ROLE, required = false) String userRoleHeader,
+            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
             @Valid @RequestBody StaffRegistrationRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
@@ -39,7 +39,7 @@ public class RegistrationController {
     @PostMapping("/manager")
     @ResponseStatus(HttpStatus.CREATED)
     public StaffRegistrationResponse registerManager(
-            @RequestHeader(value = AuthorizationConstants.HEADER_USER_ROLE, required = false) String userRoleHeader,
+            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
             @Valid @RequestBody StaffRegistrationRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);

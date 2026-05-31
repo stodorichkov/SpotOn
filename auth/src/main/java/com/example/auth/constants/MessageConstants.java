@@ -28,7 +28,9 @@ public class MessageConstants {
     public static final String INVALID_USERNAME_PASSWORD = "Invalid username or password!";
 
     // Authorization
-    public static final String INVALID_ROLE = "User role is missing or invalid.";
     public static final String ROLE_NOT_MATCHED = "You do not have the required role.";
     public static final String ANY_ROLE_NOT_MATCHED = "You do not have any of the required roles.";
+
+    // User
+    public static final String USER_NOT_FOUND = "User not found";
 }

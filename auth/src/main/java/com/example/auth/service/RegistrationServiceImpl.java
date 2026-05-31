@@ -44,7 +44,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         final var role = this.getRole(RoleEnum.CLIENT);
-        final var user = this.userMapper.map(request);
+        final var user = this.userMapper.mapFromClientRegistrationRequest(request);
         user.setRole(role);
 
         this.userRepository.save(user);
@@ -57,7 +57,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         final var username = this.generateUsername(roleName);
         final var password = this.generatePassword();
 
-        final var user = this.userMapper.map(request);
+        final var user = this.userMapper.mapFromStaffRegistrationRequest(request);
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);

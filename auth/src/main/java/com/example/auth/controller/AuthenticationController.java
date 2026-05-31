@@ -22,8 +22,8 @@ public class AuthenticationController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.OK)
     public void logout(
-            @RequestHeader(value = AuthorizationConstants.HEADER_USER_JTI) String jti,
-            @RequestHeader(value = AuthorizationConstants.HEADER_USER_EXPIRATION) Long expirationMs
+            @RequestHeader(AuthorizationConstants.HEADER_USER_JTI) String jti,
+            @RequestHeader(AuthorizationConstants.HEADER_USER_EXPIRATION) Long expirationMs
     ) {
         this.authenticationService.logout(jti, expirationMs);
     }
