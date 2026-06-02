@@ -55,7 +55,7 @@ public class ProfileController {
             @RequestHeader(AuthorizationConstants.HEADER_USER_ID) Long userIdHeader,
             @Valid @RequestBody ChangeUsernameRequest request
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.values());
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
 
         return this.profileService.changeUsername(userIdHeader, request);
     }
