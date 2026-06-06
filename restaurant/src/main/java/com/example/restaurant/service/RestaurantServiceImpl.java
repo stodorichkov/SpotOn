@@ -2,14 +2,17 @@ package com.example.restaurant.service;
 
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
-import com.example.restaurant.mapper.category.CategoryMapper;
-import com.example.restaurant.mapper.category.RestaurantMapper;
+import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.enums.CategoryEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
 import com.example.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
@@ -21,15 +24,14 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final RestaurantMapper restaurantMapper;
 
     @Override
+    @Transactional
     public void addRestaurant(RestaurantRequest request) {
-        final var restaurant = this.restaurantMapper.map(request);
+        final var restaurant = this.restaurantMapper.mapFromRestaurantRequest(request);
 
         final var categories = request.categories()
                 .stream()
                 .map(name -> {
-                    final var categoryEnum = CategoryEnum.valueOf(name);
-
-                    return this.categoryRepository.findByName(categoryEnum)
+                    return this.categoryRepository.findByName(name)
                             .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
                 })
                 .collect(Collectors.toSet());
@@ -37,5 +39,11 @@ public class RestaurantServiceImpl implements RestaurantService {
         restaurant.setCategories(categories);
 
         this.restaurantRepository.save(restaurant);
+    }
+
+    @Override
+    public Page<RestaurantResponse> getRestaurants(Pageable pageable) {
+        return this.restaurantRepository.findAll(pageable)
+                .map(this.restaurantMapper::mapToRestaurantResponse);
     }
 }

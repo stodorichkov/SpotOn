@@ -1,7 +1,7 @@
 package com.example.restaurant.service;
 
 import com.example.restaurant.constants.MessageConstants;
-import com.example.restaurant.mapper.category.CategoryMapper;
+import com.example.restaurant.mapper.CategoryMapper;
 import com.example.restaurant.model.enums.CategoryEnum;
 import com.example.restaurant.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class CategoryServiceImpl implements CategoryService {
     public void saveAllCategories() {
         Arrays.stream(CategoryEnum.values())
                 .filter(name -> this.categoryRepository.findByName(name).isEmpty())
-                .map(this.categoryMapper::map)
+                .map(this.categoryMapper::mapFromCategoryEnum)
                 .forEach(category -> {
                     this.categoryRepository.saveAndFlush(category);
                     System.out.println(MessageConstants.ADD_CATEGORY + category.getName());
