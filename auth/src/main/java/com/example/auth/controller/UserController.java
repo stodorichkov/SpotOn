@@ -1,6 +1,6 @@
 package com.example.auth.controller;
 
-import com.example.auth.constants.AuthorizationConstants;
+import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;
@@ -22,7 +22,7 @@ public class UserController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Page<UserResponse> getUsers(
-            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
@@ -33,7 +33,7 @@ public class UserController {
     @GetMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
     public UserDetailsResponse getUser(
-            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
             @PathVariable Long id
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
@@ -44,7 +44,7 @@ public class UserController {
     @PatchMapping("/employee/{id}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     public void deactivateEmployee(
-            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
             @PathVariable Long id
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);

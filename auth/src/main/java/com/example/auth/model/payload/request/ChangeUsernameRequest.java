@@ -10,7 +10,7 @@ public record ChangeUsernameRequest(
         @NotBlank(message = MessageConstants.BLANK_FIELD)
         String currentUsername,
 
-        @Pattern(regexp = RegexConstants.USER_NAME_REGEX, message = MessageConstants.INVALID_USERNAME)
+        @Pattern(regexp = RegexConstants.USERNAME_REGEX, message = MessageConstants.INVALID_USERNAME)
         String newUsername
 ) {
     @AssertTrue(message = MessageConstants.NEW_USERNAME_MATCHES_CURRENT)

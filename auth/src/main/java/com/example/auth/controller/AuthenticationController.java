@@ -1,6 +1,6 @@
 package com.example.auth.controller;
 
-import com.example.auth.constants.AuthorizationConstants;
+import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.payload.request.LoginRequest;
 import com.example.auth.service.AuthenticationService;
 import jakarta.validation.Valid;
@@ -22,8 +22,8 @@ public class AuthenticationController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.OK)
     public void logout(
-            @RequestHeader(AuthorizationConstants.HEADER_USER_JTI) String jti,
-            @RequestHeader(AuthorizationConstants.HEADER_USER_EXPIRATION) Long expirationMs
+            @RequestHeader(HeaderConstants.USER_JTI) String jti,
+            @RequestHeader(HeaderConstants.USER_EXPIRATION) Long expirationMs
     ) {
         this.authenticationService.logout(jti, expirationMs);
     }

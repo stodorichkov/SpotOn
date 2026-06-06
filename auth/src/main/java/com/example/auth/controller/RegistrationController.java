@@ -1,6 +1,6 @@
 package com.example.auth.controller;
 
-import com.example.auth.constants.AuthorizationConstants;
+import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.request.ClientRegistrationRequest;
 import com.example.auth.model.payload.request.StaffRegistrationRequest;
@@ -28,10 +28,10 @@ public class RegistrationController {
     @PostMapping("/employee")
     @ResponseStatus(HttpStatus.CREATED)
     public StaffRegistrationResponse registerEmployee(
-            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
             @Valid @RequestBody StaffRegistrationRequest request
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.ADMIN);
 
         return this.registrationService.registerStaff(request, RoleEnum.EMPLOYEE);
     }
@@ -39,7 +39,7 @@ public class RegistrationController {
     @PostMapping("/manager")
     @ResponseStatus(HttpStatus.CREATED)
     public StaffRegistrationResponse registerManager(
-            @RequestHeader(AuthorizationConstants.HEADER_USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
             @Valid @RequestBody StaffRegistrationRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
