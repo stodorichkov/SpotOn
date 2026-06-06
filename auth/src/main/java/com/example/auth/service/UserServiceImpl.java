@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deactivateEmployee(Long id) {
+    public void removeEmployee(Long id) {
         final var user = this.userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
 
@@ -52,8 +52,7 @@ public class UserServiceImpl implements UserService {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
-        user.setActive(false);
-        this.userRepository.save(user);
+        this.userRepository.deleteById(id);
 
         final var redisKey = RedisConstants.DEACTIVATE + id;
         this.redisTemplate.opsForValue().set(

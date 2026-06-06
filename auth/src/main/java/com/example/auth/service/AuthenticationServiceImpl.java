@@ -43,10 +43,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new UnauthorizedException(MessageConstants.INVALID_USERNAME_PASSWORD);
         }
 
-        if (!user.isActive()) {
-            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
-        }
-
         return this.generateJWT(user);
     }
 
