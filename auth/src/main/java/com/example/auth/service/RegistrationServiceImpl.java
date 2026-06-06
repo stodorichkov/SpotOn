@@ -5,7 +5,7 @@ import com.example.auth.constants.RegistrationConstants;
 import com.example.auth.exception.BadRequestException;
 
 import com.example.auth.exception.NotFoundException;
-import com.example.auth.mapper.user.UserMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
@@ -44,7 +44,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         final var role = this.getRole(RoleEnum.CLIENT);
-        final var user = this.userMapper.mapFromClientRegistrationRequest(request);
+        final var user = this.userMapper.mapFromClientRegistrationRequest(request, passwordEncoder);
         user.setRole(role);
 
         this.userRepository.save(user);

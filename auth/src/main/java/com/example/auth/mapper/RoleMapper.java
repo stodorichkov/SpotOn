@@ -1,4 +1,4 @@
-package com.example.auth.mapper.role;
+package com.example.auth.mapper;
 
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.enums.RoleEnum;

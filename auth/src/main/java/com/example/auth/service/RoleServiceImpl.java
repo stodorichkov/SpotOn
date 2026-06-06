@@ -1,7 +1,7 @@
 package com.example.auth.service;
 
 import com.example.auth.constants.MessageConstants;
-import com.example.auth.mapper.role.RoleMapper;
+import com.example.auth.mapper.RoleMapper;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;

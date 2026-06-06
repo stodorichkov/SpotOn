@@ -4,7 +4,7 @@ import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RedisConstants;
 import com.example.auth.exception.AccessDeniedException;
 import com.example.auth.exception.NotFoundException;
-import com.example.auth.mapper.user.UserMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;

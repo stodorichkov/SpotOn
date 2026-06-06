@@ -3,8 +3,7 @@ package com.example.auth.service;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.exception.BadRequestException;
 import com.example.auth.exception.NotFoundException;
-import com.example.auth.exception.UnauthorizedException;
-import com.example.auth.mapper.user.UserMapper;
+import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.payload.request.ChangePasswordRequest;
 import com.example.auth.model.payload.request.ChangeUsernameRequest;
 import com.example.auth.model.payload.request.EditProfileRequest;
@@ -71,7 +70,7 @@ public class ProfileServiceImpl implements ProfileService {
             throw new BadRequestException(MessageConstants.WRONG_PASSWORD);
         }
 
-        this.userMapper.updateFromChangePasswordRequest(request, user);
+        this.userMapper.updateFromChangePasswordRequest(request, user, passwordEncoder);
 
         this.userRepository.save(user);
     }
