@@ -9,6 +9,7 @@ import com.example.restaurant.model.payload.response.RestaurantResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface RestaurantMapper {
@@ -18,6 +19,9 @@ public interface RestaurantMapper {
     RestaurantResponse mapToRestaurantResponse(Restaurant restaurant);
 
     RestaurantDetailsResponse mapToRestaurantDetailsResponse(Restaurant restaurant);
+
+    @Mapping(target = "categories", ignore = true)
+    void updateFromRestaurantRequest(RestaurantRequest request, @MappingTarget Restaurant restaurant);
 
     default CategoryEnum mapToCategoryEnum(Category category) {
         return category.getName();

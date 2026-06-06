@@ -3,7 +3,6 @@ package com.example.restaurant.service;
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
-import com.example.restaurant.model.enums.CategoryEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,10 +31,9 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         final var categories = request.categories()
                 .stream()
-                .map(name -> {
-                    return this.categoryRepository.findByName(name)
-                            .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
-                })
+                .map(name -> this.categoryRepository.findByName(name)
+                        .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND))
+                )
                 .collect(Collectors.toSet());
 
         restaurant.setCategories(categories);
@@ -53,5 +52,27 @@ public class RestaurantServiceImpl implements RestaurantService {
         return this.restaurantRepository.findById(id)
                 .map(this.restaurantMapper::mapToRestaurantDetailsResponse)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+    }
+
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse editRestaurant(Long id, RestaurantRequest request) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        this.restaurantMapper.updateFromRestaurantRequest(request, restaurant);
+
+        final var categories = request.categories()
+                .stream()
+                .map(name -> this.categoryRepository.findByName(name)
+                        .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND))
+                )
+                .collect(Collectors.toSet());
+
+        restaurant.setCategories(categories);
+
+        this.restaurantRepository.save(restaurant);
+
+        return this.restaurantMapper.mapToRestaurantDetailsResponse(restaurant);
     }
 }

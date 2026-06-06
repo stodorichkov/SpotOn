@@ -10,4 +10,5 @@ public interface RestaurantService {
     void addRestaurant(RestaurantRequest request);
     Page<RestaurantResponse> getRestaurants(Pageable pageable);
     RestaurantDetailsResponse getRestaurant(Long id);
+    RestaurantDetailsResponse editRestaurant(Long id, RestaurantRequest request);
 }
