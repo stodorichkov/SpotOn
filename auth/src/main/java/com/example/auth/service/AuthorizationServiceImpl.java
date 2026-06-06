@@ -12,9 +12,9 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
-    public void hasRole(String userRoleHeader, RoleEnum... requiredRoles) {
+    public void hasRole(RoleEnum userRoleHeader, RoleEnum... requiredRoles) {
         Arrays.stream(requiredRoles)
-                .filter(role -> role.name().equalsIgnoreCase(userRoleHeader.trim()))
+                .filter(role -> role.equals(userRoleHeader))
                 .findFirst()
                 .orElseThrow(() -> new AccessDeniedException(MessageConstants.ACCESS_DENIED));
     }

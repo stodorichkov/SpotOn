@@ -24,7 +24,7 @@ public class ProfileController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public ProfileResponse getProfile(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.values());
@@ -35,7 +35,7 @@ public class ProfileController {
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public ProfileResponse editProfile(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @Valid @RequestBody EditProfileRequest request
     ) {
@@ -51,7 +51,7 @@ public class ProfileController {
     @PatchMapping("/username")
     @ResponseStatus(HttpStatus.OK)
     public String changeUsername(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @Valid @RequestBody ChangeUsernameRequest request
     ) {
@@ -63,7 +63,7 @@ public class ProfileController {
     @PatchMapping("/password")
     @ResponseStatus(HttpStatus.OK)
     public void changePassword(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @Valid @RequestBody ChangePasswordRequest request
     ) {

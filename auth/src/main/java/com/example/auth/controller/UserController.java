@@ -22,7 +22,7 @@ public class UserController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Page<UserResponse> getUsers(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
@@ -33,7 +33,7 @@ public class UserController {
     @GetMapping("/user/{id}")
     @ResponseStatus(HttpStatus.OK)
     public UserDetailsResponse getUser(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @PathVariable Long id
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
@@ -44,7 +44,7 @@ public class UserController {
     @DeleteMapping("/employee/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void removeEmployee(
-            @RequestHeader(HeaderConstants.USER_ROLE) String userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @PathVariable Long id
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);

@@ -20,13 +20,13 @@ public interface UserMapper {
 
     User mapFromStaffRegistrationRequest(StaffRegistrationRequest request);
 
-    @Mapping(target = "roleName", source = "role.name")
+    @Mapping(target = "role", source = "role.name")
     UserResponse mapToUserResponse(User user);
 
-    @Mapping(target = "roleName", source = "role.name")
+    @Mapping(target = "role", source = "role.name")
     UserDetailsResponse mapToUserDetailsResponse(User user);
 
-    @Mapping(target = "roleName", source = "role.name")
+    @Mapping(target = "role", source = "role.name")
     ProfileResponse mapToProfileResponse(User user);
 
     void updateFromEditProfileRequest(EditProfileRequest request, @MappingTarget User user);
