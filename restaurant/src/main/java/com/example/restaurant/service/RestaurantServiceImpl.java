@@ -5,6 +5,7 @@ import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.enums.CategoryEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
 import com.example.restaurant.repository.RestaurantRepository;
@@ -45,5 +46,12 @@ public class RestaurantServiceImpl implements RestaurantService {
     public Page<RestaurantResponse> getRestaurants(Pageable pageable) {
         return this.restaurantRepository.findAll(pageable)
                 .map(this.restaurantMapper::mapToRestaurantResponse);
+    }
+
+    @Override
+    public RestaurantDetailsResponse getRestaurant(Long id) {
+        return this.restaurantRepository.findById(id)
+                .map(this.restaurantMapper::mapToRestaurantDetailsResponse)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
     }
 }

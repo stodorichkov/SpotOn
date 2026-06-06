@@ -20,4 +20,7 @@ public class MessageConstants {
     // Category
     public static final String ADD_CATEGORY = "Add Category: ";
     public static final String CATEGORY_NOT_FOUND = "Category not found";
+
+    // Restaurant
+    public static final String RESTAURANT_NOT_FOUND = "Restaurant not found";
 }
