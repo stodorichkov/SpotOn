@@ -13,7 +13,13 @@ import java.util.Optional;
 public class RequestServiceImpl implements RequestService {
     @Override
     public boolean isPublicPath(ServerHttpRequest request) {
-        return PathConstants.PUBLIC_PATHS.contains(request.getURI().getPath());
+        final var requestPath = request.getURI().getPath();
+        final var requestMethod = request.getMethod();
+
+        return PathConstants.PUBLIC_PATHS.stream()
+                .anyMatch(route ->
+                        route.path().equals(requestPath) && route.methods().contains(requestMethod)
+                );
     }
 
     @Override
