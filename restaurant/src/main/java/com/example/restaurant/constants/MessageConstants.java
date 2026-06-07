@@ -23,4 +23,7 @@ public class MessageConstants {
 
     // Restaurant
     public static final String RESTAURANT_NOT_FOUND = "Restaurant not found";
+
+    // Employee
+    public static final String EMPLOYEE_NOT_FOUND = "Employee not found";
 }

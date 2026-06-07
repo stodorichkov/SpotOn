@@ -6,4 +6,5 @@ import com.example.restaurant.model.payload.request.AddManagerRequest;
 public interface EmployeeService {
     void addEmployee(AddEmployeeRequest request, Long restaurantId);
     void addManager(AddManagerRequest request);
+    Long getRestaurantId(Long userId);
 }

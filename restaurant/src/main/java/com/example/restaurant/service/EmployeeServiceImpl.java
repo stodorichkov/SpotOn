@@ -3,6 +3,8 @@ package com.example.restaurant.service;
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.EmployeeMapper;
+import com.example.restaurant.model.enity.Employee;
+import com.example.restaurant.model.enity.Restaurant;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
 import com.example.restaurant.repository.EmployeeRepository;
@@ -39,5 +41,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setRestaurant(restaurant);
 
         this.employeeRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public Long getRestaurantId(Long userId) {
+        return this.employeeRepository.findByUserId(userId)
+                .map(Employee::getRestaurant)
+                .map(Restaurant::getId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
     }
 }

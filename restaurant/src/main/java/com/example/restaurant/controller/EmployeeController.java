@@ -40,4 +40,10 @@ public class EmployeeController {
 
         this.employeeService.addManager(request);
     }
+
+    @GetMapping("/{id}/restaurant")
+    @ResponseStatus(HttpStatus.OK)
+    Long getRestaurantId(@PathVariable Long id) {
+        return this.employeeService.getRestaurantId(id);
+    }
 }
