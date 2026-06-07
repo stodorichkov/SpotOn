@@ -1,11 +1,12 @@
 package com.example.auth.service;
 
-import com.example.auth.constants.AuthenticationConstants;
+import com.example.auth.client.RestaurantClient;
+import com.example.auth.constants.JwtConstants;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RedisConstants;
-import com.example.auth.exception.AccessDeniedException;
 import com.example.auth.exception.UnauthorizedException;
 import com.example.auth.model.entity.User;
+import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.request.LoginRequest;
 import com.example.auth.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
+    private final RestaurantClient restaurantClient;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -35,6 +38,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private long jwtExpirationMs;
 
     @Override
+    @Transactional
     public String login(LoginRequest request) {
         final var user = this.userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_USERNAME_PASSWORD));
@@ -64,7 +68,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private String generateJWT(User user) {
         final var claims = new HashMap<String, Object>();
-        claims.put(AuthenticationConstants.JWT_ROLE, user.getRole().getName().name());
+        claims.put(JwtConstants.ROLE, user.getRole().getName().name());
+
+        final var role = user.getRole().getName();
+        if (role.equals(RoleEnum.EMPLOYEE) || role.equals(RoleEnum.MANAGER)) {
+            final var restaurantId = this.restaurantClient.getRestaurantId(user.getId());
+
+            claims.put(JwtConstants.RESTAURANT_ID, restaurantId);
+        }
 
         final var jti = UUID.randomUUID().toString();
 

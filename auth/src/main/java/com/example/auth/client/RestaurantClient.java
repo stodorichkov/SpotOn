@@ -18,5 +18,5 @@ public interface RestaurantClient {
     void addManager(@Valid @RequestBody AddManagerRequest request);
 
     @GetMapping("/employees/{id}/restaurant")
-    Long getRestaurantByEmployeeId(@PathVariable Long id);
+    Long getRestaurantId(@PathVariable Long id);
 }
