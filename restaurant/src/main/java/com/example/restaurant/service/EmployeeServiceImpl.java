@@ -1,5 +1,6 @@
 package com.example.restaurant.service;
 
+import com.example.restaurant.client.AuthClient;
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.EmployeeMapper;
@@ -7,11 +8,16 @@ import com.example.restaurant.model.enity.Employee;
 import com.example.restaurant.model.enity.Restaurant;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
+import com.example.restaurant.model.payload.response.UserDetailsResponse;
 import com.example.restaurant.repository.EmployeeRepository;
 import com.example.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +25,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final RestaurantRepository restaurantRepository;
     private final EmployeeMapper employeeMapper;
+    private final AuthClient authClient;
 
     @Override
     @Transactional
@@ -50,5 +57,21 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .map(Employee::getRestaurant)
                 .map(Restaurant::getId)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
+    }
+
+    @Override
+    public Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable) {
+        final var userIds = this.employeeRepository.findAllByRestaurantId(restaurantId, pageable)
+                .map(Employee::getUserId);
+
+        if (userIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        final var usersDetails = this.authClient.getEmployees(userIds.getContent());
+        final var detailsMap = usersDetails.stream()
+                .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
+
+        return userIds.map(detailsMap::get);
     }
 }

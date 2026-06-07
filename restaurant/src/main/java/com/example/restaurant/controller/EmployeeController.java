@@ -4,10 +4,13 @@ import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
+import com.example.restaurant.model.payload.response.UserDetailsResponse;
 import com.example.restaurant.service.AuthorizationService;
 import com.example.restaurant.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,5 +48,17 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.OK)
     Long getRestaurantId(@PathVariable Long id) {
         return this.employeeService.getRestaurantId(id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.OK)
+    Page<UserDetailsResponse> getEmployees(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            Pageable pageable
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+
+        return this.employeeService.getEmployees(restaurantIdHeader, pageable);
     }
 }
