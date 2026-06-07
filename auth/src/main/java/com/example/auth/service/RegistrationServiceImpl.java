@@ -1,6 +1,6 @@
 package com.example.auth.service;
 
-import com.example.auth.client.RestaurantClient;
+import com.example.auth.client.RestaurantEmployeeClient;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RegistrationConstants;
 import com.example.auth.exception.BadRequestException;
@@ -30,7 +30,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final RestaurantClient restaurantClient;
+    private final RestaurantEmployeeClient restaurantEmployeeClient;
 
     @Value("${admin.username}")
     private String adminUsername;
@@ -65,7 +65,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         this.userRepository.save(user);
 
         final var clientRequest = new AddEmployeeRequest(user.getId());
-        this.restaurantClient.addEmployee(clientRequest);
+        this.restaurantEmployeeClient.addEmployee(clientRequest);
 
         return new EmployeeRegistrationResponse(username, password);
     }
@@ -84,7 +84,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         this.userRepository.save(user);
 
         final var clientRequest = new AddManagerRequest(user.getId(), request.restaurantId());
-        this.restaurantClient.addManager(clientRequest);
+        this.restaurantEmployeeClient.addManager(clientRequest);
 
         return new EmployeeRegistrationResponse(username, password);
     }

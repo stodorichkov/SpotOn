@@ -9,14 +9,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient("restaurant")
-public interface RestaurantClient {
-    @PostMapping("/employees/employee")
+@FeignClient(
+        name = "restaurant",
+        path = "/employees"
+)
+public interface RestaurantEmployeeClient {
+    @PostMapping("/employee")
     void addEmployee(@Valid @RequestBody AddEmployeeRequest request);
 
-    @PostMapping("/employees/manager")
+    @PostMapping("/manager")
     void addManager(@Valid @RequestBody AddManagerRequest request);
 
-    @GetMapping("/employees/{id}/restaurant")
+    @GetMapping("/{id}/restaurant")
     Long getRestaurantId(@PathVariable Long id);
 }

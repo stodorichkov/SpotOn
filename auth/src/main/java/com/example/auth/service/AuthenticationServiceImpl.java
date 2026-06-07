@@ -1,6 +1,6 @@
 package com.example.auth.service;
 
-import com.example.auth.client.RestaurantClient;
+import com.example.auth.client.RestaurantEmployeeClient;
 import com.example.auth.constants.JwtConstants;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RedisConstants;
@@ -30,7 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
-    private final RestaurantClient restaurantClient;
+    private final RestaurantEmployeeClient restaurantEmployeeClient;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -72,7 +72,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         final var role = user.getRole().getName();
         if (role.equals(RoleEnum.EMPLOYEE) || role.equals(RoleEnum.MANAGER)) {
-            final var restaurantId = this.restaurantClient.getRestaurantId(user.getId());
+            final var restaurantId = this.restaurantEmployeeClient.getRestaurantId(user.getId());
 
             claims.put(JwtConstants.RESTAURANT_ID, restaurantId);
         }
