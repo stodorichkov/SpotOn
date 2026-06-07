@@ -3,6 +3,7 @@ package com.example.auth.service;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RedisConstants;
 import com.example.auth.exception.AccessDeniedException;
+import com.example.auth.exception.BadRequestException;
 import com.example.auth.exception.NotFoundException;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.enums.RoleEnum;
@@ -17,6 +18,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -61,5 +63,18 @@ public class UserServiceImpl implements UserService {
                 jwtExpirationMs,
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    @Override
+    @Transactional
+    public List<UserDetailsResponse> getEmployees(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            throw  new BadRequestException();
+        }
+
+        return this.userRepository.findAllById(userIds)
+                .stream()
+                .map(this.userMapper::mapToUserDetailsResponse)
+                .toList();
     }
 }

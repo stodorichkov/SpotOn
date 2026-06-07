@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -50,5 +52,16 @@ public class UserController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
 
         this.userService.removeEmployee(id);
+    }
+
+    @PostMapping("/employees")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDetailsResponse> getEmployees(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestBody List<Long> userIds
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+
+        return this.userService.getEmployees(userIds);
     }
 }
