@@ -3,43 +3,40 @@ package com.example.auth.controller;
 import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.response.UserDetailsResponse;
-import com.example.auth.model.payload.response.UserResponse;
 import com.example.auth.service.AuthorizationService;
-import com.example.auth.service.UserService;
+import com.example.auth.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/employees")
 @RequiredArgsConstructor
-public class UserController {
-    private final UserService userService;
+public class EmployeeController {
+    private final EmployeeService employeeService;
     private final AuthorizationService authorizationService;
 
-    @GetMapping
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Page<UserResponse> getUsers(
-            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
-            Pageable pageable
-    ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
-
-        return this.userService.getUsers(pageable);
-    }
-
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public UserDetailsResponse getUser(
+    public void removeEmployee(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @PathVariable Long id
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
 
-        return this.userService.getUser(id);
+        this.employeeService.removeEmployee(id);
+    }
+
+    @PostMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDetailsResponse> getEmployees(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestBody List<Long> userIds
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+
+        return this.employeeService.getEmployees(userIds);
     }
 }

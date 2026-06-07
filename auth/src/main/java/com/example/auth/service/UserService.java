@@ -10,6 +10,4 @@ import java.util.List;
 public interface UserService {
     Page<UserResponse> getUsers(Pageable pageable);
     UserDetailsResponse getUser(Long id);
-    void removeEmployee(Long id);
-    List<UserDetailsResponse> getEmployees(List<Long> userIds);
 }
