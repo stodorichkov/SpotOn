@@ -7,5 +7,6 @@ public interface JwtService {
     String extractJti(Claims claims);
     Long extractUserId(Claims claims);
     String extractRole(Claims claims);
+    Long extractRestaurantId(Claims claims);
     Long extractExpiration(Claims claims);
 }

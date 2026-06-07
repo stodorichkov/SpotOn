@@ -66,6 +66,12 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public Long extractRestaurantId(Claims claims) {
+        return Optional.ofNullable(claims.get(JwtConstants.RESTAURANT_ID, Long.class))
+                .orElseThrow(UnauthorizedException::new);
+    }
+
+    @Override
     public Long extractExpiration(Claims claims) {
         return Optional.ofNullable(claims.getExpiration())
                 .map(Date::getTime)

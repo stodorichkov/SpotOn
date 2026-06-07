@@ -4,5 +4,5 @@ import org.springframework.http.HttpMethod;
 
 import java.util.Set;
 
-public record PublicRoute(String path, Set<HttpMethod> methods) {
+public record Route(String path, Set<HttpMethod> methods) {
 }

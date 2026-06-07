@@ -1,6 +1,7 @@
 package com.example.apigateway.config;
 
 import com.example.apigateway.constants.HederConstants;
+import com.example.apigateway.constants.JwtConstants;
 import com.example.apigateway.service.JwtService;
 import com.example.apigateway.service.RequestService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -24,8 +26,12 @@ public class JwtFilter implements GlobalFilter {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         final var request = exchange.getRequest();
 
-        if (this.requestService.isPublicPath(request)) {
+        if (this.requestService.isPublic(request)) {
             return chain.filter(exchange);
+        } else if (this.requestService.isForbidden(request)) {
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+
+            return exchange.getResponse().setComplete();
         }
 
         final var jwt = this.requestService.extractJwt(request);
@@ -35,12 +41,19 @@ public class JwtFilter implements GlobalFilter {
         final var role = this.jwtService.extractRole(claims);
         final var exp = this.jwtService.extractExpiration(claims);
 
-        final var modifiedRequest = exchange.getRequest().mutate()
+        final var requestBuilder = exchange.getRequest().mutate()
                 .header(HederConstants.USER_JTI, jti)
                 .header(HederConstants.USER_ID, userId.toString())
                 .header(HederConstants.USER_ROLE, role)
-                .header(HederConstants.USER_EXPIRATION, exp.toString())
-                .build();
+                .header(HederConstants.USER_EXPIRATION, exp.toString());
+
+        if (claims.containsKey(JwtConstants.RESTAURANT_ID)) {
+            final var restaurantId = this.jwtService.extractRestaurantId(claims);
+
+            requestBuilder.header(HederConstants.RESTAURANT_ID, restaurantId.toString());
+        }
+
+        final var modifiedRequest = requestBuilder.build();
 
         final var modifiedExchange = exchange.mutate()
                 .request(modifiedRequest)

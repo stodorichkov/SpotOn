@@ -9,4 +9,5 @@ public class HederConstants {
     public static final String USER_JTI = "X-User-Jti";
     public static final String USER_ROLE = "X-User-Role";
     public static final String USER_EXPIRATION = "X-User-Expiration";
+    public static final String RESTAURANT_ID = "X-Restaurant-Id";
 }
