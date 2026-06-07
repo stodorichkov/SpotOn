@@ -6,11 +6,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient("auth")
-public interface AuthClient {
-    @PostMapping("/employees")
+@FeignClient(
+        name = "auth",
+        path = "/employees"
+)
+public interface AuthEmployeeClient {
+    @PostMapping
     List<UserDetailsResponse> getEmployees(@RequestBody List<Long> userIds);
 
-    @DeleteMapping("/employees/{id}")
+    @DeleteMapping("/{id}")
     void removeEmployee(@PathVariable Long id);
 }

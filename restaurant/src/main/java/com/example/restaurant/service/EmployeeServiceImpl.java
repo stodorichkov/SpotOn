@@ -1,6 +1,6 @@
 package com.example.restaurant.service;
 
-import com.example.restaurant.client.AuthClient;
+import com.example.restaurant.client.AuthEmployeeClient;
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.AccessDeniedException;
 import com.example.restaurant.exception.NotFoundException;
@@ -26,7 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final RestaurantRepository restaurantRepository;
     private final EmployeeMapper employeeMapper;
-    private final AuthClient authClient;
+    private final AuthEmployeeClient authEmployeeClient;
 
     @Override
     @Transactional
@@ -71,7 +71,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             return Page.empty(pageable);
         }
 
-        final var usersDetails = this.authClient.getEmployees(userIds.getContent());
+        final var usersDetails = this.authEmployeeClient.getEmployees(userIds.getContent());
         final var detailsMap = usersDetails.stream()
                 .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
 
@@ -90,6 +90,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         this.employeeRepository.deleteById(employee.getId());
 
-        this.authClient.removeEmployee(userId);
+        this.authEmployeeClient.removeEmployee(userId);
     }
 }
