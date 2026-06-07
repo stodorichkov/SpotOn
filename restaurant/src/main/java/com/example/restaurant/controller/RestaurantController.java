@@ -38,7 +38,7 @@ public class RestaurantController {
         return this.restaurantService.getRestaurants(pageable);
     }
 
-    @GetMapping("/restaurant/{id}")
+    @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public RestaurantDetailsResponse getRestaurant(@PathVariable Long id) {
         return this.restaurantService.getRestaurant(id);

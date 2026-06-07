@@ -2,6 +2,7 @@ package com.example.restaurant.service;
 
 import com.example.restaurant.client.AuthClient;
 import com.example.restaurant.constants.MessageConstants;
+import com.example.restaurant.exception.AccessDeniedException;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.EmployeeMapper;
 import com.example.restaurant.model.enity.Employee;
@@ -40,6 +41,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional
     public void addManager(AddManagerRequest request) {
         final var restaurant = this.restaurantRepository.findById(request.restaurantId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
@@ -60,6 +62,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional
     public Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable) {
         final var userIds = this.employeeRepository.findAllByRestaurantId(restaurantId, pageable)
                 .map(Employee::getUserId);
@@ -73,5 +76,20 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
 
         return userIds.map(detailsMap::get);
+    }
+
+    @Override
+    @Transactional
+    public void removeEmployee(Long restaurantId, Long userId) {
+        final var employee = this.employeeRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
+
+        if (!employee.getRestaurant().getId().equals(restaurantId)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        this.employeeRepository.deleteById(employee.getId());
+
+        this.authClient.removeEmployee(userId);
     }
 }

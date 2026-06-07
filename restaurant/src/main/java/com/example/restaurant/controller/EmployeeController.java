@@ -61,4 +61,16 @@ public class EmployeeController {
 
         return this.employeeService.getEmployees(restaurantIdHeader, pageable);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    void removeEmployee(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @PathVariable Long id
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+
+        this.employeeService.removeEmployee(restaurantIdHeader, id);
+    }
 }

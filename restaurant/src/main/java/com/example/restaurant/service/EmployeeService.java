@@ -11,4 +11,5 @@ public interface EmployeeService {
     void addManager(AddManagerRequest request);
     Long getRestaurantId(Long userId);
     Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable);
+    void removeEmployee(Long restaurantId, Long userId);
 }
