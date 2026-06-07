@@ -1,6 +1,7 @@
 package com.example.auth.exception;
 
 import com.example.auth.constants.MessageConstants;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,12 +58,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handle(NotFoundException ex) {
+    @ExceptionHandler({
+            NotFoundException.class,
+            FeignException.NotFound.class
+    })
+    public ResponseEntity<String> handleNotFoundException(Exception ex) {
         log.error(ex.getMessage());
         log.info(ex.getMessage(), ex);
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        if (ex instanceof FeignException.NotFound feignEx) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(feignEx.contentUTF8());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        }
     }
 
     @ExceptionHandler(Exception.class)

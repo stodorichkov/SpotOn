@@ -1,6 +1,6 @@
 package com.example.auth.model.payload.response;
 
-public record StaffRegistrationResponse(
+public record EmployeeRegistrationResponse(
         String username,
         String password
 ) {

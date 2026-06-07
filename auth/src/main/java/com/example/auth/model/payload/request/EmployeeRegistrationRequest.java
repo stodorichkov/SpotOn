@@ -4,7 +4,7 @@ import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RegexConstants;
 import jakarta.validation.constraints.Pattern;
 
-public record StaffRegistrationRequest(
+public record EmployeeRegistrationRequest(
         @Pattern(regexp = RegexConstants.NAME_REGEX, message = MessageConstants.INVALID_NAME)
         String firstName,
 

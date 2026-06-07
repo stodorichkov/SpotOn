@@ -1,5 +1,6 @@
 package com.example.auth.service;
 
+import com.example.auth.client.RestaurantClient;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RegistrationConstants;
 import com.example.auth.exception.BadRequestException;
@@ -9,9 +10,8 @@ import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
-import com.example.auth.model.payload.request.ClientRegistrationRequest;
-import com.example.auth.model.payload.request.StaffRegistrationRequest;
-import com.example.auth.model.payload.response.StaffRegistrationResponse;
+import com.example.auth.model.payload.request.*;
+import com.example.auth.model.payload.response.EmployeeRegistrationResponse;
 import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +30,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RestaurantClient restaurantClient;
 
     @Value("${admin.username}")
     private String adminUsername;
@@ -52,18 +53,40 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public StaffRegistrationResponse registerStaff(StaffRegistrationRequest request, RoleEnum roleName) {
-        final var role = this.getRole(roleName);
-        final var username = this.generateUsername(roleName);
+    public EmployeeRegistrationResponse registerEmployee(EmployeeRegistrationRequest request, Long restaurantId) {
+        final var role = this.getRole(RoleEnum.EMPLOYEE);
+        final var username = this.generateUsername(RoleEnum.EMPLOYEE);
         final var password = this.generatePassword();
 
-        final var user = this.userMapper.mapFromStaffRegistrationRequest(request);
+        final var user = this.userMapper.mapFromEmployeeRegistrationRequest(request);
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         this.userRepository.save(user);
 
-        return new StaffRegistrationResponse(username, password);
+        final var clientRequest = new AddEmployeeRequest(user.getId());
+        this.restaurantClient.addEmployee(clientRequest);
+
+        return new EmployeeRegistrationResponse(username, password);
+    }
+
+    @Override
+    @Transactional
+    public EmployeeRegistrationResponse registerManager(ManagerRegistrationRequest request) {
+        final var role = this.getRole(RoleEnum.MANAGER);
+        final var username = this.generateUsername(RoleEnum.MANAGER);
+        final var password = this.generatePassword();
+
+        final var user = this.userMapper.mapFromEmployeeRegistrationRequest(request.employeeData());
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
+        this.userRepository.save(user);
+
+        final var clientRequest = new AddManagerRequest(user.getId(), request.restaurantId());
+        this.restaurantClient.addManager(clientRequest);
+
+        return new EmployeeRegistrationResponse(username, password);
     }
 
     @Override
