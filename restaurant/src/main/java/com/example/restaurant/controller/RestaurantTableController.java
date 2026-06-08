@@ -43,4 +43,18 @@ public class RestaurantTableController {
 
         return this.restaurantTableService.getTables(restaurantIdHeader, pageable);
     }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantTableResponse editTable(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @PathVariable Long id,
+            @Valid @RequestBody RestaurantTableRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+
+        return this.restaurantTableService.editTable(id, restaurantIdHeader, request);
+    }
+
 }

@@ -8,4 +8,5 @@ import org.springframework.data.domain.Pageable;
 public interface RestaurantTableService {
     void addTable(RestaurantTableRequest request, Long restaurantId);
     Page<RestaurantTableResponse> getTables(Long restaurantId, Pageable pageable);
+    RestaurantTableResponse editTable(Long tableId, Long restaurantId, RestaurantTableRequest request);
 }

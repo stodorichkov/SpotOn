@@ -27,4 +27,7 @@ public class MessageConstants {
 
     // Employee
     public static final String EMPLOYEE_NOT_FOUND = "Employee not found";
+
+    // Table
+    public static final String TABLE_NOT_FOUND = "Table not found";
 }
