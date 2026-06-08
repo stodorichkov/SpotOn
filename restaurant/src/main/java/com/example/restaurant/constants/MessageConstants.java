@@ -13,6 +13,7 @@ public class MessageConstants {
     public static final String INVALID_PHONE_NUMBER = "Invalid format for phone number. Only digits and a leading " +
             "'+' are allowed (between 7 and 15 characters).";
     public static final String NO_CATEGORY = "The restaurant must have at least one category.";
+    public static final String TABLE_MIN_CAPACITY = "The minimum table capacity is 1 seat.";
 
     // User
     public static final String ACCESS_DENIED = "Access denied for this account!";
