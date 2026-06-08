@@ -54,4 +54,17 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
         return this.restaurantTableMapper.mapToRestaurantTableResponse(table);
     }
+
+    @Override
+    @Transactional
+    public void removeTable(Long tableId, Long restaurantId) {
+        final var table = this.restaurantTableRepository.findById(tableId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TABLE_NOT_FOUND));
+
+        if (!table.getRestaurant().getId().equals(restaurantId)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        this.restaurantTableRepository.deleteById(tableId);
+    }
 }

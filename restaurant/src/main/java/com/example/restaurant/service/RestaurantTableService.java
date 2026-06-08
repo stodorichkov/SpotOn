@@ -9,4 +9,5 @@ public interface RestaurantTableService {
     void addTable(RestaurantTableRequest request, Long restaurantId);
     Page<RestaurantTableResponse> getTables(Long restaurantId, Pageable pageable);
     RestaurantTableResponse editTable(Long tableId, Long restaurantId, RestaurantTableRequest request);
+    void removeTable(Long tableId, Long restaurantId);
 }
