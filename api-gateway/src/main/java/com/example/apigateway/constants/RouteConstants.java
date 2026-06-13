@@ -14,10 +14,4 @@ public class RouteConstants {
             new Route("/auth/register/client", Set.of(HttpMethod.POST)),
             new Route("restaurant/restaurants", Set.of(HttpMethod.GET))
     );
-
-    public static final Set<Route> FORBIDDEN = Set.of(
-            new Route("/restaurant/employees/{id}/restaurant", Set.of(HttpMethod.GET))
-    );
-
-
 }

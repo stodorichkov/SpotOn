@@ -26,17 +26,6 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public boolean isForbidden(ServerHttpRequest request) {
-        final var requestPath = request.getURI().getPath();
-        final var requestMethod = request.getMethod();
-
-        return RouteConstants.FORBIDDEN.stream()
-                .anyMatch(route ->
-                        this.pathMatcher.match(route.path(), requestPath) && route.methods().contains(requestMethod)
-                );
-    }
-
-    @Override
     public String extractJwt(ServerHttpRequest request) {
         return Optional.ofNullable(request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .filter(authHeader -> authHeader.startsWith(StandardAuthScheme.BEARER))

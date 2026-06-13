@@ -28,10 +28,6 @@ public class JwtFilter implements GlobalFilter {
 
         if (this.requestService.isPublic(request)) {
             return chain.filter(exchange);
-        } else if (this.requestService.isForbidden(request)) {
-            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-
-            return exchange.getResponse().setComplete();
         }
 
         final var jwt = this.requestService.extractJwt(request);
