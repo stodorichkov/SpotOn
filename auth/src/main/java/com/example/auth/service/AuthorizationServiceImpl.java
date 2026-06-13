@@ -13,8 +13,8 @@ import java.util.Arrays;
 @Service
 @RequiredArgsConstructor
 public class AuthorizationServiceImpl implements AuthorizationService {
-    @Value("${microservice.secret}")
-    private String microserviceSecret;
+    @Value("${service.secret}")
+    private String serviceSecret;
 
     @Override
     public void hasRole(RoleEnum userRoleHeader, RoleEnum... requiredRoles) {
@@ -26,7 +26,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public void hasInternalAccess(String secret, ServiceEnum service, ServiceEnum... allowedServices) {
-        if (!secret.equals(this.microserviceSecret)) {
+        if (!secret.equals(this.serviceSecret)) {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 

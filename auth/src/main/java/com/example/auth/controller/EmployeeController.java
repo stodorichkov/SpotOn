@@ -23,6 +23,7 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.OK)
     public void removeEmployee(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
             @PathVariable Long id
@@ -37,6 +38,7 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.OK)
     public List<UserDetailsResponse> getEmployees(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
             @RequestBody List<Long> userIds
