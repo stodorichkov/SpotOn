@@ -6,6 +6,7 @@ import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.service.AuthorizationService;
+import com.example.restaurant.service.EmployeeService;
 import com.example.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

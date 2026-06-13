@@ -25,10 +25,12 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.CREATED)
     public void addEmployee(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
             @Valid @RequestBody AddEmployeeRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         this.employeeService.addEmployee(request, restaurantIdHeader);
     }
@@ -54,10 +56,12 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.OK)
     Page<UserDetailsResponse> getEmployees(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.employeeService.getEmployees(restaurantIdHeader, pageable);
     }
@@ -66,10 +70,12 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.OK)
     void removeEmployee(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
             @PathVariable Long id
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         this.employeeService.removeEmployee(restaurantIdHeader, id);
     }

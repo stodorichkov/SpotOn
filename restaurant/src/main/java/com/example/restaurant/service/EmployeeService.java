@@ -7,9 +7,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface EmployeeService {
-    void addEmployee(AddEmployeeRequest request, Long restaurantId);
     void addManager(AddManagerRequest request);
-    Long getRestaurantId(Long userId);
+    void addEmployee(AddEmployeeRequest request, Long restaurantId);
+    void removeEmployee(Long restaurantId, Long employeeId);
     Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable);
-    void removeEmployee(Long restaurantId, Long userId);
+
+    Long getRestaurantId(Long userId);
+
+    void hasAccessToRestaurant(Long restaurantId, Long employeeId);
 }

@@ -5,6 +5,7 @@ import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.service.AuthorizationService;
+import com.example.restaurant.service.EmployeeService;
 import com.example.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +17,18 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class RestaurantProfileController {
     private final RestaurantService restaurantService;
+    private final EmployeeService employeeService;
     private final AuthorizationService authorizationService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public RestaurantDetailsResponse getProfile(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.EMPLOYEE);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.restaurantService.getRestaurant(restaurantIdHeader);
     }
@@ -33,10 +37,12 @@ public class RestaurantProfileController {
     @ResponseStatus(HttpStatus.OK)
     public RestaurantDetailsResponse editProfile(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
             @Valid @RequestBody RestaurantRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.restaurantService.editRestaurant(restaurantIdHeader, request);
     }

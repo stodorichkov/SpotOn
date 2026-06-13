@@ -1,8 +1,10 @@
 package com.example.restaurant.config;
 
 import com.example.restaurant.constants.HeaderConstants;
+import com.example.restaurant.model.enums.ServiceEnum;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -11,6 +13,9 @@ import java.util.Optional;
 
 @Component
 public class FeignHeaderInterceptor implements RequestInterceptor {
+    @Value("${service.secret}")
+    private String serviceSecret;
+
     @Override
     public void apply(RequestTemplate template) {
         final var request = Optional.ofNullable(RequestContextHolder.getRequestAttributes())
@@ -22,6 +27,9 @@ public class FeignHeaderInterceptor implements RequestInterceptor {
         if (request == null) {
             return;
         }
+
+        template.header(HeaderConstants.ITERNAL_SERVICE, String.valueOf(ServiceEnum.RESTAURANT));
+        template.header(HeaderConstants.ITERNAL_SECRET, serviceSecret);
 
         Optional.ofNullable(request.getHeader(HeaderConstants.USER_ID))
                 .ifPresent(userId -> template.header(HeaderConstants.USER_ID, userId));

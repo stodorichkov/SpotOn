@@ -30,18 +30,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public void addEmployee(AddEmployeeRequest request, Long restaurantId) {
-        final var restaurant = this.restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
-
-        final var employee = this.employeeMapper.mapFromAddEmployeeRequest(request);
-        employee.setRestaurant(restaurant);
-
-        this.employeeRepository.save(employee);
-    }
-
-    @Override
-    @Transactional
     public void addManager(AddManagerRequest request) {
         final var restaurant = this.restaurantRepository.findById(request.restaurantId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
@@ -54,34 +42,20 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public Long getRestaurantId(Long userId) {
-        return this.employeeRepository.findByUserId(userId)
-                .map(Employee::getRestaurant)
-                .map(Restaurant::getId)
-                .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
+    public void addEmployee(AddEmployeeRequest request, Long restaurantId) {
+        final var restaurant = this.restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        final var employee = this.employeeMapper.mapFromAddEmployeeRequest(request);
+        employee.setRestaurant(restaurant);
+
+        this.employeeRepository.save(employee);
     }
 
     @Override
     @Transactional
-    public Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable) {
-        final var userIds = this.employeeRepository.findAllByRestaurantId(restaurantId, pageable)
-                .map(Employee::getUserId);
-
-        if (userIds.isEmpty()) {
-            return Page.empty(pageable);
-        }
-
-        final var usersDetails = this.authEmployeeClient.getEmployees(userIds.getContent());
-        final var detailsMap = usersDetails.stream()
-                .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
-
-        return userIds.map(detailsMap::get);
-    }
-
-    @Override
-    @Transactional
-    public void removeEmployee(Long restaurantId, Long userId) {
-        final var employee = this.employeeRepository.findByUserId(userId)
+    public void removeEmployee(Long restaurantId, Long employeeId) {
+        final var employee = this.employeeRepository.findByUserId(employeeId)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
 
         if (!employee.getRestaurant().getId().equals(restaurantId)) {
@@ -90,6 +64,42 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         this.employeeRepository.deleteById(employee.getId());
 
-        this.authEmployeeClient.removeEmployee(userId);
+        this.authEmployeeClient.removeEmployee(employeeId);
+    }
+
+    @Override
+    @Transactional
+    public Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable) {
+        final var employeeIds = this.employeeRepository.findAllByRestaurantId(restaurantId, pageable)
+                .map(Employee::getUserId);
+
+        if (employeeIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        final var usersDetails = this.authEmployeeClient.getEmployees(employeeIds.getContent());
+        final var detailsMap = usersDetails.stream()
+                .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
+
+        return employeeIds.map(detailsMap::get);
+    }
+
+    @Override
+    @Transactional
+    public Long getRestaurantId(Long userId) {
+        return this.employeeRepository.findByUserId(userId)
+                .map(Employee::getRestaurant)
+                .map(Restaurant::getId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
+    }
+
+    @Override
+    public void hasAccessToRestaurant(Long restaurantId, Long employeeId) {
+        final var employee = this.employeeRepository.findByUserId(employeeId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
+
+        if (!employee.getRestaurant().getId().equals(restaurantId)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
     }
 }
