@@ -10,4 +10,6 @@ public class HeaderConstants {
     public static final String USER_JTI = "X-User-Jti";
     public static final String USER_EXPIRATION = "X-User-Expiration";
     public static final String RESTAURANT_ID = "X-Restaurant-Id";
+    public static final String ITERNAL_SERVICE = "X-Internal-Service";
+    public static final String ITERNAL_SECRET = "X-Internal-Service";
 }

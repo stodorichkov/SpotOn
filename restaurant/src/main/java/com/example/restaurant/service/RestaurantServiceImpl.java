@@ -4,6 +4,7 @@ import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.response.BookingRestaurantResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,5 +75,13 @@ public class RestaurantServiceImpl implements RestaurantService {
         this.restaurantRepository.save(restaurant);
 
         return this.restaurantMapper.mapToRestaurantDetailsResponse(restaurant);
+    }
+
+    @Override
+    public List<BookingRestaurantResponse> getBookingRestaurants(List<Long> restaurantIds) {
+        return this.restaurantRepository.findAllById(restaurantIds)
+                .stream()
+                .map(this.restaurantMapper::mapToBookingRestaurantResponse)
+                .toList();
     }
 }

@@ -20,7 +20,7 @@ public record ClientBookingRequest(
         Boolean isSmoking,
 
         @NotNull(message = MessageConstants.BLANK_FIELD)
-        @Future(message = "Резервацията трябва да бъде за бъдещ момент")
+        @Future(message = MessageConstants.FUTURE_DATE_TIME)
         Instant dateTime
 ) {
 }
