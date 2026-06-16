@@ -2,6 +2,7 @@ package com.example.restaurant.controller;
 
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
+import com.example.restaurant.model.enums.ServiceEnum;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
 import com.example.restaurant.model.payload.response.UserDetailsResponse;
@@ -27,9 +28,12 @@ public class EmployeeController {
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
             @Valid @RequestBody AddEmployeeRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.AUTH);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         this.employeeService.addEmployee(request, restaurantIdHeader);
@@ -39,16 +43,25 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.CREATED)
     public void addManager(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
             @Valid @RequestBody AddManagerRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+        this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.AUTH);
 
         this.employeeService.addManager(request);
     }
 
     @GetMapping("/{id}/restaurant")
     @ResponseStatus(HttpStatus.OK)
-    Long getRestaurantId(@PathVariable Long id) {
+    Long getRestaurantId(
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
+            @PathVariable Long id
+    ) {
+        this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.AUTH);
+
         return this.employeeService.getRestaurantId(id);
     }
 
