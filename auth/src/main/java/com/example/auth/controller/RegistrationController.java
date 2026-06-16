@@ -30,7 +30,6 @@ public class RegistrationController {
     @ResponseStatus(HttpStatus.CREATED)
     public EmployeeRegistrationResponse registerEmployee(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
-            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
             @Valid @RequestBody EmployeeRegistrationRequest request
     ) {
