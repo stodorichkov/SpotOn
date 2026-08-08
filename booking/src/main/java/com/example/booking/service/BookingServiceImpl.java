@@ -1,12 +1,15 @@
 package com.example.booking.service;
 
 import com.example.booking.client.RestaurantBookingClient;
+import com.example.booking.client.AuthBookingClient;
 import com.example.booking.mapper.BookingMapper;
 import com.example.booking.model.entity.Booking;
 import com.example.booking.model.enums.StatuEnum;
 import com.example.booking.model.payload.request.ClientBookingRequest;
+import com.example.booking.model.payload.response.BookingClientResponse;
 import com.example.booking.model.payload.response.BookingRestaurantResponse;
 import com.example.booking.model.payload.response.ClientBookingResponse;
+import com.example.booking.model.payload.response.RestaurantBookingResponse;
 import com.example.booking.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +28,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
     private final RestaurantBookingClient restaurantBookingClient;
+    private final AuthBookingClient authBookingClient;
 
     @Override
     public void addBooking(ClientBookingRequest request, Long clientId) {
@@ -63,5 +67,26 @@ public class BookingServiceImpl implements BookingService {
                 .toList();
 
         return new PageImpl<>(clientBookingResponses, pageable, bookingsPage.getTotalElements());
+    }
+
+    @Override
+    public Page<RestaurantBookingResponse> getRestaurantBookings(Long restaurantId, Pageable pageable) {
+        final var bookingsPage = this.bookingRepository.findAllByRestaurantId(restaurantId, pageable);
+        final var userIds = bookingsPage.getContent().stream()
+                .map(Booking::getClientId)
+                .toList();
+
+        final var usersById = this.authBookingClient.getUsers(userIds)
+                .stream()
+                .collect(Collectors.toMap(BookingClientResponse::id, Function.identity()));
+
+        final var restaurantBookingResponses = bookingsPage.getContent().stream()
+                .map(booking -> {
+                    final var client = usersById.get(booking.getClientId());
+                    return this.bookingMapper.mapToRestaurantBookingResponse(booking, client);
+                })
+                .toList();
+
+        return new PageImpl<>(restaurantBookingResponses, pageable, bookingsPage.getTotalElements());
     }
 }

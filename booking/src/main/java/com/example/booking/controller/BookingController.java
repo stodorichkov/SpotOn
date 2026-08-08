@@ -4,6 +4,7 @@ import com.example.booking.constants.HeaderConstants;
 import com.example.booking.model.enums.RoleEnum;
 import com.example.booking.model.payload.request.ClientBookingRequest;
 import com.example.booking.model.payload.response.ClientBookingResponse;
+import com.example.booking.model.payload.response.RestaurantBookingResponse;
 import com.example.booking.service.AuthorizationService;
 import com.example.booking.service.BookingService;
 import jakarta.validation.Valid;
@@ -41,5 +42,16 @@ public class BookingController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
 
         return this.bookingService.getClientBookings(userIdHeader, pageable);
+    }
+
+    @GetMapping("/restaurant/{restaurantId}")
+    public Page<RestaurantBookingResponse> getRestaurantBookings(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            Pageable pageable
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+
+        return this.bookingService.getRestaurantBookings(restaurantId, pageable);
     }
 }
