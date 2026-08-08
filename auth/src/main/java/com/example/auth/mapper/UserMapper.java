@@ -1,5 +1,6 @@
 package com.example.auth.mapper;
 
+import com.example.auth.dto.BookingClientResponse;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.payload.request.*;
 import com.example.auth.model.payload.response.ProfileResponse;
@@ -35,6 +36,8 @@ public interface UserMapper {
             @MappingTarget User user,
             @Context PasswordEncoder passwordEncoder
     );
+
+    BookingClientResponse mapToBookingClientResponse(User user);
 
     @Named("encodePassword")
     default String encodePassword(String rawPassword, @Context PasswordEncoder passwordEncoder) {
