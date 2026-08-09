@@ -78,4 +78,15 @@ public class BookingController {
 
         this.bookingService.markBookingAsArrived(restaurantId, bookingId);
     }
+
+    @PatchMapping("/{bookingId}/completed")
+    public void markBookingAsCompleted(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            @PathVariable Long bookingId
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+
+        this.bookingService.markBookingAsCompleted(restaurantId, bookingId);
+    }
 }
