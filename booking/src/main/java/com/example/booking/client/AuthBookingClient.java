@@ -1,6 +1,6 @@
 package com.example.booking.client;
 
-import com.example.booking.model.payload.response.BookingClientResponse;
+import com.example.booking.model.payload.response.ClientContactResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,5 +13,5 @@ import java.util.List;
 )
 public interface AuthBookingClient {
     @PostMapping("/users")
-    List<BookingClientResponse> getUsers(@RequestBody List<Long> userIds);
+    List<ClientContactResponse> getUsers(@RequestBody List<Long> userIds);
 }

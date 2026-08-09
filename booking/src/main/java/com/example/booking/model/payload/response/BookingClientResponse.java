@@ -1,9 +1,13 @@
 package com.example.booking.model.payload.response;
 
+import java.time.Instant;
+
 public record BookingClientResponse(
         Long id,
-        String firstName,
-        String lastName,
-        String phone
+        String status,
+        RestaurantContactResponse restaurant,
+        Integer guestCount,
+        boolean isSmoking,
+        Instant dateTime
 ) {
 }

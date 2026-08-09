@@ -6,10 +6,10 @@ import com.example.booking.mapper.BookingMapper;
 import com.example.booking.model.entity.Booking;
 import com.example.booking.model.enums.StatuEnum;
 import com.example.booking.model.payload.request.ClientBookingRequest;
+import com.example.booking.model.payload.response.ClientContactResponse;
+import com.example.booking.model.payload.response.RestaurantContactResponse;
 import com.example.booking.model.payload.response.BookingClientResponse;
-import com.example.booking.model.payload.response.BookingRestaurantResponse;
-import com.example.booking.model.payload.response.ClientBookingResponse;
-import com.example.booking.model.payload.response.RestaurantBookingResponse;
+import com.example.booking.model.payload.response.BookingEmployeeResponse;
 import com.example.booking.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -49,7 +49,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Page<ClientBookingResponse> getClientBookings(Long clientId, Pageable pageable) {
+    public Page<BookingClientResponse> getClientBookings(Long clientId, Pageable pageable) {
         final var bookingsPage = this.bookingRepository.findAllByClientId(clientId, pageable);
         final var restaurantIds = bookingsPage.getContent().stream()
                 .map(Booking::getRestaurantId)
@@ -57,7 +57,7 @@ public class BookingServiceImpl implements BookingService {
 
         final var restaurantsById = this.restaurantBookingClient.getRestaurants(restaurantIds)
                 .stream()
-                .collect(Collectors.toMap(BookingRestaurantResponse::id, Function.identity()));
+                .collect(Collectors.toMap(RestaurantContactResponse::id, Function.identity()));
 
         final var clientBookingResponses = bookingsPage.getContent().stream()
                 .map(booking -> {
@@ -70,7 +70,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Page<RestaurantBookingResponse> getRestaurantBookings(Long restaurantId, Pageable pageable) {
+    public Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, Pageable pageable) {
         final var bookingsPage = this.bookingRepository.findAllByRestaurantId(restaurantId, pageable);
         final var userIds = bookingsPage.getContent().stream()
                 .map(Booking::getClientId)
@@ -78,7 +78,7 @@ public class BookingServiceImpl implements BookingService {
 
         final var usersById = this.authBookingClient.getUsers(userIds)
                 .stream()
-                .collect(Collectors.toMap(BookingClientResponse::id, Function.identity()));
+                .collect(Collectors.toMap(ClientContactResponse::id, Function.identity()));
 
         final var restaurantBookingResponses = bookingsPage.getContent().stream()
                 .map(booking -> {

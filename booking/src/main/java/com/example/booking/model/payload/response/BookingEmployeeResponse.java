@@ -2,10 +2,10 @@ package com.example.booking.model.payload.response;
 
 import java.time.Instant;
 
-public record RestaurantBookingResponse(
+public record BookingEmployeeResponse(
         Long id,
         String status,
-        BookingClientResponse client,
+        ClientContactResponse client,
         Integer guestCount,
         boolean isSmoking,
         Instant dateTime
