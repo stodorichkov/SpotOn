@@ -14,5 +14,8 @@ public interface RestaurantService {
     Page<RestaurantResponse> getRestaurants(Pageable pageable);
     RestaurantDetailsResponse getRestaurant(Long id);
     RestaurantDetailsResponse editRestaurant(Long id, RestaurantRequest request);
+
+    // Booking
     List<RestaurantContactResponse> getRestaurantsContact(List<Long> restaurantIds);
+    void restaurantExists(Long id);
 }

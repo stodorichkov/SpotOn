@@ -30,4 +30,5 @@ public class MessageConstants {
 
     // Table
     public static final String TABLE_NOT_FOUND = "Table not found";
+    public static final String TABLE_NOT_MATCH_REQUIREMENTS = "Selected table does not match the guest's requirements.";
 }

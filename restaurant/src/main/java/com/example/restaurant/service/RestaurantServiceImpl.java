@@ -84,4 +84,10 @@ public class RestaurantServiceImpl implements RestaurantService {
                 .map(this.restaurantMapper::mapToRestaurantContactResponse)
                 .toList();
     }
+
+    @Override
+    public void restaurantExists(Long id) {
+        this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+    }
 }

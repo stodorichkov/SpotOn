@@ -2,9 +2,11 @@ package com.example.restaurant.service;
 
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.AccessDeniedException;
+import com.example.restaurant.exception.BadRequestException;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantTableMapper;
 import com.example.restaurant.model.payload.request.RestaurantTableRequest;
+import com.example.restaurant.model.payload.request.RestaurantTableValidationRequest;
 import com.example.restaurant.model.payload.response.RestaurantTableResponse;
 import com.example.restaurant.repository.RestaurantRepository;
 import com.example.restaurant.repository.RestaurantTableRepository;
@@ -66,5 +68,20 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
         }
 
         this.restaurantTableRepository.deleteById(tableId);
+    }
+
+    @Override
+    @Transactional
+    public void validateTable(RestaurantTableValidationRequest request, Long restaurantId) {
+        final var table = this.restaurantTableRepository.findById(request.tableId())
+                .orElseThrow(() -> new NotFoundException(MessageConstants.TABLE_NOT_FOUND));
+
+        if (!table.getRestaurant().getId().equals(restaurantId)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        } else if (table.getCapacity() < request.guestCount()) {
+            throw new BadRequestException(MessageConstants.TABLE_NOT_MATCH_REQUIREMENTS);
+        } else if (request.isSmoking() && !table.getIsSmokingAllowed()) {
+            throw new BadRequestException(MessageConstants.TABLE_NOT_MATCH_REQUIREMENTS);
+        }
     }
 }
