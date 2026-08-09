@@ -3,7 +3,7 @@ package com.example.restaurant.controller;
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.enums.ServiceEnum;
-import com.example.restaurant.model.payload.response.BookingRestaurantResponse;
+import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.service.AuthorizationService;
 import com.example.restaurant.service.RestaurantService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class BookingController {
 
     @PostMapping("/restaurants")
     @ResponseStatus(HttpStatus.OK)
-    List<BookingRestaurantResponse> getRestaurants(
+    List<RestaurantContactResponse> getRestaurantsContact(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String secret,
@@ -30,6 +30,6 @@ public class BookingController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
         this.authorizationService.hasInternalAccess(secret, service, ServiceEnum.BOOKING);
 
-        return this.restaurantService.getBookingRestaurants(restaurantIds);
+        return this.restaurantService.getRestaurantsContact(restaurantIds);
     }
 }

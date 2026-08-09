@@ -4,7 +4,7 @@ import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
-import com.example.restaurant.model.payload.response.BookingRestaurantResponse;
+import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
@@ -78,10 +78,10 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public List<BookingRestaurantResponse> getBookingRestaurants(List<Long> restaurantIds) {
+    public List<RestaurantContactResponse> getRestaurantsContact(List<Long> restaurantIds) {
         return this.restaurantRepository.findAllById(restaurantIds)
                 .stream()
-                .map(this.restaurantMapper::mapToBookingRestaurantResponse)
+                .map(this.restaurantMapper::mapToRestaurantContactResponse)
                 .toList();
     }
 }
