@@ -173,4 +173,21 @@ public class BookingServiceImpl implements BookingService {
 
         this.bookingRepository.save(booking);
     }
+
+    @Override
+    @Transactional
+    public void markBookingAsCanceled(Long bookingId, Long restaurantId) {
+        final var booking = this.bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
+
+        if (!booking.getRestaurantId().equals(restaurantId)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        final var status = this.statusService.getStatusByName(StatuEnum.CANCELED);
+
+        booking.setStatus(status);
+
+        this.bookingRepository.save(booking);
+    }
 }

@@ -16,4 +16,5 @@ public interface BookingService {
     void markBookingAsConfirmed(Long bookingId, Long restaurantId, BookingConfirmRequest request);
     void markBookingAsArrived(Long bookingId, Long restaurantId);
     void markBookingAsCompleted(Long bookingId, Long restaurantId);
+    void markBookingAsCanceled(Long bookingId, Long restaurantId);
 }

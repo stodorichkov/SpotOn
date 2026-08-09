@@ -89,4 +89,15 @@ public class BookingController {
 
         this.bookingService.markBookingAsCompleted(restaurantId, bookingId);
     }
+
+    @PatchMapping("/{bookingId}/canceled")
+    public void markBookingAsCanceled(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            @PathVariable Long bookingId
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+
+        this.bookingService.markBookingAsCanceled(restaurantId, bookingId);
+    }
 }
