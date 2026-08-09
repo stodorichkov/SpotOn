@@ -1,7 +1,7 @@
 package com.example.auth.controller;
 
 import com.example.auth.constants.HeaderConstants;
-import com.example.auth.dto.BookingClientResponse;
+import com.example.auth.model.payload.response.ClientContactResponse;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.enums.ServiceEnum;
 import com.example.auth.service.AuthorizationService;
@@ -19,7 +19,7 @@ public class BookingController {
     private final AuthorizationService authorizationService;
 
     @PostMapping("/users")
-    public List<BookingClientResponse> getUsersForBooking(
+    public List<ClientContactResponse> getClientsContact(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
@@ -28,6 +28,6 @@ public class BookingController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
         this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.BOOKING);
 
-        return userService.getUsersForBooking(userIds);
+        return userService.getClientContacts(userIds);
     }
 }

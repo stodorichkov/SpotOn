@@ -1,7 +1,7 @@
 package com.example.auth.service;
 
 import com.example.auth.constants.MessageConstants;
-import com.example.auth.dto.BookingClientResponse;
+import com.example.auth.model.payload.response.ClientContactResponse;
 import com.example.auth.exception.NotFoundException;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.payload.response.UserDetailsResponse;
@@ -13,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +34,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<BookingClientResponse> getUsersForBooking(List<Long> userIds) {
+    public List<ClientContactResponse> getClientContacts(List<Long> userIds) {
         return userRepository.findAllById(userIds).stream()
                 .map(userMapper::mapToBookingClientResponse)
                 .toList();
