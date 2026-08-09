@@ -56,8 +56,8 @@ public class BookingController {
         return this.bookingService.getRestaurantBookings(restaurantId, pageable);
     }
 
-    @PatchMapping("/{bookingId}/confirm")
-    public void confirmBooking(
+    @PatchMapping("/{bookingId}/confirmed")
+    public void markBookingAsConfirmed(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
             @PathVariable Long bookingId,
@@ -65,6 +65,17 @@ public class BookingController {
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
 
-        this.bookingService.confirmBooking(restaurantId, bookingId, request);
+        this.bookingService.markBookingAsConfirmed(restaurantId, bookingId, request);
+    }
+
+    @PatchMapping("/{bookingId}/arrived")
+    public void markBookingAsArrived(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            @PathVariable Long bookingId
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+
+        this.bookingService.markBookingAsArrived(restaurantId, bookingId);
     }
 }

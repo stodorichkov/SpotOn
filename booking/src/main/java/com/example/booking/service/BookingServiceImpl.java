@@ -98,11 +98,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void confirmBooking(Long bookingId, Long restaurantId, BookingConfirmRequest request) {
+    public void markBookingAsConfirmed(Long bookingId, Long restaurantId, BookingConfirmRequest request) {
         final var booking = this.bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
 
-        if (!booking.getRestaurantId().equals(restaurantId)) {
+        if (
+                !booking.getRestaurantId().equals(restaurantId)
+                || !booking.getStatus().getName().equals(StatuEnum.PENDING)
+        ) {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
@@ -127,6 +130,24 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(status);
         booking.setTableId(request.tableId());
+
+        this.bookingRepository.save(booking);
+    }
+
+    public void markBookingAsArrived(Long bookingId, Long restaurantId) {
+        final var booking = this.bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
+
+        if (
+                !booking.getRestaurantId().equals(restaurantId)
+                || !booking.getStatus().getName().equals(StatuEnum.CONFIRMED)
+        ) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        final var status = this.statusService.getStatusByName(StatuEnum.ARRIVED);
+
+        booking.setStatus(status);
 
         this.bookingRepository.save(booking);
     }

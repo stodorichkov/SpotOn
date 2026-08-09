@@ -13,5 +13,6 @@ public interface BookingService {
     Page<BookingClientResponse> getClientBookings(Long clientId, Pageable pageable);
     Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, Pageable pageable);
 
-    void confirmBooking(Long bookingId, Long restaurantId, BookingConfirmRequest request);
+    void markBookingAsConfirmed(Long bookingId, Long restaurantId, BookingConfirmRequest request);
+    void markBookingAsArrived(Long bookingId, Long restaurantId);
 }
