@@ -2,7 +2,8 @@ package com.example.booking.controller;
 
 import com.example.booking.constants.HeaderConstants;
 import com.example.booking.model.enums.RoleEnum;
-import com.example.booking.model.payload.request.ClientBookingRequest;
+import com.example.booking.model.payload.request.BookingClientRequest;
+import com.example.booking.model.payload.request.BookingConfirmRequest;
 import com.example.booking.model.payload.response.BookingClientResponse;
 import com.example.booking.model.payload.response.BookingEmployeeResponse;
 import com.example.booking.service.AuthorizationService;
@@ -26,7 +27,7 @@ public class BookingController {
     public void addBooking(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
-            @Valid @RequestBody ClientBookingRequest request
+            @Valid @RequestBody BookingClientRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
 
@@ -53,5 +54,17 @@ public class BookingController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
 
         return this.bookingService.getRestaurantBookings(restaurantId, pageable);
+    }
+
+    @PatchMapping("/{bookingId}/confirm")
+    public void confirmBooking(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            @PathVariable Long bookingId,
+            @Valid @RequestBody BookingConfirmRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+
+        this.bookingService.confirmBooking(restaurantId, bookingId, request);
     }
 }

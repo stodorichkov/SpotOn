@@ -1,6 +1,7 @@
 package com.example.booking.exception;
 
 import com.example.booking.constants.MessageConstants;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             BadRequestException.class,
             MissingRequestHeaderException.class,
-            MethodArgumentNotValidException.class
+            MethodArgumentNotValidException.class,
+            FeignException.BadRequest.class
     })
     public ResponseEntity<?> handle(Exception ex) {
         log.error(ex.getMessage());
@@ -36,25 +38,41 @@ public class GlobalExceptionHandler {
                     ));
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        } else if (ex instanceof FeignException.BadRequest feignEx) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(feignEx.contentUTF8());
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> handle(AccessDeniedException ex) {
+    @ExceptionHandler({
+            AccessDeniedException.class,
+            FeignException.Forbidden.class
+    })
+    public ResponseEntity<String> handleAccessDeniedException(Exception ex) {
         log.error(ex.getMessage());
         log.info(ex.getMessage(), ex);
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+        if (ex instanceof FeignException.Forbidden feignEx) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(feignEx.contentUTF8());
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+        }
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handle(NotFoundException ex) {
+    @ExceptionHandler({
+            NotFoundException.class,
+            FeignException.NotFound.class
+    })
+    public ResponseEntity<String> handleNotFoundException(Exception ex) {
         log.error(ex.getMessage());
         log.info(ex.getMessage(), ex);
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        if (ex instanceof FeignException.NotFound feignEx) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(feignEx.contentUTF8());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        }
     }
 
     @ExceptionHandler(Exception.class)

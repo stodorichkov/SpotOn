@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
 
-public record ClientBookingRequest(
+public record BookingClientRequest(
         @NotNull(message = MessageConstants.BLANK_FIELD)
         Long restaurantId,
 
