@@ -50,14 +50,14 @@ public class ProfileController {
 
     @PatchMapping("/username")
     @ResponseStatus(HttpStatus.OK)
-    public String changeUsername(
+    public void changeUsername(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @Valid @RequestBody ChangeUsernameRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
 
-        return this.profileService.changeUsername(userIdHeader, request);
+        this.profileService.changeUsername(userIdHeader, request.newUsername());
     }
 
     @PatchMapping("/password")

@@ -5,7 +5,6 @@ import com.example.auth.exception.BadRequestException;
 import com.example.auth.exception.NotFoundException;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.payload.request.ChangePasswordRequest;
-import com.example.auth.model.payload.request.ChangeUsernameRequest;
 import com.example.auth.model.payload.request.EditProfileRequest;
 import com.example.auth.model.payload.response.ProfileResponse;
 import com.example.auth.repository.UserRepository;
@@ -42,22 +41,16 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public String changeUsername(Long id, ChangeUsernameRequest request) {
-        if (this.userRepository.findByUsername(request.newUsername()).isPresent()) {
+    public void changeUsername(Long id, String newUsername) {
+        if (this.userRepository.findByUsername(newUsername).isPresent()) {
             throw new BadRequestException(MessageConstants.USER_EXISTS);
         }
 
         final var user = this.userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
 
-        if (!user.getUsername().equals(request.currentUsername())) {
-            throw new BadRequestException(MessageConstants.WRONG_USERNAME);
-        }
-
-        user.setUsername(request.newUsername());
+        user.setUsername(newUsername);
         this.userRepository.save(user);
-
-        return request.newUsername();
     }
 
     @Override

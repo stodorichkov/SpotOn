@@ -8,6 +8,6 @@ import com.example.auth.model.payload.response.ProfileResponse;
 public interface ProfileService {
     ProfileResponse getProfile(Long id);
     ProfileResponse editProfile(Long id, EditProfileRequest request);
-    String changeUsername(Long id, ChangeUsernameRequest request);
+    void changeUsername(Long id, String newUsername);
     void changePassword(Long id, ChangePasswordRequest request);
 }
