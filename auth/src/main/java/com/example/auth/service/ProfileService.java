@@ -7,7 +7,7 @@ import com.example.auth.model.payload.response.ProfileResponse;
 
 public interface ProfileService {
     ProfileResponse getProfile(Long id);
-    ProfileResponse editProfile(Long id, EditProfileRequest request);
+    void editProfile(Long id, EditProfileRequest request);
     void changeUsername(Long id, String newUsername);
     void changePassword(Long id, ChangePasswordRequest request);
 }

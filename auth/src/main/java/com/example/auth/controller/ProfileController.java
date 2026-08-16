@@ -34,7 +34,7 @@ public class ProfileController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public ProfileResponse editProfile(
+    public void editProfile(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @Valid @RequestBody EditProfileRequest request
@@ -45,7 +45,7 @@ public class ProfileController {
                 RoleEnum.MANAGER
         );
 
-        return this.profileService.editProfile(userIdHeader, request);
+        this.profileService.editProfile(userIdHeader, request);
     }
 
     @PatchMapping("/username")

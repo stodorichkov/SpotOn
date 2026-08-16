@@ -29,13 +29,12 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public ProfileResponse editProfile(Long id, EditProfileRequest request) {
-        return this.userRepository.findById(id)
+    public void editProfile(Long id, EditProfileRequest request) {
+        this.userRepository.findById(id)
                 .map(user -> {
                     this.userMapper.updateFromEditProfileRequest(request, user);
                     return this.userRepository.save(user);
                 })
-                .map(this.userMapper::mapToProfileResponse)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
     }
 
