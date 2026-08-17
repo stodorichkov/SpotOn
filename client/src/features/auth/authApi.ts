@@ -85,11 +85,26 @@ export const authApi = api.injectEndpoints({
             }),
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
-                    const { data } = await queryFulfilled;
-                    dispatch(setCredentials({ token: data }));
+                    // Set the token first to authenticate the getProfile call
+                    const { data: token } = await queryFulfilled;
+                    dispatch(setCredentials({ token, role: null })); // Temporarily set token
+
+                    // Fetch profile to get the role
+                    const profileResult = await dispatch(authApi.endpoints.getProfile.initiate());
+                    
+                    if (profileResult.data) {
+                        const role = profileResult.data.role;
+                        // Set final credentials with role
+                        dispatch(setCredentials({ token, role }));
+                    } else {
+                        // If profile fetch fails, logout the user
+                        throw new Error("Profile fetch failed");
+                    }
+
                 } catch (error) {
-                    // Handle error if needed
-                    console.error("Login failed:", error);
+                    console.error("Login process failed:", error);
+                    // Clear credentials on any failure in the process
+                    dispatch(setCredentials({ token: null, role: null }));
                 }
             },
         }),
@@ -101,7 +116,7 @@ export const authApi = api.injectEndpoints({
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
-                    dispatch(setCredentials({ token: null }));
+                    dispatch(setCredentials({ token: null, role: null }));
                 } catch (error) {
                     console.error("Logout failed:", error);
                 }

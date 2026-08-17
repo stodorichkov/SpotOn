@@ -5,12 +5,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { useLogoutMutation } from '../features/auth/authApi';
 import PersonIcon from '@mui/icons-material/Person';
+import GroupIcon from '@mui/icons-material/Group';
 import { addAlert } from '../features/alerts/alertsSlice';
 
 const AppTopBar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const token = useSelector((state: RootState) => state.auth.token);
+  const { token, role } = useSelector((state: RootState) => state.auth);
   const [logoutApi] = useLogoutMutation();
 
   const handleLogout = async () => {
@@ -29,7 +30,7 @@ const AppTopBar = () => {
         <Typography
           variant="h6"
           component={Link}
-          to="/"
+          to={role === 'ADMIN' ? '/users' : '/'}
           sx={{
             textDecoration: 'none',
             color: 'inherit',
@@ -38,8 +39,19 @@ const AppTopBar = () => {
         >
           SpotOn
         </Typography>
+        {role === 'ADMIN' && (
+          <Button
+            color="inherit"
+            component={Link}
+            to="/users"
+            startIcon={<GroupIcon />}
+            sx={{ ml: 2, textTransform: 'none', fontWeight: 'bold' }}
+          >
+            Users
+          </Button>
+        )}
         <Box sx={{ flexGrow: 1 }} />
-        <Box sx={{ gap: 2, display: 'flex' }}>
+        <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
           {token ? (
             <>
               <Button
