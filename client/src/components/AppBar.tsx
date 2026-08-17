@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Box, Tabs, Tab } from '@mui/material';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { useLogoutMutation } from '../features/auth/authApi';
@@ -11,6 +11,7 @@ import { addAlert } from '../features/alerts/alertsSlice';
 const AppTopBar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
   const { token, role } = useSelector((state: RootState) => state.auth);
   const [logoutApi] = useLogoutMutation();
 
@@ -23,6 +24,9 @@ const AppTopBar = () => {
       console.error("Failed to logout:", error);
     }
   };
+
+  // Determine the current tab value based on the path
+  const currentTab = location.pathname.startsWith('/users') ? '/users' : location.pathname;
 
   return (
     <AppBar position="sticky">
@@ -39,34 +43,45 @@ const AppTopBar = () => {
         >
           SpotOn
         </Typography>
+        
         {role === 'ADMIN' && (
-          <Button
-            color="inherit"
-            component={Link}
-            to="/users"
-            startIcon={<GroupIcon />}
-            sx={{ ml: 2, textTransform: 'none', fontWeight: 'bold' }}
+          <Tabs
+            value={currentTab}
+            textColor="inherit"
+            indicatorColor="secondary"
+            sx={{ ml: 2, '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
           >
-            Users
-          </Button>
+            <Tab
+              label="Users"
+              value="/users"
+              icon={<GroupIcon />}
+              iconPosition="start"
+              component={Link}
+              to="/users"
+            />
+          </Tabs>
         )}
+
         <Box sx={{ flexGrow: 1 }} />
-        <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {token ? (
             <>
-              <Button
-                variant="text"
-                color="inherit"
-                component={Link}
-                to="/profile"
-                startIcon={<PersonIcon />}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 'bold',
-                }}
+              <Tabs
+                value={currentTab}
+                textColor="inherit"
+                indicatorColor="secondary"
+                sx={{ '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
               >
-                Profile
-              </Button>
+                <Tab
+                  label="Profile"
+                  value="/profile"
+                  icon={<PersonIcon />}
+                  iconPosition="start"
+                  component={Link}
+                  to="/profile"
+                />
+              </Tabs>
               <Button
                 variant="contained"
                 color="secondary"
