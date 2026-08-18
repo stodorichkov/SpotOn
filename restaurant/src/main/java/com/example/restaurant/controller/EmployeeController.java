@@ -70,13 +70,16 @@ public class EmployeeController {
     Page<UserDetailsResponse> getEmployees(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
-            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
             Pageable pageable
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
-        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
-
-        return this.employeeService.getEmployees(restaurantIdHeader, pageable);
+        if (userRoleHeader == RoleEnum.MANAGER) {
+            this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+            return this.employeeService.getEmployees(restaurantIdHeader, pageable);
+        } else {
+            this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+            return this.employeeService.getEmployees(pageable);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -84,12 +87,15 @@ public class EmployeeController {
     void removeEmployee(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
-            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
             @PathVariable Long id
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
-        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
-
-        this.employeeService.removeEmployee(restaurantIdHeader, id);
+        if (userRoleHeader == RoleEnum.MANAGER) {
+            this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+            this.employeeService.removeEmployee(restaurantIdHeader, id);
+        } else {
+            this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+            this.employeeService.removeEmployee(id);
+        }
     }
 }

@@ -13,6 +13,7 @@ import com.example.restaurant.model.payload.response.UserDetailsResponse;
 import com.example.restaurant.repository.EmployeeRepository;
 import com.example.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -69,19 +70,31 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
+    public void removeEmployee(Long employeeId) {
+        final var employee = this.employeeRepository.findByUserId(employeeId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.EMPLOYEE_NOT_FOUND));
+
+        this.employeeRepository.deleteById(employee.getId());
+
+        this.authEmployeeClient.removeEmployee(employeeId);
+    }
+
+    @Override
+    @Transactional
     public Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable) {
         final var employeeIds = this.employeeRepository.findAllByRestaurantId(restaurantId, pageable)
                 .map(Employee::getUserId);
 
-        if (employeeIds.isEmpty()) {
-            return Page.empty(pageable);
-        }
+        return getUserDetailsResponses(pageable, employeeIds);
+    }
 
-        final var usersDetails = this.authEmployeeClient.getEmployees(employeeIds.getContent());
-        final var detailsMap = usersDetails.stream()
-                .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
+    @Override
+    @Transactional
+    public Page<UserDetailsResponse> getEmployees(Pageable pageable) {
+        final var employeeIds = this.employeeRepository.findAll(pageable)
+                .map(Employee::getUserId);
 
-        return employeeIds.map(detailsMap::get);
+        return getUserDetailsResponses(pageable, employeeIds);
     }
 
     @Override
@@ -101,5 +114,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (!employee.getRestaurant().getId().equals(restaurantId)) {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
+    }
+
+    private Page<UserDetailsResponse> getUserDetailsResponses(Pageable pageable, Page<Long> employeeIds) {
+        if (employeeIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        final var usersDetails = this.authEmployeeClient.getEmployees(employeeIds.getContent());
+        final var detailsMap = usersDetails.stream()
+                .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
+
+        return employeeIds.map(detailsMap::get);
     }
 }

@@ -10,7 +10,9 @@ public interface EmployeeService {
     void addManager(AddManagerRequest request);
     void addEmployee(AddEmployeeRequest request, Long restaurantId);
     void removeEmployee(Long restaurantId, Long employeeId);
+    void removeEmployee(Long employeeId);
     Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable);
+    Page<UserDetailsResponse> getEmployees(Pageable pageable);
 
     Long getRestaurantId(Long userId);
 
