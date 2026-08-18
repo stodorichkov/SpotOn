@@ -41,7 +41,7 @@ public class EmployeeController {
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
             @RequestBody List<Long> userIds
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.ADMIN);
         this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.RESTAURANT);
 
         return this.employeeService.getEmployees(userIds);
