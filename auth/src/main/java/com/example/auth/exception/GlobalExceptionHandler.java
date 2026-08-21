@@ -58,19 +58,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
-    @ExceptionHandler({
-            NotFoundException.class,
-            FeignException.NotFound.class
-    })
-    public ResponseEntity<String> handleNotFoundException(Exception ex) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<String> handleNotFoundException(NotFoundException ex) {
         log.error(ex.getMessage());
         log.info(ex.getMessage(), ex);
 
-        if (ex instanceof FeignException.NotFound feignEx) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(feignEx.contentUTF8());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<String> handleFeignException(FeignException ex) {
+        log.error(ex.getMessage());
+        log.info(ex.getMessage(), ex);
+
+        int status = ex.status();
+        if (status < 100 || status > 599) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }
+
+        return ResponseEntity.status(status).body(ex.contentUTF8());
     }
 
     @ExceptionHandler(Exception.class)
