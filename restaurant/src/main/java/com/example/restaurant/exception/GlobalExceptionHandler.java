@@ -1,6 +1,7 @@
 package com.example.restaurant.exception;
 
 import com.example.restaurant.constants.MessageConstants;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +56,19 @@ public class GlobalExceptionHandler {
         log.info(ex.getMessage(), ex);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<String> handleFeignException(FeignException ex) {
+        log.error(ex.getMessage());
+        log.info(ex.getMessage(), ex);
+
+        int status = ex.status();
+        if (status <= 0) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        }
+
+        return ResponseEntity.status(status).body(ex.contentUTF8());
     }
 
     @ExceptionHandler(Exception.class)

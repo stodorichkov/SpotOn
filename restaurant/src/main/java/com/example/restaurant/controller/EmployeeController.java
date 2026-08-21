@@ -65,7 +65,7 @@ public class EmployeeController {
         return this.employeeService.getRestaurantId(id);
     }
 
-    @PostMapping
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     Page<UserDetailsResponse> getEmployees(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
@@ -73,11 +73,13 @@ public class EmployeeController {
             @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
             Pageable pageable
     ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER);
+
         if (userRoleHeader == RoleEnum.MANAGER) {
             this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+
             return this.employeeService.getEmployees(restaurantIdHeader, pageable);
         } else {
-            this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
             return this.employeeService.getEmployees(pageable);
         }
     }
@@ -90,11 +92,12 @@ public class EmployeeController {
             @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
             @PathVariable Long id
     ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER);
+
         if (userRoleHeader == RoleEnum.MANAGER) {
             this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
             this.employeeService.removeEmployee(restaurantIdHeader, id);
         } else {
-            this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
             this.employeeService.removeEmployee(id);
         }
     }
