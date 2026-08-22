@@ -32,7 +32,7 @@ public class RestaurantController {
     public List<CategoryResponse> initAddRestaurantForm(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER);
 
         return this.categoryService.getAllCategories();
     }
