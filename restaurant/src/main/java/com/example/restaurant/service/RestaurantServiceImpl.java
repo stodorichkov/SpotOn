@@ -27,19 +27,21 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     @Transactional
-    public void addRestaurant(RestaurantRequest request) {
+    public RestaurantResponse addRestaurant(RestaurantRequest request) {
         final var restaurant = this.restaurantMapper.mapFromRestaurantRequest(request);
 
         final var categories = request.categories()
                 .stream()
-                .map(name -> this.categoryRepository.findByName(name)
+                .map(id -> this.categoryRepository.findById(id)
                         .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND))
                 )
                 .collect(Collectors.toSet());
 
         restaurant.setCategories(categories);
 
-        this.restaurantRepository.save(restaurant);
+        final var savedRestaurant = this.restaurantRepository.save(restaurant);
+
+        return this.restaurantMapper.mapToRestaurantResponse(savedRestaurant);
     }
 
     @Override
@@ -65,7 +67,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         final var categories = request.categories()
                 .stream()
-                .map(name -> this.categoryRepository.findByName(name)
+                .map(catId -> this.categoryRepository.findById(catId)
                         .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND))
                 )
                 .collect(Collectors.toSet());

@@ -2,7 +2,6 @@ package com.example.restaurant.model.payload.request;
 
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.constants.RegexConstants;
-import com.example.restaurant.model.enums.CategoryEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -20,6 +19,6 @@ public record RestaurantRequest(
         String phoneNumber,
 
         @NotEmpty(message = MessageConstants.NO_CATEGORY)
-        Set<CategoryEnum> categories
+        Set<Long> categories
 ) {
 }

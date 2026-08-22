@@ -2,8 +2,8 @@ package com.example.restaurant.mapper;
 
 import com.example.restaurant.model.enity.Category;
 import com.example.restaurant.model.enity.Restaurant;
-import com.example.restaurant.model.enums.CategoryEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.response.CategoryResponse;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
@@ -26,7 +26,10 @@ public interface RestaurantMapper {
     @Mapping(target = "categories", ignore = true)
     void updateFromRestaurantRequest(RestaurantRequest request, @MappingTarget Restaurant restaurant);
 
-    default CategoryEnum mapToCategoryEnum(Category category) {
-        return category.getName();
+    default CategoryResponse mapToCategoryResponse(Category category) {
+        if (category == null) {
+            return null;
+        }
+        return new CategoryResponse(category.getId(), category.getName());
     }
 }

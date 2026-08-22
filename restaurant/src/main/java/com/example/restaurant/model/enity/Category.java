@@ -1,6 +1,5 @@
 package com.example.restaurant.model.enity;
 
-import com.example.restaurant.model.enums.CategoryEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,6 +11,5 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private CategoryEnum name;
+    private String name;
 }
