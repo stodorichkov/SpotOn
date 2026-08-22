@@ -6,6 +6,7 @@ import com.example.auth.model.payload.request.*;
 import com.example.auth.model.payload.response.ProfileResponse;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;
+import com.example.auth.model.payload.response.EmployeeRegistrationResponse;
 import org.mapstruct.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -38,6 +39,10 @@ public interface UserMapper {
     );
 
     ClientContactResponse mapToBookingClientResponse(User user);
+
+    @Mapping(target = "role", source = "user.role.name")
+    @Mapping(target = "password", source = "password")
+    EmployeeRegistrationResponse mapToEmployeeRegistrationResponse(User user, String password);
 
     @Named("encodePassword")
     default String encodePassword(String rawPassword, @Context PasswordEncoder passwordEncoder) {

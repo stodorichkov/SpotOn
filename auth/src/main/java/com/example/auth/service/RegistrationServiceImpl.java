@@ -67,7 +67,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         final var clientRequest = new AddEmployeeRequest(user.getId());
         this.restaurantEmployeeClient.addEmployee(clientRequest);
 
-        return new EmployeeRegistrationResponse(username, password);
+        return this.userMapper.mapToEmployeeRegistrationResponse(user, password);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         final var clientRequest = new AddManagerRequest(user.getId(), request.restaurantId());
         this.restaurantEmployeeClient.addManager(clientRequest);
 
-        return new EmployeeRegistrationResponse(username, password);
+        return this.userMapper.mapToEmployeeRegistrationResponse(user, password);
     }
 
     @Override
