@@ -9,8 +9,8 @@ export const PrivateRoute: React.FC = () => {
 };
 
 export const GuestRoute: React.FC = () => {
-    const { token } = useSelector((state: RootState) => state.auth);
-    return !token ? <Outlet /> : <Navigate to="/profile" replace />;
+    const { token, role } = useSelector((state: RootState) => state.auth);
+    return !token ? <Outlet /> : <Navigate to={role === 'ADMIN' ? "/admin/users" : "/profile"} replace />;
 };
 
 export const AdminRoute: React.FC = () => {

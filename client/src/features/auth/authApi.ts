@@ -39,6 +39,27 @@ export interface EditProfileRequest {
     phoneNumber: string;
 }
 
+export interface EmployeeData {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+}
+
+export interface RegisterManagerRequest {
+    employeeData: EmployeeData;
+    restaurantId: number;
+}
+
+export interface RegisterManagerResponse {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    role: string;
+    password: string;
+}
+
 const AUTH_API_PATH = '/auth';
 
 // Inject endpoints into the base api slice
@@ -76,6 +97,14 @@ export const authApi = api.injectEndpoints({
                 body,
             }),
         }),
+        registerManager: builder.mutation<RegisterManagerResponse, RegisterManagerRequest>({
+            query: (body) => ({
+                url: `${AUTH_API_PATH}/register/manager`,
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Employees'],
+        }),
         login: builder.mutation<string, ClientLoginRequest>({
             query: (body) => ({
                 url: `${AUTH_API_PATH}/login`,
@@ -89,8 +118,10 @@ export const authApi = api.injectEndpoints({
                     const { data: token } = await queryFulfilled;
                     dispatch(setCredentials({ token, role: null })); // Temporarily set token
 
-                    // Fetch profile to get the role
-                    const profileResult = await dispatch(authApi.endpoints.getProfile.initiate());
+                    // Fetch profile to get the role, forcing a fresh request to avoid cached old profile
+                    const profileResult = await dispatch(
+                        authApi.endpoints.getProfile.initiate(undefined, { forceRefetch: true })
+                    );
                     
                     if (profileResult.data) {
                         const role = profileResult.data.role;
@@ -117,6 +148,10 @@ export const authApi = api.injectEndpoints({
                 try {
                     await queryFulfilled;
                     dispatch(setCredentials({ token: null, role: null }));
+                    // Defer resetting the entire RTK Query API state to clear cache for security and allow alerts to propagate
+                    setTimeout(() => {
+                        dispatch({ type: 'api/resetApiState' });
+                    }, 0);
                 } catch (error) {
                     console.error("Logout failed:", error);
                 }
@@ -125,4 +160,4 @@ export const authApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, useRegisterClientMutation, useLoginMutation, useLogoutMutation } = authApi;
+export const { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, useRegisterClientMutation, useRegisterManagerMutation, useLoginMutation, useLogoutMutation } = authApi;

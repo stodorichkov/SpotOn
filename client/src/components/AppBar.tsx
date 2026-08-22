@@ -6,6 +6,7 @@ import { RootState } from '../store/store';
 import { useLogoutMutation } from '../features/auth/authApi';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { addAlert } from '../features/alerts/alertsSlice';
 
 const AppTopBar = () => {
@@ -26,7 +27,11 @@ const AppTopBar = () => {
   };
 
   // Determine the current tab value based on the path
-  const currentTab = location.pathname.startsWith('/users') ? '/users' : location.pathname;
+  const currentTab = location.pathname.startsWith('/admin/users')
+    ? '/admin/users'
+    : location.pathname.startsWith('/admin/restaurants')
+    ? '/admin/restaurants'
+    : location.pathname;
 
   return (
     <AppBar position="sticky">
@@ -34,7 +39,7 @@ const AppTopBar = () => {
         <Typography
           variant="h6"
           component={Link}
-          to={role === 'ADMIN' ? '/users' : '/'}
+          to={role === 'ADMIN' ? '/admin/users' : '/'}
           sx={{
             textDecoration: 'none',
             color: 'inherit',
@@ -53,11 +58,19 @@ const AppTopBar = () => {
           >
             <Tab
               label="Users"
-              value="/users"
+              value="/admin/users"
               icon={<GroupIcon />}
               iconPosition="start"
               component={Link}
-              to="/users"
+              to="/admin/users"
+            />
+            <Tab
+              label="Restaurants"
+              value="/admin/restaurants"
+              icon={<RestaurantIcon />}
+              iconPosition="start"
+              component={Link}
+              to="/admin/restaurants"
             />
           </Tabs>
         )}

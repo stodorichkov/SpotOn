@@ -1,11 +1,15 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import UsersPage from './pages/UsersPage';
 import UserDetailsPage from './pages/UserDetailsPage';
+import RestaurantsPage from './pages/RestaurantsPage';
+import RestaurantEmployeesPage from './pages/RestaurantEmployeesPage';
+import AddRestaurantPage from './pages/AddRestaurantPage';
+import AddManagerPage from './pages/AddManagerPage';
 import AppTopBar from './components/AppBar';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -35,6 +39,13 @@ const theme = createTheme({
         },
       },
     },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
   },
 });
 
@@ -56,10 +67,15 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route element={<AdminRoute />}>
-              <Route path="/users" element={<UsersPage />} />
-              <Route path="/users/:id" element={<UserDetailsPage />} />
+              <Route path="/admin/users" element={<UsersPage />} />
+              <Route path="/admin/users/:id" element={<UserDetailsPage />} />
+              <Route path="/admin/restaurants" element={<RestaurantsPage />} />
+              <Route path="/admin/restaurants/new" element={<AddRestaurantPage />} />
+              <Route path="/admin/restaurants/:id/employees" element={<RestaurantEmployeesPage />} />
+              <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
             </Route>
-            {/* Add other routes here */}
+            {/* Fallback route to redirect undefined paths to the home page */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
       </Router>

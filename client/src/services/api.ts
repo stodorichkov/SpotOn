@@ -22,6 +22,10 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
   if (result.error && result.error.status === 401) {
     api.dispatch(logout());
+    // Defer resetting the API state so the 401 error rejection propagates first and triggers the error alert
+    setTimeout(() => {
+      api.dispatch({ type: 'api/resetApiState' });
+    }, 0);
   }
   return result;
 };
@@ -33,6 +37,6 @@ const baseQueryWithReauth: BaseQueryFn<
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Profile'],
+  tagTypes: ['Profile', 'Restaurants', 'Employees'],
   endpoints: () => ({}),
 });

@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
 import { useGetUsersQuery } from '../features/users/usersSlice';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, CircularProgress, Typography, Container, Button, Skeleton } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, CircularProgress, Typography, Container, Button, Skeleton, Chip, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import InfoIcon from '@mui/icons-material/Info';
+
+const getRoleChipColor = (role: string) => {
+  switch (role?.toUpperCase()) {
+    case 'ADMIN':
+      return 'error';
+    case 'CLIENT':
+    case 'CUSTOMER':
+      return 'success';
+    case 'EMPLOYEE':
+    case 'STAFF':
+      return 'info';
+    case 'OWNER':
+    case 'MANAGER':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
 
 const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -74,64 +92,84 @@ const UsersPage: React.FC = () => {
         Users
       </Typography>
       <Paper>
-        <TableContainer>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Username</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data?.content.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell align="right">
-                    <Button
-                      component={Link}
-                      to={`/users/${user.id}`}
-                      startIcon={<InfoIcon />}
-                    >
-                      Info
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {emptyRows > 0 &&
-                [...Array(emptyRows)].map((_, index) => (
-                  <TableRow key={`empty-${index}`}>
-                    {/* Use non-breaking space to ensure cell has height */}
-                    <TableCell component="th" scope="row">&nbsp;</TableCell>
-                    <TableCell>&nbsp;</TableCell>
-                    <TableCell>&nbsp;</TableCell>
-                    <TableCell align="right">
-                      {/* Render an identical but invisible button to enforce row height */}
-                      <Button
-                        startIcon={<InfoIcon />}
-                        sx={{ visibility: 'hidden' }}
-                        aria-hidden="true"
-                      >
-                        Info
-                      </Button>
-                    </TableCell>
+        {!data || data.content.length === 0 ? (
+          <Box sx={{ p: 6, textAlign: 'center' }}>
+            <Typography variant="body1" color="text.secondary">
+              No users found.
+            </Typography>
+          </Box>
+        ) : (
+          <>
+            <TableContainer>
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Username</TableCell>
+                    <TableCell>Role</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10]}
-          component="div"
-          count={data?.totalElements || 0}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+                </TableHead>
+                <TableBody>
+                  {data?.content.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{user.id}</TableCell>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>
+                        {user.role ? (
+                          <Chip
+                            label={user.role}
+                            size="small"
+                            color={getRoleChipColor(user.role)}
+                            variant="outlined"
+                          />
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          component={Link}
+                          to={`/admin/users/${user.id}`}
+                          startIcon={<InfoIcon />}
+                          sx={{ textTransform: 'none' }}
+                        >
+                          Info
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {emptyRows > 0 &&
+                    [...Array(emptyRows)].map((_, index) => (
+                      <TableRow key={`empty-${index}`}>
+                        {/* Use non-breaking space to ensure cell has height */}
+                        <TableCell component="th" scope="row">&nbsp;</TableCell>
+                        <TableCell>&nbsp;</TableCell>
+                        <TableCell>&nbsp;</TableCell>
+                        <TableCell align="right">
+                          {/* Render an identical but invisible button to enforce row height */}
+                          <Button
+                            startIcon={<InfoIcon />}
+                            sx={{ visibility: 'hidden', textTransform: 'none' }}
+                            aria-hidden="true"
+                          >
+                            Info
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[5, 10]}
+              component="div"
+              count={data?.totalElements || 0}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </>
+        )}
       </Paper>
     </Container>
   );
