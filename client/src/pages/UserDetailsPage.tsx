@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useGetUserDetailsQuery } from '../features/users/usersSlice';
 import {
   Container,
@@ -39,7 +39,23 @@ const getRoleChipColor = (role?: string) => {
 
 const UserDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: user, isLoading, error } = useGetUserDetailsQuery(Number(id));
+  const location = useLocation();
+
+  // Use passed state if available
+  const stateUser = location.state?.user;
+
+  // Skip the query if we already have the full user details in state
+  const hasFullStateData = stateUser && (
+    stateUser.role === 'ADMIN' || 
+    (stateUser.firstName !== undefined && stateUser.lastName !== undefined)
+  );
+
+  const { data: queryUser, isLoading, error } = useGetUserDetailsQuery(
+    Number(id),
+    { skip: !!hasFullStateData }
+  );
+
+  const user = hasFullStateData ? stateUser : queryUser;
 
   if (isLoading) {
     return (

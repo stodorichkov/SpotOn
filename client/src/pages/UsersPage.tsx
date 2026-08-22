@@ -15,7 +15,9 @@ import {
   Skeleton, 
   Chip, 
   Box, 
-  Divider 
+  Divider,
+  IconButton,
+  Tooltip 
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import InfoIcon from '@mui/icons-material/Info';
@@ -204,17 +206,17 @@ const UsersPage: React.FC = () => {
                         ) : '-'}
                       </TableCell>
                       <TableCell align="right">
-                        <Button
-                          component={Link}
-                          to={`/admin/users/${user.id}`}
-                          variant="text"
-                          size="small"
-                          color="primary"
-                          startIcon={<InfoIcon />}
-                          sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 1.5, px: 1.5 }}
-                        >
-                          Info
-                        </Button>
+                        <Tooltip title="User Details" arrow>
+                          <IconButton
+                            component={Link}
+                            to={`/admin/users/${user.id}`}
+                            state={{ user }}
+                            color="primary"
+                            size="small"
+                          >
+                            <InfoIcon />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}

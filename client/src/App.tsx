@@ -11,6 +11,8 @@ import RestaurantEmployeesPage from './pages/RestaurantEmployeesPage';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import AddManagerPage from './pages/AddManagerPage';
 import ManagerRestaurantPage from './pages/ManagerRestaurantPage';
+import ManagerEmployeesPage from './pages/ManagerEmployeesPage';
+import AddEmployeePage from './pages/AddEmployeePage';
 import AppTopBar from './components/AppBar';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -77,6 +79,9 @@ function App() {
             </Route>
             <Route element={<ManagerRoute />}>
               <Route path="/manager/restaurant" element={<ManagerRestaurantPage />} />
+              <Route path="/manager/employees" element={<ManagerEmployeesPage />} />
+              <Route path="/manager/employees/new" element={<AddEmployeePage />} />
+              <Route path="/manager/employees/:id" element={<UserDetailsPage />} />
             </Route>
             {/* Fallback route to redirect undefined paths to the home page */}
             <Route path="*" element={<Navigate to="/" replace />} />

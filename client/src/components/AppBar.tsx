@@ -41,6 +41,8 @@ const AppTopBar = () => {
     ? '/admin/restaurants'
     : location.pathname.startsWith('/manager/restaurant')
     ? '/manager/restaurant'
+    : location.pathname.startsWith('/manager/employees')
+    ? '/manager/employees'
     : location.pathname;
 
   const menuItems = [];
@@ -51,7 +53,8 @@ const AppTopBar = () => {
     );
   } else if (role === 'MANAGER') {
     menuItems.push(
-      { label: 'Restaurant', path: '/manager/restaurant', icon: <RestaurantIcon /> }
+      { label: 'Restaurant', path: '/manager/restaurant', icon: <RestaurantIcon /> },
+      { label: 'Employees', path: '/manager/employees', icon: <GroupIcon /> }
     );
   }
 
@@ -125,6 +128,14 @@ const AppTopBar = () => {
                   iconPosition="start"
                   component={Link}
                   to="/manager/restaurant"
+                />
+                <Tab
+                  label="Employees"
+                  value="/manager/employees"
+                  icon={<GroupIcon />}
+                  iconPosition="start"
+                  component={Link}
+                  to="/manager/employees"
                 />
               </Tabs>
             )}

@@ -45,6 +45,22 @@ export interface EmployeeData {
     phoneNumber: string;
 }
 
+export interface EmployeeRegistrationRequest {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+}
+
+export interface EmployeeRegistrationResponse {
+    id: number;
+    username: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    role: string;
+    password: string;
+}
+
 export interface RegisterManagerRequest {
     employeeData: EmployeeData;
     restaurantId: number;
@@ -105,6 +121,14 @@ export const authApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Employees'],
         }),
+        registerEmployee: builder.mutation<EmployeeRegistrationResponse, EmployeeRegistrationRequest>({
+            query: (body) => ({
+                url: `${AUTH_API_PATH}/register/employee`,
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Employees'],
+        }),
         login: builder.mutation<string, ClientLoginRequest>({
             query: (body) => ({
                 url: `${AUTH_API_PATH}/login`,
@@ -160,4 +184,4 @@ export const authApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, useRegisterClientMutation, useRegisterManagerMutation, useLoginMutation, useLogoutMutation } = authApi;
+export const { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, useRegisterClientMutation, useRegisterManagerMutation, useRegisterEmployeeMutation, useLoginMutation, useLogoutMutation } = authApi;

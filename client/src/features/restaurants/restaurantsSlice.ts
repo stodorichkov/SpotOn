@@ -126,7 +126,18 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Restaurants'],
     }),
+    getManagerEmployees: builder.query<PaginatedEmployeesResponse, { page: number; size: number }>({
+      query: ({ page, size }) => `restaurant/employees?page=${page}&size=${size}&sort=id,asc`,
+      providesTags: ['Employees'],
+    }),
+    deleteEmployee: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `restaurant/employees/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Employees'],
+    }),
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation } = restaurantsSlice;

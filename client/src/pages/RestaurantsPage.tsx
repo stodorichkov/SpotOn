@@ -16,7 +16,9 @@ import {
   Chip, 
   Box,
   Button,
-  Divider
+  Divider,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
@@ -245,18 +247,17 @@ const RestaurantsPage: React.FC = () => {
                           </Box>
                         </TableCell>
                         <TableCell align="right">
-                          <Button
-                            component={Link}
-                            to={`/admin/restaurants/${restaurant.id}/employees`}
-                            state={{ restaurantName: restaurant.name }}
-                            variant="text"
-                            size="small"
-                            color="primary"
-                            startIcon={<PeopleIcon />}
-                            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 1.5, px: 1.5 }}
-                          >
-                            Employees
-                          </Button>
+                          <Tooltip title="View Employees" arrow>
+                            <IconButton
+                              component={Link}
+                              to={`/admin/restaurants/${restaurant.id}/employees`}
+                              state={{ restaurantName: restaurant.name }}
+                              color="primary"
+                              size="small"
+                            >
+                              <PeopleIcon />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );

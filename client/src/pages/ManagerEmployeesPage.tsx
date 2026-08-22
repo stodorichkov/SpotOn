@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
-import { useGetEmployeesQuery } from '../features/restaurants/restaurantsSlice';
+import { useGetManagerEmployeesQuery, useDeleteEmployeeMutation } from '../features/restaurants/restaurantsSlice';
+import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { addAlert } from '../features/alerts/alertsSlice';
 import { 
   Table, 
   TableBody, 
@@ -15,15 +18,15 @@ import {
   Container, 
   Chip, 
   Box,
-  Button,
   Divider,
+  Button,
   IconButton,
   Tooltip
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AddIcon from '@mui/icons-material/Add';
 import GroupIcon from '@mui/icons-material/Group';
 import InfoIcon from '@mui/icons-material/Info';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
@@ -43,19 +46,14 @@ const getRoleChipColor = (role: string) => {
   }
 };
 
-const RestaurantEmployeesPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const location = useLocation();
-  const restaurantId = Number(id);
-  const restaurantName = location.state?.restaurantName || `Restaurant #${restaurantId}`;
-
+const ManagerEmployeesPage: React.FC = () => {
+  const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, error, isLoading } = useGetEmployeesQuery(
-    { restaurantId, page, size: rowsPerPage },
-    { skip: isNaN(restaurantId) }
-  );
+  const currentUserId = useSelector((state: RootState) => state.auth.id);
+  const { data, error, isLoading } = useGetManagerEmployeesQuery({ page, size: rowsPerPage });
+  const [deleteEmployee, { isLoading: isDeleting }] = useDeleteEmployeeMutation();
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -66,22 +64,34 @@ const RestaurantEmployeesPage: React.FC = () => {
     setPage(0);
   };
 
+  const handleDelete = async (employeeId: number, name: string) => {
+    if (window.confirm(`Are you sure you want to remove employee ${name}?`)) {
+      try {
+        await deleteEmployee(employeeId).unwrap();
+        dispatch(addAlert({ message: 'Employee removed successfully!', type: 'success' }));
+      } catch (err: any) {
+        console.error('Failed to remove employee:', err);
+        dispatch(addAlert({
+          message: err?.data?.message || 'Failed to remove employee. Please try again.',
+          type: 'error'
+        }));
+      }
+    }
+  };
+
   const rowHeight = 53;
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
-  if (isNaN(restaurantId)) {
+  if (error) {
     return (
       <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
-          <Typography color="error" variant="h6" fontWeight="bold" gutterBottom>
+          <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
             Error
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Invalid Restaurant ID.
+            Failed to load restaurant employees. Please try again.
           </Typography>
-          <Button component={Link} to="/admin/restaurants" startIcon={<ArrowBackIcon />} sx={{ mt: 2, textTransform: 'none', fontWeight: 'bold' }}>
-            Back to Restaurants
-          </Button>
         </Paper>
       </Container>
     );
@@ -121,13 +131,13 @@ const RestaurantEmployeesPage: React.FC = () => {
                   Employees
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                  Manage employees for {restaurantName}
+                  Manage restaurant employees
                 </Typography>
               </Box>
             </Box>
             <Button
               component={Link}
-              to={`/admin/restaurants/${restaurantId}/employees/new`}
+              to="/manager/employees/new"
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
@@ -138,11 +148,12 @@ const RestaurantEmployeesPage: React.FC = () => {
                 width: { xs: '100%', sm: 'auto' }
               }}
             >
-              Add Manager
+              Add Employee
             </Button>
           </Box>
         </Box>
         <Divider />
+        
         {isLoading ? (
           <TableContainer>
             <Table sx={{ minWidth: 650 }}>
@@ -150,10 +161,10 @@ const RestaurantEmployeesPage: React.FC = () => {
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Name</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -170,16 +181,10 @@ const RestaurantEmployeesPage: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        ) : error ? (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="error" variant="h6">
-              Error loading employees.
-            </Typography>
-          </Box>
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No employees found for this restaurant.
+              No employees found for your restaurant.
             </Typography>
           </Box>
         ) : (
@@ -190,15 +195,17 @@ const RestaurantEmployeesPage: React.FC = () => {
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Name</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.content.map((employee) => {
                     if (!employee) return null;
+                    const isSelf = employee.id === currentUserId;
+                    const canDelete = !isSelf && (employee.role?.toUpperCase() === 'EMPLOYEE' || employee.role?.toUpperCase() === 'STAFF');
                     return (
                       <TableRow key={employee.id} style={{ height: rowHeight }}>
                         <TableCell>{employee.id}</TableCell>
@@ -219,7 +226,7 @@ const RestaurantEmployeesPage: React.FC = () => {
                           <Tooltip title="User Details" arrow>
                             <IconButton
                               component={Link}
-                              to={`/admin/users/${employee.id}`}
+                              to={`/manager/employees/${employee.id}`}
                               state={{ user: employee }}
                               color="primary"
                               size="small"
@@ -227,6 +234,19 @@ const RestaurantEmployeesPage: React.FC = () => {
                               <InfoIcon />
                             </IconButton>
                           </Tooltip>
+                          {canDelete && (
+                            <Tooltip title="Remove Employee" arrow>
+                              <IconButton
+                                color="error"
+                                size="small"
+                                onClick={() => handleDelete(employee.id, `${employee.firstName || ''} ${employee.lastName || ''}`)}
+                                disabled={isDeleting}
+                                sx={{ ml: 0.5 }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -271,4 +291,4 @@ const RestaurantEmployeesPage: React.FC = () => {
   );
 };
 
-export default RestaurantEmployeesPage;
+export default ManagerEmployeesPage;
