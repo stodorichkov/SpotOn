@@ -15,10 +15,13 @@ import {
   Container, 
   Chip, 
   Box,
-  Button
+  Button,
+  Divider
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import { getCategoryStyle } from '../utils/categoryColor';
 
 const RestaurantsPage: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -34,27 +37,65 @@ const RestaurantsPage: React.FC = () => {
     setPage(0);
   };
 
-  const rowHeight = 53.5;
+  const rowHeight = 53;
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
   if (isLoading) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" fontWeight="bold">
-            Restaurants
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            disabled
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-          >
-            Add Restaurant
-          </Button>
-        </Box>
-        <Paper>
+      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+        <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ p: { xs: 2, sm: 3 } }}>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between', 
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: 2
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    borderRadius: '50%',
+                    width: { xs: 45, sm: 50 },
+                    height: { xs: 45, sm: 50 },
+                    flexShrink: 0
+                  }}
+                >
+                  <RestaurantIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                </Box>
+                <Box>
+                  <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
+                    Restaurants
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                    Manage list of active restaurants
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                disabled
+                sx={{ 
+                  textTransform: 'none', 
+                  fontWeight: 'bold', 
+                  borderRadius: 2,
+                  width: { xs: '100%', sm: 'auto' }
+                }}
+              >
+                Add Restaurant
+              </Button>
+            </Box>
+          </Box>
+          <Divider />
           <TableContainer>
             <Table sx={{ minWidth: 650 }}>
               <TableHead>
@@ -93,32 +134,75 @@ const RestaurantsPage: React.FC = () => {
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Typography color="error" variant="h6">
-          Error loading restaurants.
-        </Typography>
+      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+          <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
+            Error
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Error loading restaurants.
+          </Typography>
+        </Paper>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" fontWeight="bold">
-          Restaurants
-        </Typography>
-        <Button
-          component={Link}
-          to="/admin/restaurants/new"
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-        >
-          Add Restaurant
-        </Button>
-      </Box>
-      <Paper>
+    <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                  borderRadius: '50%',
+                  width: { xs: 45, sm: 50 },
+                  height: { xs: 45, sm: 50 },
+                  flexShrink: 0
+                }}
+              >
+                <RestaurantIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+              </Box>
+              <Box>
+                <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
+                  Restaurants
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                  Manage list of active restaurants
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              component={Link}
+              to="/admin/restaurants/new"
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 'bold', 
+                borderRadius: 2,
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
+              Add Restaurant
+            </Button>
+          </Box>
+        </Box>
+        <Divider />
         {!data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
@@ -129,12 +213,12 @@ const RestaurantsPage: React.FC = () => {
           <>
             <TableContainer>
               <Table sx={{ minWidth: 650 }} aria-label="restaurants table">
-                <TableHead>
+                <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Categories</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>Categories</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -152,8 +236,7 @@ const RestaurantsPage: React.FC = () => {
                                   key={category.id}
                                   label={category.name}
                                   size="small"
-                                  color="primary"
-                                  variant="outlined"
+                                  sx={{ ...getCategoryStyle(category.name), fontWeight: 'bold' }}
                                 />
                               ))
                             ) : (
@@ -168,8 +251,9 @@ const RestaurantsPage: React.FC = () => {
                             state={{ restaurantName: restaurant.name }}
                             variant="text"
                             size="small"
+                            color="primary"
                             startIcon={<PeopleIcon />}
-                            sx={{ textTransform: 'none', fontWeight: 'bold' }}
+                            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 1.5, px: 1.5 }}
                           >
                             Employees
                           </Button>

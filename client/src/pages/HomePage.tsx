@@ -8,8 +8,12 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token && role === 'ADMIN') {
-      navigate('/admin/users', { replace: true });
+    if (token) {
+      if (role === 'ADMIN') {
+        navigate('/admin/users', { replace: true });
+      } else if (role === 'MANAGER') {
+        navigate('/manager/restaurant', { replace: true });
+      }
     }
   }, [token, role, navigate]);
 

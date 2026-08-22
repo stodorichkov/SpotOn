@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Paper, Grid, TextField, Button, Skeleton, Box, IconButton, InputAdornment } from '@mui/material';
+import { Container, Typography, Paper, Grid, TextField, Button, Skeleton, Box, IconButton, InputAdornment, Divider, Chip } from '@mui/material';
 import { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, ChangePasswordRequest, EditProfileRequest } from '../features/auth/authApi';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import PersonIcon from '@mui/icons-material/Person';
+import { Visibility, VisibilityOff, ExpandMore, ExpandLess, Phone } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { updateChangePasswordFormField, clearChangePasswordForm } from '../features/auth/changePasswordSlice';
@@ -71,6 +72,26 @@ const profileValidationSchema = yup.object({
         }),
 });
 
+const getRoleChipColor = (role?: string) => {
+  if (!role) return 'default';
+  switch (role.toUpperCase()) {
+    case 'ADMIN':
+    case 'ADMINISTRATOR':
+      return 'error';
+    case 'CLIENT':
+    case 'CUSTOMER':
+      return 'success';
+    case 'EMPLOYEE':
+    case 'STAFF':
+      return 'info';
+    case 'OWNER':
+    case 'MANAGER':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
+
 const ProfilePage = () => {
     const { data: user, isLoading, refetch } = useGetProfileQuery();
     const [changeUsername, { isLoading: isChangingUsername }] = useChangeUsernameMutation();
@@ -86,10 +107,17 @@ const ProfilePage = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showPasswordSection, setShowPasswordSection] = useState(false);
 
     const [isEditingContact, setIsEditingContact] = useState(false);
     const [profileFormState, setProfileFormState] = useState<EditProfileFormState>({ firstName: '', lastName: '', phoneNumber: '' });
     const [profileErrors, setProfileErrors] = useState<ProfileValidationErrors>({});
+
+    const hasContactChanges = !!user && (
+        (profileFormState.firstName || '').trim() !== (user.firstName || '').trim() ||
+        (profileFormState.lastName || '').trim() !== (user.lastName || '').trim() ||
+        (profileFormState.phoneNumber || '').trim() !== (user.phoneNumber || '').trim()
+    );
 
     useEffect(() => {
         if (user) {
@@ -214,270 +242,491 @@ const ProfilePage = () => {
     if (isLoading) {
         return (
             <Container maxWidth="md" sx={{ mt: 4 }}>
-                <Typography variant="h4" gutterBottom>
-                    <Skeleton width="20%" />
-                </Typography>
-                {/* Skeleton for sections */}
+                <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                        <Skeleton variant="circular" width={60} height={60} />
+                        <Box sx={{ width: '100%' }}>
+                            <Skeleton variant="text" width="40%" height={40} />
+                            <Skeleton variant="text" width="25%" height={25} />
+                        </Box>
+                    </Box>
+                    <Divider sx={{ mb: 3 }} />
+                    <Skeleton variant="rectangular" height={150} sx={{ borderRadius: 2, mb: 3 }} />
+                    <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
+                </Paper>
             </Container>
         );
     }
 
     if (!user) {
-        return <Typography>User not found.</Typography>;
+        return (
+            <Container maxWidth="md" sx={{ mt: 4 }}>
+                <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+                    <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
+                        Error
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                        User profile not found.
+                    </Typography>
+                </Paper>
+            </Container>
+        );
     }
 
     const isClient = user.role === 'CLIENT';
+    const canEditContact = user.role === 'CLIENT' || user.role === 'MANAGER' || user.role === 'EMPLOYEE';
 
     return (
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-            <Typography variant="h4" gutterBottom>
-                Profile
-            </Typography>
-
-            {/* Username Section */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6" gutterBottom>
-                        Username
-                    </Typography>
-                    {isClient && !isEditingUsername && (
-                        <IconButton onClick={() => setIsEditingUsername(true)}>
-                            <EditIcon />
-                        </IconButton>
-                    )}
-                </Box>
-                <TextField
-                    fullWidth
-                    label="Username"
-                    value={isEditingUsername ? newUsername : user.username}
-                    onChange={(e) => {
-                        setNewUsername(e.target.value)
-                        if (usernameError) {
-                            setUsernameError(undefined);
-                        }
+        <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+            <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
+                <Box 
+                    sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        justifyContent: 'space-between', 
+                        alignItems: { xs: 'flex-start', sm: 'center' }, 
+                        gap: 2,
+                        mb: 3 
                     }}
-                    InputProps={{
-                        readOnly: !isEditingUsername,
-                    }}
-                    variant={isEditingUsername ? 'outlined' : 'filled'}
-                    error={!!usernameError}
-                    helperText={usernameError || ' '}
-                />
-                {isEditingUsername && (
-                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                        <Button
-                            startIcon={<SaveIcon />}
-                            onClick={handleUsernameChange}
-                            disabled={isChangingUsername || newUsername === user.username}
-                            variant="contained"
-                            color="primary"
-                        >
-                            Save
-                        </Button>
-                        <Button
-                            startIcon={<CancelIcon />}
-                            onClick={() => {
-                                setIsEditingUsername(false);
-                                setNewUsername(user.username);
-                                setUsernameError(undefined);
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'primary.main',
+                                color: 'primary.contrastText',
+                                borderRadius: '50%',
+                                width: { xs: 50, sm: 60 },
+                                height: { xs: 50, sm: 60 },
+                                flexShrink: 0
                             }}
-                            variant="outlined"
                         >
-                            Cancel
-                        </Button>
+                            <PersonIcon sx={{ fontSize: { xs: 28, sm: 32 } }} />
+                        </Box>
+                        <Box>
+                            <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+                                {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                                Account Profile & Security Settings
+                            </Typography>
+                        </Box>
                     </Box>
-                )}
-            </Paper>
 
-            {/* Contact Information Section */}
-            {user.role !== 'ADMIN' && (
-                <Paper sx={{ p: 3, mb: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h6" gutterBottom>
-                            Contact Information
+                    <Chip
+                        label={user.role}
+                        color={getRoleChipColor(user.role)}
+                        variant="outlined"
+                        sx={{ 
+                            fontWeight: 'bold', 
+                            px: 1.5, 
+                            py: 0.5, 
+                            fontSize: '0.85rem', 
+                            borderRadius: 2,
+                            alignSelf: { xs: 'flex-end', sm: 'auto' }
+                        }}
+                    />
+                </Box>
+
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Username Section */}
+                <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                        <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                            Account Details
                         </Typography>
-                        {isClient && !isEditingContact && (
-                            <IconButton onClick={() => setIsEditingContact(true)}>
+                        {isClient && !isEditingUsername && (
+                            <IconButton onClick={() => setIsEditingUsername(true)} color="primary">
                                 <EditIcon />
                             </IconButton>
                         )}
                     </Box>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="First Name"
-                                name="firstName"
-                                value={isEditingContact ? profileFormState.firstName : user.firstName}
-                                onChange={handleProfileFormChange}
-                                InputProps={{ readOnly: !isEditingContact }}
-                                variant={isEditingContact ? 'outlined' : 'filled'}
-                                error={!!profileErrors.firstName}
-                                helperText={profileErrors.firstName || ' '}
-                            />
+                    {isEditingUsername ? (
+                        <Grid container spacing={1.5}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label="Username"
+                                    value={newUsername}
+                                    onChange={(e) => {
+                                        setNewUsername(e.target.value);
+                                        if (usernameError) {
+                                            setUsernameError(undefined);
+                                        }
+                                    }}
+                                    variant="outlined"
+                                    error={!!usernameError}
+                                    helperText={usernameError}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2.5,
+                                            transition: 'all 0.2s',
+                                        }
+                                    }}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Last Name"
-                                name="lastName"
-                                value={isEditingContact ? profileFormState.lastName : user.lastName}
-                                onChange={handleProfileFormChange}
-                                InputProps={{ readOnly: !isEditingContact }}
-                                variant={isEditingContact ? 'outlined' : 'filled'}
-                                error={!!profileErrors.lastName}
-                                helperText={profileErrors.lastName || ' '}
-                            />
+                    ) : (
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                    <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                                    <Box>
+                                        <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                            Username
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                                            {user.username}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Phone Number"
-                                name="phoneNumber"
-                                value={isEditingContact ? profileFormState.phoneNumber : user.phoneNumber}
-                                onChange={handleProfileFormChange}
-                                InputProps={{ readOnly: !isEditingContact }}
-                                variant={isEditingContact ? 'outlined' : 'filled'}
-                                error={!!profileErrors.phoneNumber}
-                                helperText={profileErrors.phoneNumber || ' '}
-                            />
-                        </Grid>
-                    </Grid>
-                    {isEditingContact && (
-                        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                    )}
+                    {isEditingUsername && (
+                        <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                             <Button
                                 startIcon={<SaveIcon />}
-                                onClick={handleProfileChange}
-                                disabled={isUpdatingProfile}
+                                onClick={handleUsernameChange}
+                                disabled={isChangingUsername || newUsername === user.username}
                                 variant="contained"
                                 color="primary"
+                                sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                             >
                                 Save
                             </Button>
                             <Button
                                 startIcon={<CancelIcon />}
                                 onClick={() => {
-                                    setIsEditingContact(false);
-                                    setProfileFormState({
-                                        firstName: user.firstName,
-                                        lastName: user.lastName,
-                                        phoneNumber: user.phoneNumber,
-                                    });
-                                    setProfileErrors({});
+                                    setIsEditingUsername(false);
+                                    setNewUsername(user.username);
+                                    setUsernameError(undefined);
                                 }}
                                 variant="outlined"
+                                color="inherit"
+                                sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                             >
                                 Cancel
                             </Button>
                         </Box>
                     )}
-                </Paper>
-            )}
+                </Box>
 
-            {/* Change Password Section */}
-            <Paper component="form" noValidate onSubmit={handlePasswordChange} sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                    Change Password
-                </Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                        <TextField
-                            required
-                            fullWidth
-                            name="currentPassword"
-                            label="Current Password"
-                            type={showCurrentPassword ? 'text' : 'password'}
-                            id="currentPassword"
-                            value={passwordFormState.currentPassword || ''}
-                            onChange={handlePasswordFormChange}
-                            error={!!passwordErrors.currentPassword}
-                            helperText={passwordErrors.currentPassword || ' '}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle current password visibility"
-                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            edge="end"
-                                        >
-                                            {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            required
-                            fullWidth
-                            name="newPassword"
-                            label="New Password"
-                            type={showNewPassword ? 'text' : 'password'}
-                            id="newPassword"
-                            value={passwordFormState.newPassword || ''}
-                            onChange={handlePasswordFormChange}
-                            error={!!passwordErrors.newPassword}
-                            helperText={passwordErrors.newPassword || ' '}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle new password visibility"
-                                            onClick={() => setShowNewPassword(!showNewPassword)}
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            edge="end"
-                                        >
-                                            {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            required
-                            fullWidth
-                            name="confirm"
-                            label="Confirm New Password"
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            id="confirm"
-                            value={passwordFormState.confirm || ''}
-                            onChange={handlePasswordFormChange}
-                            error={!!passwordErrors.confirm}
-                            helperText={passwordErrors.confirm || ' '}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle confirm password visibility"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            edge="end"
-                                        >
-                                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
-                </Grid>
-                <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    sx={{
-                        mt: 3,
-                        fontWeight: 'bold',
-                        textTransform: 'none',
-                    }}
-                    disabled={isChangingPassword}
-                >
-                    {isChangingPassword ? 'Changing Password...' : 'Change Password'}
-                </Button>
+                <Divider sx={{ my: 2 }} />
+
+                {/* Contact Information Section */}
+                {user.role !== 'ADMIN' && (
+                    <>
+                        <Box sx={{ mb: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                                <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                                    Personal Information
+                                </Typography>
+                                {canEditContact && !isEditingContact && (
+                                    <IconButton onClick={() => setIsEditingContact(true)} color="primary">
+                                        <EditIcon />
+                                    </IconButton>
+                                )}
+                            </Box>
+                            {isEditingContact ? (
+                                <Grid container spacing={1.5}>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="First Name"
+                                            name="firstName"
+                                            value={profileFormState.firstName}
+                                            onChange={handleProfileFormChange}
+                                            variant="outlined"
+                                            error={!!profileErrors.firstName}
+                                            helperText={profileErrors.firstName}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: 2.5,
+                                                    transition: 'all 0.2s',
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            fullWidth
+                                            label="Last Name"
+                                            name="lastName"
+                                            value={profileFormState.lastName}
+                                            onChange={handleProfileFormChange}
+                                            variant="outlined"
+                                            error={!!profileErrors.lastName}
+                                            helperText={profileErrors.lastName}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: 2.5,
+                                                    transition: 'all 0.2s',
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            label="Phone Number"
+                                            name="phoneNumber"
+                                            value={profileFormState.phoneNumber}
+                                            onChange={handleProfileFormChange}
+                                            variant="outlined"
+                                            error={!!profileErrors.phoneNumber}
+                                            helperText={profileErrors.phoneNumber}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: 2.5,
+                                                    transition: 'all 0.2s',
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                </Grid>
+                            ) : (
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} sm={6}>
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                            <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                                            <Box>
+                                                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                                    First Name
+                                                </Typography>
+                                                <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                                                    {user.firstName || '-'}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                            <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                                            <Box>
+                                                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                                    Last Name
+                                                </Typography>
+                                                <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                                                    {user.lastName || '-'}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                            <Phone color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                                            <Box>
+                                                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                                                    Phone Number
+                                                </Typography>
+                                                <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                                                    {user.phoneNumber || '-'}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            )}
+                            {isEditingContact && (
+                                <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                                    <Button
+                                        startIcon={<SaveIcon />}
+                                        onClick={handleProfileChange}
+                                        disabled={isUpdatingProfile || !hasContactChanges}
+                                        variant="contained"
+                                        color="primary"
+                                        sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button
+                                        startIcon={<CancelIcon />}
+                                        onClick={() => {
+                                            setIsEditingContact(false);
+                                            setProfileFormState({
+                                                firstName: user.firstName,
+                                                lastName: user.lastName,
+                                                phoneNumber: user.phoneNumber,
+                                            });
+                                            setProfileErrors({});
+                                        }}
+                                        variant="outlined"
+                                        color="inherit"
+                                        sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </Box>
+                            )}
+                        </Box>
+                        <Divider sx={{ my: 2 }} />
+                    </>
+                )}
+
+                {/* Change Password Section */}
+                <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                        <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                            Change Password
+                        </Typography>
+                        {!showPasswordSection && (
+                            <IconButton 
+                                onClick={() => {
+                                    setShowPasswordSection(true);
+                                    dispatch(clearChangePasswordForm());
+                                    setPasswordErrors({});
+                                    setShowCurrentPassword(false);
+                                    setShowNewPassword(false);
+                                    setShowConfirmPassword(false);
+                                }} 
+                                color="primary"
+                            >
+                                <EditIcon />
+                            </IconButton>
+                        )}
+                    </Box>
+                </Box>
+
+                {showPasswordSection && (
+                    <Box component="form" noValidate onSubmit={handlePasswordChange} sx={{ mt: 1.5 }}>
+                        <Grid container spacing={1.5}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    name="currentPassword"
+                                    label="Current Password"
+                                    type={showCurrentPassword ? 'text' : 'password'}
+                                    id="currentPassword"
+                                    value={passwordFormState.currentPassword || ''}
+                                    onChange={handlePasswordFormChange}
+                                    error={!!passwordErrors.currentPassword}
+                                    helperText={passwordErrors.currentPassword}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2.5,
+                                            transition: 'all 0.2s',
+                                        }
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle current password visibility"
+                                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    edge="end"
+                                                >
+                                                    {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    name="newPassword"
+                                    label="New Password"
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    id="newPassword"
+                                    value={passwordFormState.newPassword || ''}
+                                    onChange={handlePasswordFormChange}
+                                    error={!!passwordErrors.newPassword}
+                                    helperText={passwordErrors.newPassword}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2.5,
+                                            transition: 'all 0.2s',
+                                        }
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle new password visibility"
+                                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    edge="end"
+                                                >
+                                                    {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    name="confirm"
+                                    label="Confirm New Password"
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    id="confirm"
+                                    value={passwordFormState.confirm || ''}
+                                    onChange={handlePasswordFormChange}
+                                    error={!!passwordErrors.confirm}
+                                    helperText={passwordErrors.confirm}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2.5,
+                                            transition: 'all 0.2s',
+                                        }
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle confirm password visibility"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    edge="end"
+                                                >
+                                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                        </Grid>
+                        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                            <Button
+                                type="submit"
+                                startIcon={<SaveIcon />}
+                                disabled={isChangingPassword}
+                                variant="contained"
+                                color="primary"
+                                sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                            >
+                                Save
+                            </Button>
+                            <Button
+                                startIcon={<CancelIcon />}
+                                onClick={() => {
+                                    setShowPasswordSection(false);
+                                    dispatch(clearChangePasswordForm());
+                                    setPasswordErrors({});
+                                    setShowCurrentPassword(false);
+                                    setShowNewPassword(false);
+                                    setShowConfirmPassword(false);
+                                }}
+                                variant="outlined"
+                                color="inherit"
+                                sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                            >
+                                Cancel
+                            </Button>
+                        </Box>
+                    </Box>
+                )}
             </Paper>
         </Container>
     );

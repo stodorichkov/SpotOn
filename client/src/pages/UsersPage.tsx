@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
 import { useGetUsersQuery } from '../features/users/usersSlice';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, CircularProgress, Typography, Container, Button, Skeleton, Chip, Box } from '@mui/material';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
+  TablePagination, 
+  Typography, 
+  Container, 
+  Button, 
+  Skeleton, 
+  Chip, 
+  Box, 
+  Divider 
+} from '@mui/material';
 import { Link } from 'react-router-dom';
 import InfoIcon from '@mui/icons-material/Info';
+import PeopleIcon from '@mui/icons-material/People';
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
@@ -36,16 +53,41 @@ const UsersPage: React.FC = () => {
     setPage(0);
   };
 
-  const rowHeight = 53.5; // Keep for skeleton
+  const rowHeight = 53; // Keep for skeleton
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
   if (isLoading) {
     return (
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-            <Typography variant="h4" gutterBottom>
-                Users
-            </Typography>
-            <Paper>
+        <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+            <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+                <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'primary.main',
+                                color: 'primary.contrastText',
+                                borderRadius: '50%',
+                                width: { xs: 45, sm: 50 },
+                                height: { xs: 45, sm: 50 },
+                                flexShrink: 0
+                            }}
+                        >
+                            <PeopleIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                        </Box>
+                        <Box>
+                            <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
+                                Users
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                                Manage active user accounts
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
+                <Divider />
                 <TableContainer>
                     <Table sx={{ minWidth: 650 }}>
                         <TableHead>
@@ -83,15 +125,51 @@ const UsersPage: React.FC = () => {
   }
 
   if (error) {
-    return <Typography color="error">Error loading users.</Typography>;
+    return (
+      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+          <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
+            Error
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Error loading users.
+          </Typography>
+        </Paper>
+      </Container>
+    );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Users
-      </Typography>
-      <Paper>
+    <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                borderRadius: '50%',
+                width: { xs: 45, sm: 50 },
+                height: { xs: 45, sm: 50 },
+                flexShrink: 0
+              }}
+            >
+              <PeopleIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+            </Box>
+            <Box>
+              <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
+                Users
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                Manage active user accounts
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        <Divider />
         {!data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
@@ -102,12 +180,12 @@ const UsersPage: React.FC = () => {
           <>
             <TableContainer>
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
+                <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Username</TableCell>
-                    <TableCell>Role</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>Username</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Role</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -129,8 +207,11 @@ const UsersPage: React.FC = () => {
                         <Button
                           component={Link}
                           to={`/admin/users/${user.id}`}
+                          variant="text"
+                          size="small"
+                          color="primary"
                           startIcon={<InfoIcon />}
-                          sx={{ textTransform: 'none' }}
+                          sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 1.5, px: 1.5 }}
                         >
                           Info
                         </Button>
@@ -139,7 +220,7 @@ const UsersPage: React.FC = () => {
                   ))}
                   {emptyRows > 0 &&
                     [...Array(emptyRows)].map((_, index) => (
-                      <TableRow key={`empty-${index}`}>
+                      <TableRow key={`empty-${index}`} style={{ height: rowHeight }}>
                         {/* Use non-breaking space to ensure cell has height */}
                         <TableCell component="th" scope="row">&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>

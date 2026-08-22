@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { TextField, Button, Container, Typography, Box, Paper, Grid, InputAdornment, IconButton } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Paper, Grid, InputAdornment, IconButton, Avatar } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import LockIcon from '@mui/icons-material/Lock';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { updateLoginFormField, clearLoginForm } from '../features/auth/loginSlice';
 import * as yup from 'yup';
 import { MessageConstants } from '../constants';
 import { useLoginMutation, ClientLoginRequest } from '../features/auth/authApi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { addAlert } from '../features/alerts/alertsSlice';
 
 type LoginFormState = ClientLoginRequest;
@@ -85,15 +86,30 @@ const LoginPage = () => {
     };
 
     return (
-        <Container maxWidth="sm">
-            <Paper elevation={3} sx={{ padding: 4, marginTop: 8, borderRadius: 2 }}>
+        <Container maxWidth="xs" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
+            <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Typography component="h1" variant="h5">
+                    <Avatar 
+                        sx={{ 
+                            m: 1, 
+                            backgroundColor: 'primary.main', 
+                            color: 'primary.contrastText',
+                            width: 52,
+                            height: 52
+                        }}
+                    >
+                        <LockIcon sx={{ fontSize: 28 }} />
+                    </Avatar>
+                    
+                    <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
                         Login
                     </Typography>
-                    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
+                    <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, mb: 3 }}>
+                        Welcome back! Please enter your details.
+                    </Typography>
 
-                        <Grid container spacing={2}>
+                    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ width: '100%' }}>
+                        <Grid container spacing={1.5}>
                             <Grid item xs={12}>
                                 <TextField
                                     required
@@ -104,7 +120,13 @@ const LoginPage = () => {
                                     value={formState.username || ''}
                                     onChange={handleChange}
                                     error={!!errors.username}
-                                    helperText={errors.username || ' '}
+                                    helperText={errors.username}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2.5,
+                                            transition: 'all 0.2s',
+                                        }
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -118,7 +140,13 @@ const LoginPage = () => {
                                     value={formState.password || ''}
                                     onChange={handleChange}
                                     error={!!errors.password}
-                                    helperText={errors.password || ' '}
+                                    helperText={errors.password}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2.5,
+                                            transition: 'all 0.2s',
+                                        }
+                                    }}
                                     InputProps={{
                                         endAdornment: (
                                             <InputAdornment position="end">
@@ -140,15 +168,28 @@ const LoginPage = () => {
                             type="submit"
                             fullWidth
                             variant="contained"
+                            color="primary"
                             sx={{
                                 mt: 3,
+                                py: 1.2,
                                 fontWeight: 'bold',
                                 textTransform: 'none',
+                                borderRadius: 2,
+                                fontSize: '1rem'
                             }}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Logging in...' : 'Login'}
                         </Button>
+
+                        <Box sx={{ mt: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Don't have an account?{' '}
+                                <Link to="/register" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
+                                    Register
+                                </Link>
+                            </Typography>
+                        </Box>
                     </Box>
                 </Box>
             </Paper>

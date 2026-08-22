@@ -8,14 +8,17 @@ import {
   Box,
   Chip,
   Grid,
-  CircularProgress
+  CircularProgress,
+  Avatar
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import AddIcon from '@mui/icons-material/Add';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { RegexConstants, MessageConstants } from '../constants';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { useGetRestaurantFormQuery, useCreateRestaurantMutation, CategoryResponse } from '../features/restaurants/restaurantsSlice';
+import { getCategoryStyle } from '../utils/categoryColor';
 
 const AddRestaurantPage: React.FC = () => {
   const navigate = useNavigate();
@@ -92,145 +95,179 @@ const AddRestaurantPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom sx={{ mb: 3 }}>
-          Add New Restaurant
-        </Typography>
+    <Container maxWidth="sm" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
+      <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Avatar 
+            sx={{ 
+              m: 1, 
+              backgroundColor: 'primary.main', 
+              color: 'primary.contrastText',
+              width: 52,
+              height: 52
+            }}
+          >
+            <RestaurantIcon sx={{ fontSize: 28 }} />
+          </Avatar>
 
-        <Box component="form" onSubmit={handleSubmit} noValidate>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                id="name"
-                label="Restaurant Name"
-                variant="outlined"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (errors.name) setErrors({ ...errors, name: '' });
-                }}
-                error={!!errors.name}
-                helperText={errors.name}
-              />
-            </Grid>
+          <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
+            Add New Restaurant
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, mb: 3 }}>
+            Register a new restaurant in the system.
+          </Typography>
 
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                id="address"
-                label="Address"
-                variant="outlined"
-                value={address}
-                onChange={(e) => {
-                  setAddress(e.target.value);
-                  if (errors.address) setErrors({ ...errors, address: '' });
-                }}
-                error={!!errors.address}
-                helperText={errors.address}
-              />
-            </Grid>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
+            <Grid container spacing={1.5}>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="name"
+                  label="Restaurant Name"
+                  variant="outlined"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (errors.name) setErrors({ ...errors, name: '' });
+                  }}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2.5,
+                      transition: 'all 0.2s',
+                    }
+                  }}
+                />
+              </Grid>
 
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                id="phoneNumber"
-                label="Phone Number"
-                variant="outlined"
-                value={phoneNumber}
-                onChange={(e) => {
-                  setPhoneNumber(e.target.value);
-                  if (errors.phoneNumber) setErrors({ ...errors, phoneNumber: '' });
-                }}
-                error={!!errors.phoneNumber}
-                helperText={errors.phoneNumber}
-              />
-            </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="address"
+                  label="Address"
+                  variant="outlined"
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (errors.address) setErrors({ ...errors, address: '' });
+                  }}
+                  error={!!errors.address}
+                  helperText={errors.address}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2.5,
+                      transition: 'all 0.2s',
+                    }
+                  }}
+                />
+              </Grid>
 
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1, color: 'text.secondary' }}>
-                Select Categories
-              </Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                flexWrap: 'wrap', 
-                gap: 1,
-                maxHeight: 130,
-                overflowY: 'auto',
-                p: 1,
-                border: '1px solid',
-                borderColor: errors.categories ? 'error.main' : 'divider',
-                borderRadius: 1.5,
-                backgroundColor: 'background.paper',
-                transition: 'border-color 0.2s',
-                alignItems: isLoading ? 'center' : 'stretch',
-                justifyContent: isLoading ? 'center' : 'flex-start',
-                minHeight: 56
-              }}>
-                {isLoading ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
-                    <CircularProgress size={20} />
-                    <Typography variant="body2" color="text.secondary">Loading categories...</Typography>
-                  </Box>
-                ) : error ? (
-                  <Typography variant="body2" color="error" sx={{ py: 1 }}>Failed to load categories.</Typography>
-                ) : availableCategories && availableCategories.length > 0 ? (
-                  availableCategories.map((cat) => {
-                    const isSelected = selectedCategoryIds.includes(cat.id);
-                    return (
-                      <Chip
-                        key={cat.id}
-                        label={cat.name}
-                        onClick={() => handleToggleCategory(cat.id)}
-                        color={isSelected ? 'primary' : 'default'}
-                        variant={isSelected ? 'filled' : 'outlined'}
-                        sx={{
-                          fontWeight: isSelected ? 'bold' : 'normal',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            transform: 'scale(1.05)',
-                          }
-                        }}
-                      />
-                    );
-                  })
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>No categories available.</Typography>
-                )}
-              </Box>
-              {errors.categories && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5, display: 'block' }}>
-                  {errors.categories}
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="phoneNumber"
+                  label="Phone Number"
+                  variant="outlined"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    if (errors.phoneNumber) setErrors({ ...errors, phoneNumber: '' });
+                  }}
+                  error={!!errors.phoneNumber}
+                  helperText={errors.phoneNumber}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2.5,
+                      transition: 'all 0.2s',
+                    }
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, color: 'text.secondary', ml: 0.5 }}>
+                  Select Categories
                 </Typography>
-              )}
-            </Grid>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: 1,
+                  maxHeight: 130,
+                  overflowY: 'auto',
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: errors.categories ? 'error.main' : 'divider',
+                  borderRadius: 2.5,
+                  backgroundColor: 'background.paper',
+                  transition: 'border-color 0.2s',
+                  alignItems: isLoading ? 'center' : 'stretch',
+                  justifyContent: isLoading ? 'center' : 'flex-start',
+                  minHeight: 56
+                }}>
+                  {isLoading ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
+                      <CircularProgress size={20} />
+                      <Typography variant="body2" color="text.secondary">Loading categories...</Typography>
+                    </Box>
+                  ) : error ? (
+                    <Typography variant="body2" color="error" sx={{ py: 1 }}>Failed to load categories.</Typography>
+                  ) : availableCategories && availableCategories.length > 0 ? (
+                    availableCategories.map((cat) => {
+                      const isSelected = selectedCategoryIds.includes(cat.id);
+                      return (
+                        <Chip
+                          key={cat.id}
+                          label={cat.name}
+                          onClick={() => handleToggleCategory(cat.id)}
+                          variant="outlined"
+                          sx={{
+                            ...(isSelected ? getCategoryStyle(cat.name) : { borderColor: 'divider', color: 'text.secondary' }),
+                            fontWeight: isSelected ? 'bold' : 'normal',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              transform: 'scale(1.05)',
+                            }
+                          }}
+                        />
+                      );
+                    })
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>No categories available.</Typography>
+                  )}
+                </Box>
+                {errors.categories && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5, display: 'block' }}>
+                    {errors.categories}
+                  </Typography>
+                )}
+              </Grid>
 
-            <Grid item xs={12} sx={{ mt: 3 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                startIcon={isCreating ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
-                disabled={isCreating}
-                sx={{ 
-                  textTransform: 'none', 
-                  fontWeight: 'bold', 
-                  py: 1.5,
-                  borderRadius: 2,
-                  fontSize: '1.1rem'
-                }}
-              >
-                {isCreating ? 'Adding restaurant...' : 'Add restaurant'}
-              </Button>
+              <Grid item xs={12} sx={{ mt: 2 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  startIcon={isCreating ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+                  disabled={isCreating}
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontWeight: 'bold', 
+                    py: 1.2,
+                    borderRadius: 2,
+                    fontSize: '1rem'
+                  }}
+                >
+                  {isCreating ? 'Adding restaurant...' : 'Add restaurant'}
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
+          </Box>
         </Box>
       </Paper>
     </Container>

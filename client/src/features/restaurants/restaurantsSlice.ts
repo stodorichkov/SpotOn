@@ -85,6 +85,14 @@ export interface RestaurantRequest {
   categories: number[];
 }
 
+export interface RestaurantDetailsResponse {
+  id: number;
+  name: string;
+  categories: CategoryResponse[];
+  address: string;
+  phoneNumber: string;
+}
+
 export const restaurantsSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getRestaurants: builder.query<PaginatedRestaurantsResponse, { page: number; size: number }>({
@@ -106,7 +114,19 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Restaurants'],
     }),
+    getRestaurantProfile: builder.query<RestaurantDetailsResponse, void>({
+      query: () => 'restaurant/profile',
+      providesTags: ['Restaurants'],
+    }),
+    updateRestaurantProfile: builder.mutation<RestaurantDetailsResponse, RestaurantRequest>({
+      query: (body) => ({
+        url: 'restaurant/profile',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Restaurants'],
+    }),
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation } = restaurantsSlice;

@@ -10,12 +10,13 @@ import RestaurantsPage from './pages/RestaurantsPage';
 import RestaurantEmployeesPage from './pages/RestaurantEmployeesPage';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import AddManagerPage from './pages/AddManagerPage';
+import ManagerRestaurantPage from './pages/ManagerRestaurantPage';
 import AppTopBar from './components/AppBar';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import Alerts from './components/Alerts';
-import { PrivateRoute, GuestRoute, AdminRoute } from './components/ProtectedRoute';
+import { PrivateRoute, GuestRoute, AdminRoute, ManagerRoute } from './components/ProtectedRoute';
 import './App.css';
 
 const theme = createTheme({
@@ -73,6 +74,9 @@ function App() {
               <Route path="/admin/restaurants/new" element={<AddRestaurantPage />} />
               <Route path="/admin/restaurants/:id/employees" element={<RestaurantEmployeesPage />} />
               <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
+            </Route>
+            <Route element={<ManagerRoute />}>
+              <Route path="/manager/restaurant" element={<ManagerRestaurantPage />} />
             </Route>
             {/* Fallback route to redirect undefined paths to the home page */}
             <Route path="*" element={<Navigate to="/" replace />} />

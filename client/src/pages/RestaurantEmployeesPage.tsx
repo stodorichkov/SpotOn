@@ -15,10 +15,12 @@ import {
   Container, 
   Chip, 
   Box,
-  Button
+  Button,
+  Divider
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
+import GroupIcon from '@mui/icons-material/Group';
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
@@ -61,41 +63,83 @@ const RestaurantEmployeesPage: React.FC = () => {
     setPage(0);
   };
 
-  const rowHeight = 52;
+  const rowHeight = 53;
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
   if (isNaN(restaurantId)) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Typography color="error" variant="h6">
-          Invalid Restaurant ID.
-        </Typography>
-        <Button component={Link} to="/admin/restaurants" startIcon={<ArrowBackIcon />} sx={{ mt: 2 }}>
-          Back to Restaurants
-        </Button>
+      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
+          <Typography color="error" variant="h6" fontWeight="bold" gutterBottom>
+            Error
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Invalid Restaurant ID.
+          </Typography>
+          <Button component={Link} to="/admin/restaurants" startIcon={<ArrowBackIcon />} sx={{ mt: 2, textTransform: 'none', fontWeight: 'bold' }}>
+            Back to Restaurants
+          </Button>
+        </Paper>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
-          Employees for {restaurantName}
-        </Typography>
-        <Button
-          component={Link}
-          to={`/admin/restaurants/${restaurantId}/employees/new`}
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-        >
-          Add Manager
-        </Button>
-      </Box>
-
-      <Paper>
+    <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              gap: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                  borderRadius: '50%',
+                  width: { xs: 45, sm: 50 },
+                  height: { xs: 45, sm: 50 },
+                  flexShrink: 0
+                }}
+              >
+                <GroupIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+              </Box>
+              <Box>
+                <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
+                  Employees
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                  Manage employees for {restaurantName}
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              component={Link}
+              to={`/admin/restaurants/${restaurantId}/employees/new`}
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 'bold', 
+                borderRadius: 2,
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
+              Add Manager
+            </Button>
+          </Box>
+        </Box>
+        <Divider />
         {isLoading ? (
           <TableContainer>
             <Table sx={{ minWidth: 650 }}>
@@ -182,7 +226,7 @@ const RestaurantEmployeesPage: React.FC = () => {
               </Table>
             </TableContainer>
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
+              rowsPerPageOptions={[5, 10]}
               component="div"
               count={data.totalElements}
               rowsPerPage={rowsPerPage}

@@ -13,4 +13,5 @@ export const MessageConstants = {
     INVALID_PASSWORD: "8-50 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.",
     PASSWORD_MISMATCH: "Passwords do not match.",
     NEW_PASSWORD_MATCHES_CURRENT: "New password cannot be the same as the current one.",
+    NO_CATEGORY: "Please select at least one category.",
 };
