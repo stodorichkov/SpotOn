@@ -12,7 +12,6 @@ public interface EmployeeService {
     void removeEmployee(Long restaurantId, Long employeeId);
     void removeEmployee(Long employeeId);
     Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable);
-    Page<UserDetailsResponse> getEmployees(Pageable pageable);
 
     Long getRestaurantId(Long userId);
 

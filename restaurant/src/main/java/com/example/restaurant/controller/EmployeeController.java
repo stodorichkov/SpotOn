@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/employees")
 @RequiredArgsConstructor
@@ -71,6 +73,7 @@ public class EmployeeController {
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
+            @RequestParam(required = false) Long restaurantId,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER);
@@ -80,7 +83,9 @@ public class EmployeeController {
 
             return this.employeeService.getEmployees(restaurantIdHeader, pageable);
         } else {
-            return this.employeeService.getEmployees(pageable);
+            return Optional.ofNullable(restaurantId)
+                    .map(id -> this.employeeService.getEmployees(id, pageable))
+                    .orElseGet(() -> Page.empty(pageable));
         }
     }
 

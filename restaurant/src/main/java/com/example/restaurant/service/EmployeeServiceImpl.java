@@ -90,15 +90,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public Page<UserDetailsResponse> getEmployees(Pageable pageable) {
-        final var employeeIds = this.employeeRepository.findAll(pageable)
-                .map(Employee::getUserId);
-
-        return getUserDetailsResponses(pageable, employeeIds);
-    }
-
-    @Override
-    @Transactional
     public Long getRestaurantId(Long userId) {
         return this.employeeRepository.findByUserId(userId)
                 .map(Employee::getRestaurant)
