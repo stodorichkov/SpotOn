@@ -200,7 +200,11 @@ const ManagerRestaurantPage: React.FC = () => {
           </Box>
 
           {!isEditing && (
-            <IconButton onClick={() => setIsEditing(true)} color="primary">
+            <IconButton 
+              onClick={() => setIsEditing(true)} 
+              color="primary"
+              sx={{ alignSelf: { xs: 'flex-end', sm: 'auto' } }}
+            >
               <EditIcon />
             </IconButton>
           )}

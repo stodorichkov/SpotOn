@@ -11,6 +11,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import TableBarIcon from '@mui/icons-material/TableBar';
 import { addAlert } from '../features/alerts/alertsSlice';
 
 const AppTopBar = () => {
@@ -27,10 +28,11 @@ const AppTopBar = () => {
   const handleLogout = async () => {
     try {
       await logoutApi().unwrap();
-      dispatch(addAlert({ message: 'Logged out successfully!', type: 'success' }));
-      navigate('/login'); // Redirect to login page after logout
     } catch (error) {
       console.error("Failed to logout:", error);
+    } finally {
+      dispatch(addAlert({ message: 'Logged out successfully!', type: 'success' }));
+      navigate('/login'); // Redirect to login page after logout
     }
   };
 
@@ -43,6 +45,8 @@ const AppTopBar = () => {
     ? '/manager/restaurant'
     : location.pathname.startsWith('/manager/employees')
     ? '/manager/employees'
+    : location.pathname.startsWith('/manager/tables')
+    ? '/manager/tables'
     : location.pathname;
 
   const menuItems = [];
@@ -54,7 +58,8 @@ const AppTopBar = () => {
   } else if (role === 'MANAGER') {
     menuItems.push(
       { label: 'Restaurant', path: '/manager/restaurant', icon: <RestaurantIcon /> },
-      { label: 'Employees', path: '/manager/employees', icon: <GroupIcon /> }
+      { label: 'Employees', path: '/manager/employees', icon: <GroupIcon /> },
+      { label: 'Tables', path: '/manager/tables', icon: <TableBarIcon /> }
     );
   }
 
@@ -136,6 +141,14 @@ const AppTopBar = () => {
                   iconPosition="start"
                   component={Link}
                   to="/manager/employees"
+                />
+                <Tab
+                  label="Tables"
+                  value="/manager/tables"
+                  icon={<TableBarIcon />}
+                  iconPosition="start"
+                  component={Link}
+                  to="/manager/tables"
                 />
               </Tabs>
             )}

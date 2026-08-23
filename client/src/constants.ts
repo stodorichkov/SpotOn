@@ -14,4 +14,5 @@ export const MessageConstants = {
     PASSWORD_MISMATCH: "Passwords do not match.",
     NEW_PASSWORD_MATCHES_CURRENT: "New password cannot be the same as the current one.",
     NO_CATEGORY: "Please select at least one category.",
+    TABLE_MIN_CAPACITY: "Capacity must be at least 1.",
 };

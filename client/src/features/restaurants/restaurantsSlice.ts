@@ -93,6 +93,48 @@ export interface RestaurantDetailsResponse {
   phoneNumber: string;
 }
 
+export interface RestaurantTableResponse {
+  id: number;
+  name: string;
+  capacity: number;
+  isSmokingAllowed: boolean;
+}
+
+export interface RestaurantTableRequest {
+  name: string;
+  capacity: number;
+  isSmokingAllowed: boolean;
+}
+
+export interface PaginatedTablesResponse {
+  content: RestaurantTableResponse[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      sorted: boolean;
+      unsorted: boolean;
+      empty: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  last: boolean;
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  sort: {
+    sorted: boolean;
+    unsorted: boolean;
+    empty: boolean;
+  };
+  first: boolean;
+  numberOfElements: number;
+  empty: boolean;
+}
+
 export const restaurantsSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getRestaurants: builder.query<PaginatedRestaurantsResponse, { page: number; size: number }>({
@@ -137,7 +179,34 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Employees'],
     }),
+    getManagerTables: builder.query<PaginatedTablesResponse, { page: number; size: number }>({
+      query: ({ page, size }) => `restaurant/tables?page=${page}&size=${size}&sort=id,asc`,
+      providesTags: ['Tables'],
+    }),
+    createTable: builder.mutation<RestaurantTableResponse, RestaurantTableRequest>({
+      query: (body) => ({
+        url: 'restaurant/tables',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Tables'],
+    }),
+    updateTable: builder.mutation<RestaurantTableResponse, { id: number; body: RestaurantTableRequest }>({
+      query: ({ id, body }) => ({
+        url: `restaurant/tables/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Tables'],
+    }),
+    deleteTable: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `restaurant/tables/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Tables'],
+    }),
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation } = restaurantsSlice;

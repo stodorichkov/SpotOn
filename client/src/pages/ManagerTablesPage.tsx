@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useGetManagerEmployeesQuery, useDeleteEmployeeMutation } from '../features/restaurants/restaurantsSlice';
+import { useGetManagerTablesQuery, useDeleteTableMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+import { useDispatch } from 'react-redux';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { 
   Table, 
@@ -16,70 +15,79 @@ import {
   Skeleton, 
   Typography, 
   Container, 
-  Chip, 
   Box,
   Divider,
   Button,
   IconButton,
   Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText
+  DialogActions
 } from '@mui/material';
-import GroupIcon from '@mui/icons-material/Group';
-import InfoIcon from '@mui/icons-material/Info';
-import DeleteIcon from '@mui/icons-material/Delete';
+import TableBarIcon from '@mui/icons-material/TableBar';
 import AddIcon from '@mui/icons-material/Add';
+import InfoIcon from '@mui/icons-material/Info';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
+import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
-const getRoleChipColor = (role: string) => {
-  switch (role?.toUpperCase()) {
-    case 'ADMIN':
-      return 'error';
-    case 'CLIENT':
-    case 'CUSTOMER':
-      return 'success';
-    case 'EMPLOYEE':
-    case 'STAFF':
-      return 'info';
-    case 'OWNER':
-    case 'MANAGER':
-      return 'warning';
-    default:
-      return 'default';
-  }
-};
-
-const ManagerEmployeesPage: React.FC = () => {
+const ManagerTablesPage: React.FC = () => {
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const currentUserId = useSelector((state: RootState) => state.auth.id);
-  const { data, error, isLoading } = useGetManagerEmployeesQuery({ page, size: rowsPerPage });
-  const [deleteEmployee, { isLoading: isDeleting }] = useDeleteEmployeeMutation();
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState<{ id: number; name: string } | null>(null);
-
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [activeEmployee, setActiveEmployee] = useState<any>(null);
+  const [activeTable, setActiveTable] = useState<any>(null);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, employee: any) => {
+  const [deleteTable, { isLoading: isDeleting }] = useDeleteTableMutation();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [tableToDelete, setTableToDelete] = useState<{ id: number; name: string } | null>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, table: any) => {
     setAnchorEl(event.currentTarget);
-    setActiveEmployee(employee);
+    setActiveTable(table);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setActiveEmployee(null);
+    setActiveTable(null);
   };
+
+  const handleDeleteClick = (tableId: number, name: string) => {
+    setTableToDelete({ id: tableId, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!tableToDelete) return;
+    try {
+      await deleteTable(tableToDelete.id).unwrap();
+      dispatch(addAlert({ message: 'Table removed successfully!', type: 'success' }));
+    } catch (err: any) {
+      console.error('Failed to remove table:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || 'Failed to remove table. Please try again.',
+        type: 'error'
+      }));
+    } finally {
+      setDeleteDialogOpen(false);
+      setTableToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setTableToDelete(null);
+  };
+
+  const { data, error, isLoading } = useGetManagerTablesQuery({ page, size: rowsPerPage });
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -88,33 +96,6 @@ const ManagerEmployeesPage: React.FC = () => {
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const handleDeleteClick = (employeeId: number, name: string) => {
-    setEmployeeToDelete({ id: employeeId, name });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!employeeToDelete) return;
-    try {
-      await deleteEmployee(employeeToDelete.id).unwrap();
-      dispatch(addAlert({ message: 'Employee removed successfully!', type: 'success' }));
-    } catch (err: any) {
-      console.error('Failed to remove employee:', err);
-      dispatch(addAlert({
-        message: err?.data?.message || 'Failed to remove employee. Please try again.',
-        type: 'error'
-      }));
-    } finally {
-      setDeleteDialogOpen(false);
-      setEmployeeToDelete(null);
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setEmployeeToDelete(null);
   };
 
   const rowHeight = 53;
@@ -128,7 +109,7 @@ const ManagerEmployeesPage: React.FC = () => {
             Error
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load restaurant employees. Please try again.
+            Failed to load restaurant tables. Please try again.
           </Typography>
         </Paper>
       </Container>
@@ -162,20 +143,20 @@ const ManagerEmployeesPage: React.FC = () => {
                   flexShrink: 0
                 }}
               >
-                <GroupIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                <TableBarIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
               </Box>
               <Box>
                 <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
-                  Employees
+                  Tables
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                  Manage restaurant employees
+                  View and manage your restaurant tables
                 </Typography>
               </Box>
             </Box>
             <Button
               component={Link}
-              to="/manager/employees/new"
+              to="/manager/tables/new"
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
@@ -186,7 +167,7 @@ const ManagerEmployeesPage: React.FC = () => {
                 width: { xs: '100%', sm: 'auto' }
               }}
             >
-              Add Employee
+              Add Table
             </Button>
           </Box>
         </Box>
@@ -198,17 +179,15 @@ const ManagerEmployeesPage: React.FC = () => {
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Capacity</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Smoking Allowed</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {[...Array(rowsPerPage)].map((_, index) => (
                   <TableRow key={`skeleton-${index}`} style={{ height: rowHeight }}>
-                    <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
@@ -222,67 +201,51 @@ const ManagerEmployeesPage: React.FC = () => {
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No employees found for your restaurant.
+              No tables found for your restaurant.
             </Typography>
           </Box>
         ) : (
           <>
             <TableContainer>
-              <Table sx={{ minWidth: 650 }} aria-label="employees table">
+              <Table sx={{ minWidth: 650 }} aria-label="tables table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Capacity</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Smoking Allowed</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {data.content.map((employee) => {
-                    if (!employee) return null;
-                    const isSelf = employee.id === currentUserId;
-                    const canDelete = !isSelf && (employee.role?.toUpperCase() === 'EMPLOYEE' || employee.role?.toUpperCase() === 'STAFF');
+                  {data.content.map((table) => {
+                    if (!table) return null;
                     return (
-                      <TableRow key={employee.id} style={{ height: rowHeight }}>
-                        <TableCell>{employee.id}</TableCell>
-                        <TableCell>{employee.username || ''}</TableCell>
-                        <TableCell>{`${employee.firstName || ''} ${employee.lastName || ''}`}</TableCell>
-                        <TableCell>{employee.phoneNumber || '-'}</TableCell>
+                      <TableRow key={table.id} style={{ height: rowHeight }}>
+                        <TableCell>{table.id}</TableCell>
+                        <TableCell>{table.name || ''}</TableCell>
+                        <TableCell>{table.capacity}</TableCell>
                         <TableCell>
-                          {employee.role ? (
-                            <Chip
-                              label={employee.role}
-                              size="small"
-                              color={getRoleChipColor(employee.role)}
-                              variant="outlined"
-                            />
-                          ) : '-'}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {table.isSmokingAllowed ? (
+                              <SmokingRoomsIcon color="success" fontSize="small" />
+                            ) : (
+                              <SmokeFreeIcon color="action" fontSize="small" />
+                            )}
+                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                              {table.isSmokingAllowed ? 'Smoking Allowed' : 'Non-Smoking'}
+                            </Typography>
+                          </Box>
                         </TableCell>
                         <TableCell align="right">
-                          {canDelete ? (
-                            <IconButton
-                              color="primary"
-                              size="small"
-                              onClick={(e) => handleMenuOpen(e, employee)}
-                              aria-label="actions"
-                            >
-                              <MoreVertIcon />
-                            </IconButton>
-                          ) : (
-                            <Tooltip title="User Details" arrow>
-                              <IconButton
-                                component={Link}
-                                to={`/manager/employees/${employee.id}`}
-                                state={{ user: employee }}
-                                color="primary"
-                                size="small"
-                              >
-                                <InfoIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )}
+                          <IconButton
+                            color="primary"
+                            size="small"
+                            onClick={(e) => handleMenuOpen(e, table)}
+                            aria-label="actions"
+                          >
+                            <MoreVertIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     );
@@ -294,17 +257,14 @@ const ManagerEmployeesPage: React.FC = () => {
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
-                        <TableCell>&nbsp;</TableCell>
                         <TableCell align="right">
-                          <Button
-                            variant="text"
+                          <IconButton
                             size="small"
-                            startIcon={<InfoIcon />}
                             sx={{ visibility: 'hidden' }}
                             aria-hidden="true"
                           >
-                            Info
-                          </Button>
+                            <MoreVertIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -324,7 +284,61 @@ const ManagerEmployeesPage: React.FC = () => {
         )}
       </Paper>
 
-      {/* Custom Material UI Confirmation Dialog for Deleting Employee */}
+      {/* Responsive Collapsible Actions Menu (only for small/mobile screens) */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 150,
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+          }
+        }}
+      >
+        {activeTable && [
+          <MenuItem 
+            key="details"
+            component={Link} 
+            to={`/manager/tables/${activeTable.id}`} 
+            state={{ table: activeTable }}
+            onClick={handleMenuClose}
+          >
+            <ListItemIcon>
+              <InfoIcon color="primary" fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Details" />
+          </MenuItem>,
+          <MenuItem 
+            key="edit"
+            component={Link} 
+            to={`/manager/tables/${activeTable.id}`} 
+            state={{ table: activeTable, edit: true }}
+            onClick={handleMenuClose}
+          >
+            <ListItemIcon>
+              <EditIcon color="primary" fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Edit" />
+          </MenuItem>,
+          <MenuItem 
+            key="delete"
+            onClick={() => {
+              handleMenuClose();
+              handleDeleteClick(activeTable.id, activeTable.name);
+            }}
+            sx={{ color: 'error.main' }}
+          >
+            <ListItemIcon>
+              <DeleteIcon color="error" fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Remove" />
+          </MenuItem>
+        ]}
+      </Menu>
+
+      {/* Custom Material UI Confirmation Dialog for Deleting Table */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleDeleteCancel}
@@ -339,11 +353,11 @@ const ManagerEmployeesPage: React.FC = () => {
         }}
       >
         <DialogTitle id="delete-dialog-title" fontWeight="bold">
-          Remove Employee
+          Remove Table
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
-            Are you sure you want to remove employee <strong>{employeeToDelete?.name}</strong>? This action will completely revoke their access and cannot be undone.
+            Are you sure you want to remove table <strong>{tableToDelete?.name}</strong>? This action will completely remove the table from the restaurant and cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -367,52 +381,8 @@ const ManagerEmployeesPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Responsive Collapsible Actions Menu (only for small/mobile screens) */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 150,
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-          }
-        }}
-      >
-        {activeEmployee && [
-          <MenuItem 
-            key="details"
-            component={Link} 
-            to={`/manager/employees/${activeEmployee.id}`} 
-            state={{ user: activeEmployee }}
-            onClick={handleMenuClose}
-          >
-            <ListItemIcon>
-              <InfoIcon color="primary" fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Details" />
-          </MenuItem>,
-          activeEmployee.id !== currentUserId && (activeEmployee.role?.toUpperCase() === 'EMPLOYEE' || activeEmployee.role?.toUpperCase() === 'STAFF') && (
-            <MenuItem 
-              key="delete"
-              onClick={() => {
-                handleMenuClose();
-                handleDeleteClick(activeEmployee.id, `${activeEmployee.firstName || ''} ${activeEmployee.lastName || ''}`);
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              <ListItemIcon>
-                <DeleteIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Remove" />
-            </MenuItem>
-          )
-        ]}
-      </Menu>
     </Container>
   );
 };
 
-export default ManagerEmployeesPage;
+export default ManagerTablesPage;

@@ -171,13 +171,14 @@ export const authApi = api.injectEndpoints({
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
+                } catch (error) {
+                    console.error("Logout failed:", error);
+                } finally {
                     dispatch(setCredentials({ token: null, role: null }));
                     // Defer resetting the entire RTK Query API state to clear cache for security and allow alerts to propagate
                     setTimeout(() => {
                         dispatch({ type: 'api/resetApiState' });
                     }, 0);
-                } catch (error) {
-                    console.error("Logout failed:", error);
                 }
             },
         }),
