@@ -12,15 +12,18 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface BookingMapper {
+    @Mapping(source = "isSmoking", target = "isSmoking")
     Booking mapFormClientBookingRequest(BookingClientRequest request);
 
     @Mapping(source = "booking.id", target = "id")
     @Mapping(source = "booking.status.name", target = "status")
     @Mapping(source = "restaurant", target = "restaurant")
+    @Mapping(source = "booking.isSmoking", target = "isSmoking")
     BookingClientResponse mapToClientBookingResponse(Booking booking, RestaurantContactResponse restaurant);
 
     @Mapping(source = "booking.id", target = "id")
     @Mapping(source = "booking.status.name", target = "status")
     @Mapping(source = "client", target = "client")
+    @Mapping(source = "booking.isSmoking", target = "isSmoking")
     BookingEmployeeResponse mapToRestaurantBookingResponse(Booking booking, ClientContactResponse client);
 }

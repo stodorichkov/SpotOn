@@ -11,6 +11,7 @@ import com.example.booking.model.enums.StatuEnum;
 import com.example.booking.model.enums.RoleEnum;
 import com.example.booking.model.payload.request.BookingClientRequest;
 import com.example.booking.model.payload.request.BookingConfirmRequest;
+import com.example.booking.model.payload.request.RestaurantTableValidationRequest;
 import com.example.booking.model.payload.response.ClientContactResponse;
 import com.example.booking.model.payload.response.RestaurantContactResponse;
 import com.example.booking.model.payload.response.BookingClientResponse;
@@ -117,7 +118,13 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
-        this.restaurantBookingClient.validateRestaurantTable(request);
+        final var validationRequest = new RestaurantTableValidationRequest(
+                request.tableId(),
+                booking.getGuestCount(),
+                booking.getIsSmoking()
+        );
+
+        this.restaurantBookingClient.validateRestaurantTable(validationRequest);
 
         final var twoHoursBefore = booking.getDateTime().minus(2, ChronoUnit.HOURS);
         final var conflictingBookings = this.bookingRepository.findAllByTableIdAndDateTimeBetween(

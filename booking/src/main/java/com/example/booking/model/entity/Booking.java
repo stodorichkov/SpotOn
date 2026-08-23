@@ -29,7 +29,7 @@ public class Booking {
     private Integer guestCount;
 
     @Column(nullable = false)
-    private boolean isSmoking;
+    private Boolean isSmoking;
 
     @Column(nullable = false)
     private Instant dateTime;
