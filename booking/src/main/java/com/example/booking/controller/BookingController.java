@@ -24,14 +24,14 @@ public class BookingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void addBooking(
+    public BookingClientResponse addBooking(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @Valid @RequestBody BookingClientRequest request
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
 
-        this.bookingService.addBooking(request, userIdHeader);
+        return this.bookingService.addBooking(request, userIdHeader);
     }
 
     @GetMapping
@@ -65,7 +65,7 @@ public class BookingController {
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
 
-        this.bookingService.markBookingAsConfirmed(restaurantId, bookingId, request);
+        this.bookingService.markBookingAsConfirmed(bookingId, restaurantId, request);
     }
 
     @PatchMapping("/{bookingId}/arrived")
@@ -76,7 +76,7 @@ public class BookingController {
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
 
-        this.bookingService.markBookingAsArrived(restaurantId, bookingId);
+        this.bookingService.markBookingAsArrived(bookingId, restaurantId);
     }
 
     @PatchMapping("/{bookingId}/completed")
@@ -87,17 +87,22 @@ public class BookingController {
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
 
-        this.bookingService.markBookingAsCompleted(restaurantId, bookingId);
+        this.bookingService.markBookingAsCompleted(bookingId, restaurantId);
     }
 
     @PatchMapping("/{bookingId}/canceled")
     public void markBookingAsCanceled(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
-            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            @RequestHeader(value = HeaderConstants.USER_ID) Long userIdHeader,
+            @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantId,
             @PathVariable Long bookingId
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT, RoleEnum.EMPLOYEE);
 
-        this.bookingService.markBookingAsCanceled(restaurantId, bookingId);
+        if (userRoleHeader == RoleEnum.CLIENT) {
+            this.bookingService.markBookingAsCanceled(bookingId, RoleEnum.CLIENT, userIdHeader);
+        } else {
+            this.bookingService.markBookingAsCanceled(bookingId, RoleEnum.EMPLOYEE, restaurantId);
+        }
     }
 }

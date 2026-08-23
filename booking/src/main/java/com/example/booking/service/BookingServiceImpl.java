@@ -8,6 +8,7 @@ import com.example.booking.exception.BadRequestException;
 import com.example.booking.mapper.BookingMapper;
 import com.example.booking.model.entity.Booking;
 import com.example.booking.model.enums.StatuEnum;
+import com.example.booking.model.enums.RoleEnum;
 import com.example.booking.model.payload.request.BookingClientRequest;
 import com.example.booking.model.payload.request.BookingConfirmRequest;
 import com.example.booking.model.payload.response.ClientContactResponse;
@@ -38,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void addBooking(BookingClientRequest request, Long clientId) {
+    public BookingClientResponse addBooking(BookingClientRequest request, Long clientId) {
         final var restaurantId = request.restaurantId();
 
         this.restaurantBookingClient.restaurantExists(restaurantId);
@@ -49,7 +50,14 @@ public class BookingServiceImpl implements BookingService {
         booking.setClientId(clientId);
         booking.setStatus(status);
 
-        this.bookingRepository.save(booking);
+        final var savedBooking = this.bookingRepository.save(booking);
+
+        final var restaurantContact = this.restaurantBookingClient.getRestaurantsContact(List.of(restaurantId))
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        return this.bookingMapper.mapToClientBookingResponse(savedBooking, restaurantContact);
     }
 
     @Override
@@ -162,7 +170,7 @@ public class BookingServiceImpl implements BookingService {
 
         if (
                 !booking.getRestaurantId().equals(restaurantId)
-                        || !booking.getStatus().getName().equals(StatuEnum.ARRIVED)
+                || !booking.getStatus().getName().equals(StatuEnum.ARRIVED)
         ) {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
@@ -176,11 +184,24 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void markBookingAsCanceled(Long bookingId, Long restaurantId) {
+    public void markBookingAsCanceled(Long bookingId, RoleEnum role, Long id) {
         final var booking = this.bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
 
-        if (!booking.getRestaurantId().equals(restaurantId)) {
+        final var currentStatus = booking.getStatus().getName();
+        if (currentStatus != StatuEnum.PENDING && currentStatus != StatuEnum.CONFIRMED) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        if (role == RoleEnum.CLIENT) {
+            if (!booking.getClientId().equals(id)) {
+                throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+            }
+        } else if (role == RoleEnum.EMPLOYEE) {
+            if (!booking.getRestaurantId().equals(id)) {
+                throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+            }
+        } else {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 

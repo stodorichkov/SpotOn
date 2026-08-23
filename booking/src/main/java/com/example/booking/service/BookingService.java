@@ -1,5 +1,6 @@
 package com.example.booking.service;
 
+import com.example.booking.model.enums.RoleEnum;
 import com.example.booking.model.payload.request.BookingClientRequest;
 import com.example.booking.model.payload.request.BookingConfirmRequest;
 import com.example.booking.model.payload.response.BookingClientResponse;
@@ -8,7 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface BookingService {
-    void addBooking(BookingClientRequest request, Long clientId);
+    BookingClientResponse addBooking(BookingClientRequest request, Long clientId);
 
     Page<BookingClientResponse> getClientBookings(Long clientId, Pageable pageable);
     Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, Pageable pageable);
@@ -16,5 +17,5 @@ public interface BookingService {
     void markBookingAsConfirmed(Long bookingId, Long restaurantId, BookingConfirmRequest request);
     void markBookingAsArrived(Long bookingId, Long restaurantId);
     void markBookingAsCompleted(Long bookingId, Long restaurantId);
-    void markBookingAsCanceled(Long bookingId, Long restaurantId);
+    void markBookingAsCanceled(Long bookingId, RoleEnum role, Long id);
 }
