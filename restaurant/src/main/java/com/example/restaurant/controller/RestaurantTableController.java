@@ -24,7 +24,7 @@ public class RestaurantTableController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void addTable(
+    public RestaurantTableResponse addTable(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
@@ -33,7 +33,7 @@ public class RestaurantTableController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
-        this.restaurantTableService.addTable(request, restaurantIdHeader);
+        return this.restaurantTableService.addTable(request, restaurantIdHeader);
     }
 
     @GetMapping

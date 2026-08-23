@@ -25,14 +25,15 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Override
     @Transactional
-    public void addTable(RestaurantTableRequest request, Long restaurantId) {
+    public RestaurantTableResponse addTable(RestaurantTableRequest request, Long restaurantId) {
         final var restaurant = this.restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
 
         final var table = this.restaurantTableMapper.mapFromRestaurantTableRequest(request);
         table.setRestaurant(restaurant);
 
-        this.restaurantTableRepository.save(table);
+        final var savedTable = this.restaurantTableRepository.save(table);
+        return this.restaurantTableMapper.mapToRestaurantTableResponse(savedTable);
     }
 
     @Override
