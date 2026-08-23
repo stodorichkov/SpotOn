@@ -4,6 +4,6 @@ public record ClientContactResponse(
         Long id,
         String firstName,
         String lastName,
-        String phone
+        String phoneNumber
 ) {
 }
