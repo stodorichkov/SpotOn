@@ -17,7 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { RegexConstants, MessageConstants } from '../constants';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { useGetRestaurantFormQuery, useCreateRestaurantMutation, CategoryResponse } from '../features/restaurants/restaurantsSlice';
+import { useGetRestaurantFormQuery, useCreateRestaurantMutation } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
 
 const AddRestaurantPage: React.FC = () => {

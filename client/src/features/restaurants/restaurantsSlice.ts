@@ -19,6 +19,10 @@ export interface BookingClientRequest {
   dateTime: string;
 }
 
+export interface BookingConfirmRequest {
+  tableId: number;
+}
+
 export interface BookingClientResponse {
   id: number;
   status: string;
@@ -30,6 +34,30 @@ export interface BookingClientResponse {
 
 export interface PaginatedBookingsResponse {
   content: BookingClientResponse[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}
+
+export interface ClientContactResponse {
+  id: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+}
+
+export interface BookingEmployeeResponse {
+  id: number;
+  status: string;
+  client: ClientContactResponse;
+  guestCount: number;
+  isSmoking: boolean;
+  dateTime: string;
+}
+
+export interface PaginatedEmployeeBookingsResponse {
+  content: BookingEmployeeResponse[];
   totalPages: number;
   totalElements: number;
   size: number;
@@ -260,7 +288,33 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Bookings'],
     }),
+    getRestaurantBookings: builder.query<PaginatedEmployeeBookingsResponse, { page: number; size: number }>({
+      query: ({ page, size }) => `booking/bookings/restaurant?page=${page}&size=${size}&sort=id,desc`,
+      providesTags: ['Bookings'],
+    }),
+    confirmBooking: builder.mutation<any, { bookingId: number; body: BookingConfirmRequest }>({
+      query: ({ bookingId, body }) => ({
+        url: `booking/bookings/${bookingId}/confirmed`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Bookings'],
+    }),
+    arrivedBooking: builder.mutation<any, number>({
+      query: (bookingId) => ({
+        url: `booking/bookings/${bookingId}/arrived`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Bookings'],
+    }),
+    completedBooking: builder.mutation<any, number>({
+      query: (bookingId) => ({
+        url: `booking/bookings/${bookingId}/completed`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Bookings'],
+    }),
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;

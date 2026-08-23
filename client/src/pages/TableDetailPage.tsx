@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useUpdateTableMutation, useDeleteTableMutation } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
@@ -16,7 +16,6 @@ import {
   TextField,
   Switch,
   CircularProgress,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -48,7 +47,7 @@ interface RestaurantTable {
 }
 
 const TableDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();

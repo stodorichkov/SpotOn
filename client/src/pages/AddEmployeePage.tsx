@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useRegisterEmployeeMutation } from '../features/auth/authApi';
 import { addAlert } from '../features/alerts/alertsSlice';
@@ -12,12 +12,9 @@ import {
   Button,
   Box,
   Grid,
-  InputAdornment,
-  IconButton,
   CircularProgress,
   Avatar
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 

@@ -20,12 +20,13 @@ import RestaurantDetailPage from './pages/RestaurantDetailPage';
 import ReservationPage from './pages/ReservationPage';
 import ClientBookingsPage from './pages/ClientBookingsPage';
 import BookingDetailPage from './pages/BookingDetailPage';
+import EmployeeBookingsPage from './pages/EmployeeBookingsPage';
 import AppTopBar from './components/AppBar';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import Alerts from './components/Alerts';
-import { PrivateRoute, GuestRoute, AdminRoute, ManagerRoute, PublicClientRoute, ClientOnlyRoute } from './components/ProtectedRoute';
+import { PrivateRoute, GuestRoute, AdminRoute, ManagerRoute, PublicClientRoute, ClientOnlyRoute, EmployeeRoute } from './components/ProtectedRoute';
 import './App.css';
 
 const theme = createTheme({
@@ -81,13 +82,19 @@ function App() {
 
             <Route element={<PrivateRoute />}>
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/bookings/:id" element={<BookingDetailPage />} />
             </Route>
 
             {/* Client-Only Logged-in Routes (Forbidden for Admin, Manager & Guests) */}
             <Route element={<ClientOnlyRoute />}>
               <Route path="/restaurants/:id/reserve" element={<ReservationPage />} />
               <Route path="/bookings" element={<ClientBookingsPage />} />
-              <Route path="/bookings/:id" element={<BookingDetailPage />} />
+            </Route>
+
+            {/* Employee-Only Logged-in Routes (Forbidden for Admin, Manager, Client & Guests) */}
+            <Route element={<EmployeeRoute />}>
+              <Route path="/employee/bookings" element={<EmployeeBookingsPage />} />
+              <Route path="/employee/bookings/:id" element={<BookingDetailPage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin/users" element={<UsersPage />} />

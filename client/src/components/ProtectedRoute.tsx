@@ -11,7 +11,7 @@ export const PrivateRoute: React.FC = () => {
 
 export const GuestRoute: React.FC = () => {
     const { token, role } = useSelector((state: RootState) => state.auth);
-    return !token ? <Outlet /> : <Navigate to={role === Role.ADMIN ? "/admin/users" : role === Role.MANAGER ? "/manager/restaurant" : "/profile"} replace />;
+    return !token ? <Outlet /> : <Navigate to={role === Role.ADMIN ? "/admin/users" : role === Role.MANAGER ? "/manager/restaurant" : role === Role.EMPLOYEE ? "/employee/bookings" : "/profile"} replace />;
 };
 
 export const AdminRoute: React.FC = () => {
@@ -33,6 +33,9 @@ export const PublicClientRoute: React.FC = () => {
     if (role === Role.MANAGER) {
       return <Navigate to="/manager/restaurant" replace />;
     }
+    if (role === Role.EMPLOYEE) {
+      return <Navigate to="/employee/bookings" replace />;
+    }
   }
   return <Outlet />;
 };
@@ -48,5 +51,13 @@ export const ClientOnlyRoute: React.FC = () => {
   if (role === Role.MANAGER) {
     return <Navigate to="/manager/restaurant" replace />;
   }
+  if (role === Role.EMPLOYEE) {
+    return <Navigate to="/employee/bookings" replace />;
+  }
   return <Outlet />;
+};
+
+export const EmployeeRoute: React.FC = () => {
+  const { token, role } = useSelector((state: RootState) => state.auth);
+  return token && role === Role.EMPLOYEE ? <Outlet /> : <Navigate to="/" replace />;
 };

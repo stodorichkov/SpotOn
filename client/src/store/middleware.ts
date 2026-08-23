@@ -11,11 +11,6 @@ const hasMessage = (value: unknown): value is { message: string } => {
   );
 };
 
-// Helper to check if a value is an object with a 'data' property
-const hasData = (value: unknown): value is { data: unknown } => {
-    return typeof value === 'object' && value !== null && 'data' in value;
-}
-
 export const rtkQueryErrorLogger: Middleware = (store) => (next) => (action) => {
   if (isRejectedWithValue(action)) {
     let errorMessage = 'An error occurred';

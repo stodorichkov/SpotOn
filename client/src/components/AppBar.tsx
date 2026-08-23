@@ -51,6 +51,8 @@ const AppTopBar = () => {
     ? '/manager/tables'
     : location.pathname.startsWith('/bookings')
     ? '/bookings'
+    : location.pathname.startsWith('/employee/bookings')
+    ? '/employee/bookings'
     : location.pathname;
 
   const menuItems = [];
@@ -73,6 +75,12 @@ const AppTopBar = () => {
     );
   }
 
+  if (role === Role.EMPLOYEE) {
+    menuItems.push(
+      { label: 'Bookings', path: '/employee/bookings', icon: <CalendarMonthIcon /> }
+    );
+  }
+
   if (token) {
     menuItems.push(
       { label: 'Profile', path: '/profile', icon: <PersonIcon /> }
@@ -90,7 +98,7 @@ const AppTopBar = () => {
         <Typography
           variant="h6"
           component={Link}
-          to={role === Role.ADMIN ? '/admin/users' : role === Role.MANAGER ? '/manager/restaurant' : '/'}
+          to={role === Role.ADMIN ? '/admin/users' : role === Role.MANAGER ? '/manager/restaurant' : role === Role.EMPLOYEE ? '/employee/bookings' : '/'}
           sx={{
             textDecoration: 'none',
             color: 'inherit',
@@ -163,6 +171,24 @@ const AppTopBar = () => {
               </Tabs>
             )}
 
+            {role === Role.EMPLOYEE && (
+              <Tabs
+                value={currentTab}
+                textColor="inherit"
+                indicatorColor="secondary"
+                sx={{ ml: 2, '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
+              >
+                <Tab
+                  label="Bookings"
+                  value="/employee/bookings"
+                  icon={<CalendarMonthIcon />}
+                  iconPosition="start"
+                  component={Link}
+                  to="/employee/bookings"
+                />
+              </Tabs>
+            )}
+
             <Box sx={{ flexGrow: 1 }} />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -174,7 +200,7 @@ const AppTopBar = () => {
                     indicatorColor="secondary"
                     sx={{ '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
                   >
-                    {(role === Role.CLIENT) && (
+                    {role === Role.CLIENT && (
                       <Tab
                         label="My Bookings"
                         value="/bookings"

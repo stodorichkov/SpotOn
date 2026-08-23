@@ -5,7 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PersonIcon from '@mui/icons-material/Person';
-import { Visibility, VisibilityOff, ExpandMore, ExpandLess, Phone } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Phone } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { updateChangePasswordFormField, clearChangePasswordForm } from '../features/auth/changePasswordSlice';

@@ -16,7 +16,6 @@ import {
   CircularProgress,
   IconButton
 } from '@mui/material';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
