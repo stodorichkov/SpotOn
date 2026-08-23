@@ -22,19 +22,19 @@ import {
 import { Link } from 'react-router-dom';
 import InfoIcon from '@mui/icons-material/Info';
 import PeopleIcon from '@mui/icons-material/People';
+import { Role } from '../constants';
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
-    case 'ADMIN':
+    case Role.ADMIN:
       return 'error';
-    case 'CLIENT':
-    case 'CUSTOMER':
+    case Role.CLIENT:
       return 'success';
-    case 'EMPLOYEE':
+    case Role.EMPLOYEE:
     case 'STAFF':
       return 'info';
     case 'OWNER':
-    case 'MANAGER':
+    case Role.MANAGER:
       return 'warning';
     default:
       return 'default';

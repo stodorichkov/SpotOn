@@ -16,12 +16,16 @@ import AddEmployeePage from './pages/AddEmployeePage';
 import ManagerTablesPage from './pages/ManagerTablesPage';
 import AddTablePage from './pages/AddTablePage';
 import TableDetailPage from './pages/TableDetailPage';
+import RestaurantDetailPage from './pages/RestaurantDetailPage';
+import ReservationPage from './pages/ReservationPage';
+import ClientBookingsPage from './pages/ClientBookingsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
 import AppTopBar from './components/AppBar';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import Alerts from './components/Alerts';
-import { PrivateRoute, GuestRoute, AdminRoute, ManagerRoute } from './components/ProtectedRoute';
+import { PrivateRoute, GuestRoute, AdminRoute, ManagerRoute, PublicClientRoute, ClientOnlyRoute } from './components/ProtectedRoute';
 import './App.css';
 
 const theme = createTheme({
@@ -64,13 +68,26 @@ function App() {
         <Alerts />
         <Box component="main" sx={{ p: 3 }}> {/* Add padding to the main content */}
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            {/* Public Client & Guest Routes (Forbidden for Admin & Manager) */}
+            <Route element={<PublicClientRoute />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+            </Route>
+
             <Route element={<GuestRoute />}>
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/login" element={<LoginPage />} />
             </Route>
+
             <Route element={<PrivateRoute />}>
               <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+
+            {/* Client-Only Logged-in Routes (Forbidden for Admin, Manager & Guests) */}
+            <Route element={<ClientOnlyRoute />}>
+              <Route path="/restaurants/:id/reserve" element={<ReservationPage />} />
+              <Route path="/bookings" element={<ClientBookingsPage />} />
+              <Route path="/bookings/:id" element={<BookingDetailPage />} />
             </Route>
             <Route element={<AdminRoute />}>
               <Route path="/admin/users" element={<UsersPage />} />

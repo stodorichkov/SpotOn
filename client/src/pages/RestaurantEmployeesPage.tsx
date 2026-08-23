@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { useGetEmployeesQuery } from '../features/restaurants/restaurantsSlice';
+import { Role } from '../constants';
 import { 
   Table, 
   TableBody, 
@@ -27,16 +28,15 @@ import InfoIcon from '@mui/icons-material/Info';
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
-    case 'ADMIN':
+    case Role.ADMIN:
       return 'error';
-    case 'CLIENT':
-    case 'CUSTOMER':
+    case Role.CLIENT:
       return 'success';
-    case 'EMPLOYEE':
+    case Role.EMPLOYEE:
     case 'STAFF':
       return 'info';
     case 'OWNER':
-    case 'MANAGER':
+    case Role.MANAGER:
       return 'warning';
     default:
       return 'default';

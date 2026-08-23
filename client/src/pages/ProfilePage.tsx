@@ -11,7 +11,7 @@ import { RootState, AppDispatch } from '../store/store';
 import { updateChangePasswordFormField, clearChangePasswordForm } from '../features/auth/changePasswordSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
 import * as yup from 'yup';
-import { RegexConstants, MessageConstants } from '../constants';
+import { RegexConstants, MessageConstants, Role } from '../constants';
 
 type ChangePasswordFormState = ChangePasswordRequest;
 type EditProfileFormState = EditProfileRequest;
@@ -75,17 +75,16 @@ const profileValidationSchema = yup.object({
 const getRoleChipColor = (role?: string) => {
   if (!role) return 'default';
   switch (role.toUpperCase()) {
-    case 'ADMIN':
+    case Role.ADMIN:
     case 'ADMINISTRATOR':
       return 'error';
-    case 'CLIENT':
-    case 'CUSTOMER':
+    case Role.CLIENT:
       return 'success';
-    case 'EMPLOYEE':
+    case Role.EMPLOYEE:
     case 'STAFF':
       return 'info';
     case 'OWNER':
-    case 'MANAGER':
+    case Role.MANAGER:
       return 'warning';
     default:
       return 'default';
@@ -273,8 +272,8 @@ const ProfilePage = () => {
         );
     }
 
-    const isClient = user.role === 'CLIENT';
-    const canEditContact = user.role === 'CLIENT' || user.role === 'MANAGER' || user.role === 'EMPLOYEE';
+    const isClient = user.role === Role.CLIENT;
+    const canEditContact = user.role === Role.CLIENT || user.role === Role.MANAGER || user.role === Role.EMPLOYEE;
 
     return (
         <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>

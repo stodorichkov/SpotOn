@@ -43,7 +43,6 @@ const getRoleChipColor = (role: string) => {
     case 'ADMIN':
       return 'error';
     case 'CLIENT':
-    case 'CUSTOMER':
       return 'success';
     case 'EMPLOYEE':
     case 'STAFF':

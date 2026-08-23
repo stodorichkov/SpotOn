@@ -12,7 +12,9 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import TableBarIcon from '@mui/icons-material/TableBar';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { addAlert } from '../features/alerts/alertsSlice';
+import { Role } from '../constants';
 
 const AppTopBar = () => {
   const navigate = useNavigate();
@@ -47,19 +49,27 @@ const AppTopBar = () => {
     ? '/manager/employees'
     : location.pathname.startsWith('/manager/tables')
     ? '/manager/tables'
+    : location.pathname.startsWith('/bookings')
+    ? '/bookings'
     : location.pathname;
 
   const menuItems = [];
-  if (role === 'ADMIN') {
+  if (role === Role.ADMIN) {
     menuItems.push(
       { label: 'Users', path: '/admin/users', icon: <GroupIcon /> },
       { label: 'Restaurants', path: '/admin/restaurants', icon: <RestaurantIcon /> }
     );
-  } else if (role === 'MANAGER') {
+  } else if (role === Role.MANAGER) {
     menuItems.push(
       { label: 'Restaurant', path: '/manager/restaurant', icon: <RestaurantIcon /> },
       { label: 'Employees', path: '/manager/employees', icon: <GroupIcon /> },
       { label: 'Tables', path: '/manager/tables', icon: <TableBarIcon /> }
+    );
+  }
+
+  if (role === Role.CLIENT) {
+    menuItems.push(
+      { label: 'My Bookings', path: '/bookings', icon: <CalendarMonthIcon /> }
     );
   }
 
@@ -80,7 +90,7 @@ const AppTopBar = () => {
         <Typography
           variant="h6"
           component={Link}
-          to={role === 'ADMIN' ? '/admin/users' : role === 'MANAGER' ? '/manager/restaurant' : '/'}
+          to={role === Role.ADMIN ? '/admin/users' : role === Role.MANAGER ? '/manager/restaurant' : '/'}
           sx={{
             textDecoration: 'none',
             color: 'inherit',
@@ -93,7 +103,7 @@ const AppTopBar = () => {
         
         {!isMobile && (
           <>
-            {role === 'ADMIN' && (
+            {role === Role.ADMIN && (
               <Tabs
                 value={currentTab}
                 textColor="inherit"
@@ -119,7 +129,7 @@ const AppTopBar = () => {
               </Tabs>
             )}
 
-            {role === 'MANAGER' && (
+            {role === Role.MANAGER && (
               <Tabs
                 value={currentTab}
                 textColor="inherit"
@@ -164,6 +174,16 @@ const AppTopBar = () => {
                     indicatorColor="secondary"
                     sx={{ '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
                   >
+                    {(role === Role.CLIENT) && (
+                      <Tab
+                        label="My Bookings"
+                        value="/bookings"
+                        icon={<CalendarMonthIcon />}
+                        iconPosition="start"
+                        component={Link}
+                        to="/bookings"
+                      />
+                    )}
                     <Tab
                       label="Profile"
                       value="/profile"

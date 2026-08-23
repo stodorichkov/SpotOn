@@ -16,3 +16,18 @@ export const MessageConstants = {
     NO_CATEGORY: "Please select at least one category.",
     TABLE_MIN_CAPACITY: "Capacity must be at least 1.",
 };
+
+export enum Role {
+  ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
+  EMPLOYEE = 'EMPLOYEE',
+  CLIENT = 'CLIENT'
+}
+
+export enum BookingStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELED = 'CANCELED',
+  ARRIVED = 'ARRIVED',
+  COMPLETED = 'COMPLETED'
+}

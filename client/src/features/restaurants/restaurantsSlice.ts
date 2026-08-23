@@ -5,6 +5,37 @@ export interface CategoryResponse {
   name: string;
 }
 
+export interface RestaurantContactResponse {
+  id: number;
+  name: string;
+  phoneNumber: string;
+  address: string;
+}
+
+export interface BookingClientRequest {
+  restaurantId: number;
+  guestCount: number;
+  isSmoking: boolean;
+  dateTime: string;
+}
+
+export interface BookingClientResponse {
+  id: number;
+  status: string;
+  restaurant: RestaurantContactResponse;
+  guestCount: number;
+  isSmoking: boolean;
+  dateTime: string;
+}
+
+export interface PaginatedBookingsResponse {
+  content: BookingClientResponse[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}
+
 export interface RestaurantResponse {
   id: number;
   name: string;
@@ -141,6 +172,10 @@ export const restaurantsSlice = api.injectEndpoints({
       query: ({ page, size }) => `restaurant/restaurants?page=${page}&size=${size}&sort=id,asc`,
       providesTags: ['Restaurants'],
     }),
+    getRestaurantById: builder.query<RestaurantDetailsResponse, number>({
+      query: (id) => `restaurant/restaurants/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Restaurants', id }],
+    }),
     getEmployees: builder.query<PaginatedEmployeesResponse, { restaurantId: number; page: number; size: number }>({
       query: ({ restaurantId, page, size }) => `restaurant/employees?restaurantId=${restaurantId}&page=${page}&size=${size}`,
       providesTags: ['Employees'],
@@ -206,7 +241,26 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Tables'],
     }),
+    getClientBookings: builder.query<PaginatedBookingsResponse, { page: number; size: number }>({
+      query: ({ page, size }) => `booking/bookings?page=${page}&size=${size}&sort=id,desc`,
+      providesTags: ['Bookings'],
+    }),
+    createBooking: builder.mutation<BookingClientResponse, BookingClientRequest>({
+      query: (body) => ({
+        url: 'booking/bookings',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Bookings'],
+    }),
+    cancelBooking: builder.mutation<BookingClientResponse, number>({
+      query: (bookingId) => ({
+        url: `booking/bookings/${bookingId}/canceled`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Bookings'],
+    }),
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation } = restaurantsSlice;

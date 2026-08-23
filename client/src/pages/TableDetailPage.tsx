@@ -162,9 +162,9 @@ const TableDetailPage: React.FC = () => {
       setErrors({});
       dispatch(addAlert({ message: `Table details updated successfully!`, type: 'success' }));
       
-      // If we came from the edit link directly, clear that flag to avoid reopening in edit mode next time
+      // If we came from the edit link directly, navigate back to the tables list
       if (shouldStartInEditMode) {
-        navigate(`/manager/tables/${currentTable.id}`, { state: { table: updated }, replace: true });
+        navigate('/manager/tables');
       }
     } catch (err: any) {
       console.error('Failed to update table:', err);

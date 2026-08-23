@@ -16,21 +16,21 @@ import PersonIcon from '@mui/icons-material/Person';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhoneIcon from '@mui/icons-material/Phone';
 import BadgeIcon from '@mui/icons-material/Badge';
+import { Role } from '../constants';
 
 const getRoleChipColor = (role?: string) => {
   if (!role) return 'default';
   switch (role.toUpperCase()) {
-    case 'ADMIN':
+    case Role.ADMIN:
     case 'ADMINISTRATOR':
       return 'error';
-    case 'CLIENT':
-    case 'CUSTOMER':
+    case Role.CLIENT:
       return 'success';
-    case 'EMPLOYEE':
+    case Role.EMPLOYEE:
     case 'STAFF':
       return 'info';
     case 'OWNER':
-    case 'MANAGER':
+    case Role.MANAGER:
       return 'warning';
     default:
       return 'default';
@@ -46,7 +46,7 @@ const UserDetailsPage: React.FC = () => {
 
   // Skip the query if we already have the full user details in state
   const hasFullStateData = stateUser && (
-    stateUser.role === 'ADMIN' || 
+    stateUser.role === Role.ADMIN || 
     (stateUser.firstName !== undefined && stateUser.lastName !== undefined)
   );
 
@@ -191,7 +191,7 @@ const UserDetailsPage: React.FC = () => {
         </Box>
 
         {/* Contact Information Section */}
-        {user.role !== 'ADMIN' && (
+        {user.role !== Role.ADMIN && (
           <>
             <Divider sx={{ my: 3 }} />
             <Box>
