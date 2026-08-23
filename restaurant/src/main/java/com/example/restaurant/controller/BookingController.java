@@ -62,7 +62,7 @@ public class BookingController {
     ) {
         this.authorizationService.hasInternalAccess(secret, service, ServiceEnum.BOOKING);
 
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         this.restaurantTableService.validateTable(request, restaurantIdHeader);

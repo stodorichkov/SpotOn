@@ -44,7 +44,7 @@ public class RestaurantTableController {
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
             Pageable pageable
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.EMPLOYEE);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.restaurantTableService.getTables(restaurantIdHeader, pageable);
