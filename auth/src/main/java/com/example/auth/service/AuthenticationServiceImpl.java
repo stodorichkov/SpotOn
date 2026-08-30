@@ -55,7 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         final var remainingTimeMs = expirationMs - System.currentTimeMillis();
 
         if (remainingTimeMs > 0) {
-            final var redisKey = RedisConstants.BLACKLIST + jti;
+            final var redisKey = RedisConstants.DEACTIVATE + jti;
 
             this.redisTemplate.opsForValue().set(
                     redisKey,
