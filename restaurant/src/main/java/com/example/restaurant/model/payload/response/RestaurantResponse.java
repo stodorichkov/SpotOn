@@ -5,6 +5,7 @@ import java.util.Set;
 public record RestaurantResponse(
         Long id,
         String name,
-        Set<CategoryResponse> categories
+        Set<CategoryResponse> categories,
+        String address
 ) {
 }

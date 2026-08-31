@@ -11,11 +11,10 @@ import java.util.List;
 
 public interface RestaurantService {
     RestaurantResponse addRestaurant(RestaurantRequest request);
-    Page<RestaurantResponse> getRestaurants(Pageable pageable);
+    Page<RestaurantResponse> getRestaurants(String name, String address, List<Long> categoryIds, Pageable pageable);
     RestaurantDetailsResponse getRestaurant(Long id);
     RestaurantDetailsResponse editRestaurant(Long id, RestaurantRequest request);
 
-    // Booking
     List<RestaurantContactResponse> getRestaurantsContact(List<Long> restaurantIds);
     void restaurantExists(Long id);
 }

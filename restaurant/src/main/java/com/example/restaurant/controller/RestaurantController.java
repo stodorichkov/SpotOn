@@ -50,8 +50,13 @@ public class RestaurantController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<RestaurantResponse> getRestaurants(Pageable pageable) {
-        return this.restaurantService.getRestaurants(pageable);
+    public Page<RestaurantResponse> getRestaurants(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) List<Long> categoryIds,
+            Pageable pageable
+    ) {
+        return this.restaurantService.getRestaurants(name, address, categoryIds, pageable);
     }
 
     @GetMapping("/{id}")

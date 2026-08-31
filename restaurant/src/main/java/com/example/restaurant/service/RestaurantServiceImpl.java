@@ -3,17 +3,21 @@ package com.example.restaurant.service;
 import com.example.restaurant.constants.MessageConstants;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
+import com.example.restaurant.model.enity.Restaurant;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
 import com.example.restaurant.repository.RestaurantRepository;
+import com.example.restaurant.specification.RestaurantSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,8 +49,22 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public Page<RestaurantResponse> getRestaurants(Pageable pageable) {
-        return this.restaurantRepository.findAll(pageable)
+    public Page<RestaurantResponse> getRestaurants(String name, String address, List<Long> categoryIds, Pageable pageable) {
+        Specification<Restaurant> specification = Specification.unrestricted();
+
+        if (StringUtils.hasText(name)) {
+            specification = specification.and(RestaurantSpecification.hasNameContaining(name));
+        }
+
+        if (StringUtils.hasText(address)) {
+            specification = specification.and(RestaurantSpecification.hasAddressContaining(address));
+        }
+
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            specification = specification.and(RestaurantSpecification.hasCategoryIds(categoryIds));
+        }
+
+        return this.restaurantRepository.findAll(specification, pageable)
                 .map(this.restaurantMapper::mapToRestaurantResponse);
     }
 
