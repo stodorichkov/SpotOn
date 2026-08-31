@@ -1,16 +1,21 @@
 package com.example.auth.service;
 
 import com.example.auth.constants.MessageConstants;
+import com.example.auth.model.entity.User;
+import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.response.ClientContactResponse;
 import com.example.auth.exception.NotFoundException;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;
 import com.example.auth.repository.UserRepository;
+import com.example.auth.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -21,8 +26,18 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public Page<UserResponse> getUsers(Pageable pageable) {
-        return this.userRepository.findAll(pageable)
+    public Page<UserResponse> getUsers(String username, List<RoleEnum> roles, Pageable pageable) {
+        Specification<User> specification = Specification.unrestricted();
+
+        if (StringUtils.hasText(username)) {
+            specification = specification.and(UserSpecification.hasUsernameContaining(username));
+        }
+
+        if (roles != null && !roles.isEmpty()) {
+            specification = specification.and(UserSpecification.hasRoles(roles));
+        }
+
+        return this.userRepository.findAll(specification, pageable)
                 .map(this.userMapper::mapToUserResponse);
     }
 
