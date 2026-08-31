@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 import { useUpdateTableMutation, useDeleteTableMutation } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { MessageConstants } from '../constants';
 import {
   Container,
   Paper,
@@ -47,6 +47,7 @@ interface RestaurantTable {
 }
 
 const TableDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,19 +56,15 @@ const TableDetailPage: React.FC = () => {
   const [updateTable, { isLoading: isUpdating }] = useUpdateTableMutation();
   const [deleteTable, { isLoading: isDeleting }] = useDeleteTableMutation();
 
-  // Keep table details in local state to allow real-time updates after editing
   const [currentTable, setCurrentTable] = useState<RestaurantTable | undefined>(
     location.state?.table as RestaurantTable | undefined
   );
 
-  // Read edit flag from navigation state
   const shouldStartInEditMode = location.state?.edit === true;
   const [isEditing, setIsEditing] = useState(shouldStartInEditMode);
 
-  // Delete Dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Menu state for collapsing actions
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,13 +75,11 @@ const TableDetailPage: React.FC = () => {
     setMenuAnchorEl(null);
   };
 
-  // Form states
   const [editName, setEditName] = useState('');
   const [editCapacity, setEditCapacity] = useState<number | ''>(1);
   const [editSmoking, setEditSmoking] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; capacity?: string }>({});
 
-  // Reset form states when entering edit mode or currentTable updates
   useEffect(() => {
     if (currentTable) {
       setEditName(currentTable.name);
@@ -93,16 +88,15 @@ const TableDetailPage: React.FC = () => {
     }
   }, [currentTable, isEditing]);
 
-  // Handle missing state gracefully if table details are unavailable
   if (!currentTable) {
     return (
       <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Table Details Unavailable
+            {t('tableDetail.notFoundTitle')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Table details could not be loaded directly. Please select a table from the tables page.
+            {t('tableDetail.notFoundBody')}
           </Typography>
           <Button
             component={Link}
@@ -111,7 +105,7 @@ const TableDetailPage: React.FC = () => {
             color="primary"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
           >
-            Go to Tables List
+            {t('tableDetail.backToTables')}
           </Button>
         </Paper>
       </Container>
@@ -121,7 +115,6 @@ const TableDetailPage: React.FC = () => {
   const handleCancel = () => {
     setIsEditing(false);
     setErrors({});
-    // If we started directly in edit mode from the table edit button, clicking Cancel should take us back
     if (shouldStartInEditMode) {
       navigate('/manager/tables');
     }
@@ -132,13 +125,13 @@ const TableDetailPage: React.FC = () => {
     const newErrors: typeof errors = {};
 
     if (!editName.trim()) {
-      newErrors.name = MessageConstants.BLANK_FIELD;
+      newErrors.name = t('validation.blankField');
     }
 
     if (editCapacity === '') {
-      newErrors.capacity = MessageConstants.BLANK_FIELD;
+      newErrors.capacity = t('validation.blankField');
     } else if (Number(editCapacity) < 1) {
-      newErrors.capacity = MessageConstants.TABLE_MIN_CAPACITY;
+      newErrors.capacity = t('validation.tableMinCapacity');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -159,16 +152,15 @@ const TableDetailPage: React.FC = () => {
       setCurrentTable(updated);
       setIsEditing(false);
       setErrors({});
-      dispatch(addAlert({ message: `Table details updated successfully!`, type: 'success' }));
-      
-      // If we came from the edit link directly, navigate back to the tables list
+      dispatch(addAlert({ message: t('tableDetail.success'), type: 'success' }));
+
       if (shouldStartInEditMode) {
         navigate('/manager/tables');
       }
     } catch (err: any) {
       console.error('Failed to update table:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to update table details. Please try again.',
+        message: err?.data?.message || t('tableDetail.updateFailure'),
         type: 'error'
       }));
     }
@@ -177,12 +169,12 @@ const TableDetailPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     try {
       await deleteTable(currentTable.id).unwrap();
-      dispatch(addAlert({ message: 'Table removed successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('tableDetail.removeSuccess'), type: 'success' }));
       navigate('/manager/tables');
     } catch (err: any) {
       console.error('Failed to remove table:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to remove table. Please try again.',
+        message: err?.data?.message || t('tableDetail.removeFailure'),
         type: 'error'
       }));
     } finally {
@@ -194,14 +186,12 @@ const TableDetailPage: React.FC = () => {
     setDeleteDialogOpen(false);
   };
 
-  // Check if form values actually changed compared to current table
   const hasChanges = currentTable && (
     editName.trim() !== currentTable.name ||
     Number(editCapacity) !== currentTable.capacity ||
     editSmoking !== currentTable.isSmokingAllowed
   );
 
-  // Custom switch icons (matching AddTablePage.tsx)
   const customSwitchIcon = (
     <Box
       sx={{
@@ -239,14 +229,14 @@ const TableDetailPage: React.FC = () => {
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
             gap: 2,
-            mb: 3 
+            mb: 3
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
@@ -267,10 +257,10 @@ const TableDetailPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                Table: {currentTable.name}
+                {t('tableDetail.titlePrefix', { name: currentTable.name })}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                {isEditing ? 'Editing Table Specifications' : 'Table Specifications & Layout Details'}
+                {isEditing ? t('tableDetail.editingSubtitle') : t('tableDetail.subtitle')}
               </Typography>
             </Box>
           </Box>
@@ -293,7 +283,7 @@ const TableDetailPage: React.FC = () => {
                     }
                   }}
                 >
-                  <MenuItem 
+                  <MenuItem
                     onClick={() => {
                       handleMenuClose();
                       setIsEditing(true);
@@ -302,9 +292,9 @@ const TableDetailPage: React.FC = () => {
                     <ListItemIcon>
                       <EditIcon color="primary" fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText primary="Edit" />
+                    <ListItemText primary={t('tableDetail.menuEdit')} />
                   </MenuItem>
-                  <MenuItem 
+                  <MenuItem
                     onClick={() => {
                       handleMenuClose();
                       setDeleteDialogOpen(true);
@@ -314,7 +304,7 @@ const TableDetailPage: React.FC = () => {
                     <ListItemIcon>
                       <DeleteIcon color="error" fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText primary="Remove" />
+                    <ListItemText primary={t('tableDetail.menuRemove')} />
                   </MenuItem>
                 </Menu>
               </>
@@ -327,7 +317,7 @@ const TableDetailPage: React.FC = () => {
         {isEditing ? (
           <Box component="form" onSubmit={handleSave} noValidate>
             <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 3 }}>
-              Edit Table Specifications
+              {t('tableDetail.editTitle')}
             </Typography>
 
             <Grid container spacing={3.5} direction="column">
@@ -337,7 +327,7 @@ const TableDetailPage: React.FC = () => {
                   required
                   fullWidth
                   id="name"
-                  label="Table Name / Number"
+                  label={t('tableDetail.tableName')}
                   value={editName}
                   onChange={(e) => {
                     setEditName(e.target.value);
@@ -359,7 +349,7 @@ const TableDetailPage: React.FC = () => {
                   required
                   fullWidth
                   id="capacity"
-                  label="Capacity"
+                  label={t('tableDetail.capacity')}
                   type="number"
                   value={editCapacity}
                   onChange={(e) => {
@@ -372,9 +362,9 @@ const TableDetailPage: React.FC = () => {
                   }}
                   error={!!errors.capacity}
                   helperText={errors.capacity}
-                  inputProps={{ 
-                    min: 1, 
-                    style: { textAlign: 'center' } 
+                  inputProps={{
+                    min: 1,
+                    style: { textAlign: 'center' }
                   }}
                   InputProps={{
                     startAdornment: (
@@ -432,7 +422,7 @@ const TableDetailPage: React.FC = () => {
                   }}
                 >
                   <Typography variant="body1" color="text.secondary">
-                    Smoking Allowed
+                    {t('tableDetail.smokingAllowed')}
                   </Typography>
                   <Switch
                     checked={editSmoking}
@@ -459,7 +449,7 @@ const TableDetailPage: React.FC = () => {
                 startIcon={isUpdating ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
               >
-                Save
+                {t('tableDetail.save')}
               </Button>
               <Button
                 variant="outlined"
@@ -469,7 +459,7 @@ const TableDetailPage: React.FC = () => {
                 startIcon={<CancelIcon />}
                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
               >
-                Cancel
+                {t('tableDetail.cancel')}
               </Button>
             </Box>
           </Box>
@@ -477,10 +467,10 @@ const TableDetailPage: React.FC = () => {
           <Box>
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" fontWeight="bold" color="text.secondary">
-                Table Specifications
+                {t('tableDetail.specificationsTitle')}
               </Typography>
             </Box>
-            
+
             <Grid container spacing={4}>
               {/* Table ID */}
               <Grid item xs={12} sm={6}>
@@ -488,7 +478,7 @@ const TableDetailPage: React.FC = () => {
                   <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                      Table ID
+                      {t('tableDetail.tableId')}
                     </Typography>
                     <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                       {currentTable.id}
@@ -503,7 +493,7 @@ const TableDetailPage: React.FC = () => {
                   <TableBarIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                      Table Name / Number
+                      {t('tableDetail.tableName')}
                     </Typography>
                     <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                       {currentTable.name}
@@ -518,10 +508,10 @@ const TableDetailPage: React.FC = () => {
                   <PeopleIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                      Capacity
+                      {t('tableDetail.capacity')}
                     </Typography>
                     <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                      {currentTable.capacity} {currentTable.capacity === 1 ? 'person' : 'people'}
+                      {t('tableDetail.capacity', { count: currentTable.capacity })}
                     </Typography>
                   </Box>
                 </Box>
@@ -537,10 +527,10 @@ const TableDetailPage: React.FC = () => {
                   )}
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                      Smoking Policy
+                      {t('tableDetail.smokingPolicy')}
                     </Typography>
                     <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                      {currentTable.isSmokingAllowed ? 'Smoking Allowed' : 'Non-Smoking'}
+                      {currentTable.isSmokingAllowed ? t('tableDetail.smokingAllowed') : t('tableDetail.nonSmoking')}
                     </Typography>
                   </Box>
                 </Box>
@@ -565,31 +555,35 @@ const TableDetailPage: React.FC = () => {
         }}
       >
         <DialogTitle id="delete-dialog-title" fontWeight="bold">
-          Remove Table
+          {t('tableDetail.deleteTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
-            Are you sure you want to remove table <strong>{currentTable.name}</strong>? This action will completely remove the table from the restaurant and cannot be undone.
+            <Trans
+              i18nKey="tableDetail.deleteBody"
+              values={{ name: currentTable.name }}
+              components={{ bold: <strong /> }}
+            />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleDeleteCancel} 
-            color="inherit" 
+          <Button
+            onClick={handleDeleteCancel}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isDeleting}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isDeleting}
             autoFocus
           >
-            Remove
+            {t('common.remove')}
           </Button>
         </DialogActions>
       </Dialog>

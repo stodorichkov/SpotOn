@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Typography, Paper, Grid, TextField, Button, Skeleton, Box, IconButton, InputAdornment, Divider, Chip } from '@mui/material';
 import { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, ChangePasswordRequest, EditProfileRequest } from '../features/auth/authApi';
 import EditIcon from '@mui/icons-material/Edit';
@@ -7,70 +7,17 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PersonIcon from '@mui/icons-material/Person';
 import { Visibility, VisibilityOff, Phone } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState, AppDispatch } from '../store/store';
 import { updateChangePasswordFormField, clearChangePasswordForm } from '../features/auth/changePasswordSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
 import * as yup from 'yup';
-import { RegexConstants, MessageConstants, Role } from '../constants';
+import { RegexConstants, Role } from '../constants';
 
 type ChangePasswordFormState = ChangePasswordRequest;
 type EditProfileFormState = EditProfileRequest;
 type PasswordValidationErrors = Partial<Record<keyof ChangePasswordFormState, string>>;
 type ProfileValidationErrors = Partial<Record<keyof EditProfileFormState, string>>;
-
-const passwordValidationSchema = yup.object({
-    currentPassword: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD),
-    newPassword: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('password-format', MessageConstants.INVALID_PASSWORD, (value) => {
-            if (!value) return true;
-            return RegexConstants.PASSWORD_REGEX.test(value);
-        })
-        .test('new-password-match', MessageConstants.NEW_PASSWORD_MATCHES_CURRENT, function (value) {
-            return this.parent.currentPassword !== value;
-        }),
-    confirm: yup
-        .string()
-        .oneOf([yup.ref('newPassword')], MessageConstants.PASSWORD_MISMATCH)
-        .required(MessageConstants.BLANK_FIELD),
-});
-
-const usernameValidationSchema = yup.object({
-    username: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('username-format', MessageConstants.INVALID_USERNAME, (value) => {
-            if (!value) return true;
-            return RegexConstants.USERNAME_REGEX.test(value);
-        }),
-});
-
-const profileValidationSchema = yup.object({
-    firstName: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('firstName-format', MessageConstants.INVALID_NAME, (value) => {
-            if (!value) return true;
-            return RegexConstants.NAME_REGEX.test(value);
-        }),
-    lastName: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('lastName-format', MessageConstants.INVALID_NAME, (value) => {
-            if (!value) return true;
-            return RegexConstants.NAME_REGEX.test(value);
-        }),
-    phoneNumber: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('phoneNumber-format', MessageConstants.INVALID_PHONE_NUMBER, (value) => {
-            if (!value) return true;
-            return RegexConstants.PHONE_NUMBER_REGEX.test(value);
-        }),
-});
 
 const getRoleChipColor = (role?: string) => {
   if (!role) return 'default';
@@ -92,6 +39,7 @@ const getRoleChipColor = (role?: string) => {
 };
 
 const ProfilePage = () => {
+    const { t } = useTranslation();
     const { data: user, isLoading, refetch } = useGetProfileQuery();
     const [changeUsername, { isLoading: isChangingUsername }] = useChangeUsernameMutation();
     const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
@@ -111,6 +59,60 @@ const ProfilePage = () => {
     const [isEditingContact, setIsEditingContact] = useState(false);
     const [profileFormState, setProfileFormState] = useState<EditProfileFormState>({ firstName: '', lastName: '', phoneNumber: '' });
     const [profileErrors, setProfileErrors] = useState<ProfileValidationErrors>({});
+
+    const passwordValidationSchema = useMemo(() => yup.object({
+        currentPassword: yup
+            .string()
+            .required(t('validation.blankField')),
+        newPassword: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('password-format', t('validation.invalidPassword'), (value) => {
+                if (!value) return true;
+                return RegexConstants.PASSWORD_REGEX.test(value);
+            })
+            .test('new-password-match', t('validation.newPasswordMatchesCurrent'), function (value) {
+                return this.parent.currentPassword !== value;
+            }),
+        confirm: yup
+            .string()
+            .oneOf([yup.ref('newPassword')], t('validation.passwordMismatch'))
+            .required(t('validation.blankField')),
+    }), [t]);
+
+    const usernameValidationSchema = useMemo(() => yup.object({
+        username: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('username-format', t('validation.invalidUsername'), (value) => {
+                if (!value) return true;
+                return RegexConstants.USERNAME_REGEX.test(value);
+            }),
+    }), [t]);
+
+    const profileValidationSchema = useMemo(() => yup.object({
+        firstName: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('firstName-format', t('validation.invalidName'), (value) => {
+                if (!value) return true;
+                return RegexConstants.NAME_REGEX.test(value);
+            }),
+        lastName: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('lastName-format', t('validation.invalidName'), (value) => {
+                if (!value) return true;
+                return RegexConstants.NAME_REGEX.test(value);
+            }),
+        phoneNumber: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('phoneNumber-format', t('validation.invalidPhoneNumber'), (value) => {
+                if (!value) return true;
+                return RegexConstants.PHONE_NUMBER_REGEX.test(value);
+            }),
+    }), [t]);
 
     const hasContactChanges = !!user && (
         (profileFormState.firstName || '').trim() !== (user.firstName || '').trim() ||
@@ -150,11 +152,10 @@ const ProfilePage = () => {
                 .unwrap()
                 .then(() => {
                     setIsEditingUsername(false);
-                    dispatch(addAlert({ message: 'Username changed successfully!', type: 'success' }));
+                    dispatch(addAlert({ message: t('profile.usernameChanged'), type: 'success' }));
                     refetch();
                 })
                 .catch(() => {
-                    // Error is handled by the global error handling middleware
                 });
         }
     };
@@ -181,10 +182,9 @@ const ProfilePage = () => {
 
         try {
             await changePassword(passwordFormState).unwrap();
-            dispatch(addAlert({ message: 'Password changed successfully!', type: 'success' }));
+            dispatch(addAlert({ message: t('profile.passwordChanged'), type: 'success' }));
             dispatch(clearChangePasswordForm());
         } catch (err) {
-            // The error will be handled by the middleware
         }
     };
 
@@ -209,10 +209,9 @@ const ProfilePage = () => {
         try {
             await editProfile(profileFormState).unwrap();
             setIsEditingContact(false);
-            dispatch(addAlert({ message: 'Profile updated successfully!', type: 'success' }));
+            dispatch(addAlert({ message: t('profile.profileUpdated'), type: 'success' }));
             refetch();
         } catch (err) {
-            // The error will be handled by the middleware
         }
     };
 
@@ -262,10 +261,10 @@ const ProfilePage = () => {
             <Container maxWidth="md" sx={{ mt: 4 }}>
                 <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
                     <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-                        Error
+                        {t('common.error')}
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
-                        User profile not found.
+                        {t('profile.notFound')}
                     </Typography>
                 </Paper>
             </Container>
@@ -278,14 +277,14 @@ const ProfilePage = () => {
     return (
         <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
             <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-                <Box 
-                    sx={{ 
-                        display: 'flex', 
+                <Box
+                    sx={{
+                        display: 'flex',
                         flexDirection: { xs: 'column', sm: 'row' },
-                        justifyContent: 'space-between', 
-                        alignItems: { xs: 'flex-start', sm: 'center' }, 
+                        justifyContent: 'space-between',
+                        alignItems: { xs: 'flex-start', sm: 'center' },
                         gap: 2,
-                        mb: 3 
+                        mb: 3
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
@@ -309,7 +308,7 @@ const ProfilePage = () => {
                                 {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                                Account Profile & Security Settings
+                                {t('profile.subtitle')}
                             </Typography>
                         </Box>
                     </Box>
@@ -318,11 +317,11 @@ const ProfilePage = () => {
                         label={user.role}
                         color={getRoleChipColor(user.role)}
                         variant="outlined"
-                        sx={{ 
-                            fontWeight: 'bold', 
-                            px: 1.5, 
-                            py: 0.5, 
-                            fontSize: '0.85rem', 
+                        sx={{
+                            fontWeight: 'bold',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.85rem',
                             borderRadius: 2,
                             alignSelf: { xs: 'flex-end', sm: 'auto' }
                         }}
@@ -335,7 +334,7 @@ const ProfilePage = () => {
                 <Box sx={{ mb: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                         <Typography variant="h6" fontWeight="bold" color="text.secondary">
-                            Account Details
+                            {t('profile.accountDetails')}
                         </Typography>
                         {isClient && !isEditingUsername && (
                             <IconButton onClick={() => setIsEditingUsername(true)} color="primary">
@@ -348,7 +347,7 @@ const ProfilePage = () => {
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
-                                    label="Username"
+                                    label={t('profile.username')}
                                     value={newUsername}
                                     onChange={(e) => {
                                         setNewUsername(e.target.value);
@@ -375,7 +374,7 @@ const ProfilePage = () => {
                                     <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                                     <Box>
                                         <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                                            Username
+                                            {t('profile.username')}
                                         </Typography>
                                         <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                                             {user.username}
@@ -395,7 +394,7 @@ const ProfilePage = () => {
                                 color="primary"
                                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                             >
-                                Save
+                                {t('profile.save')}
                             </Button>
                             <Button
                                 startIcon={<CancelIcon />}
@@ -408,7 +407,7 @@ const ProfilePage = () => {
                                 color="inherit"
                                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                             >
-                                Cancel
+                                {t('profile.cancel')}
                             </Button>
                         </Box>
                     )}
@@ -422,7 +421,7 @@ const ProfilePage = () => {
                         <Box sx={{ mb: 2 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                                 <Typography variant="h6" fontWeight="bold" color="text.secondary">
-                                    Personal Information
+                                    {t('profile.personalInformation')}
                                 </Typography>
                                 {canEditContact && !isEditingContact && (
                                     <IconButton onClick={() => setIsEditingContact(true)} color="primary">
@@ -435,7 +434,7 @@ const ProfilePage = () => {
                                     <Grid item xs={12} sm={6}>
                                         <TextField
                                             fullWidth
-                                            label="First Name"
+                                            label={t('profile.firstName')}
                                             name="firstName"
                                             value={profileFormState.firstName}
                                             onChange={handleProfileFormChange}
@@ -453,7 +452,7 @@ const ProfilePage = () => {
                                     <Grid item xs={12} sm={6}>
                                         <TextField
                                             fullWidth
-                                            label="Last Name"
+                                            label={t('profile.lastName')}
                                             name="lastName"
                                             value={profileFormState.lastName}
                                             onChange={handleProfileFormChange}
@@ -471,7 +470,7 @@ const ProfilePage = () => {
                                     <Grid item xs={12}>
                                         <TextField
                                             fullWidth
-                                            label="Phone Number"
+                                            label={t('profile.phoneNumber')}
                                             name="phoneNumber"
                                             value={profileFormState.phoneNumber}
                                             onChange={handleProfileFormChange}
@@ -494,7 +493,7 @@ const ProfilePage = () => {
                                             <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                                             <Box>
                                                 <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                                                    First Name
+                                                    {t('profile.firstName')}
                                                 </Typography>
                                                 <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                                                     {user.firstName || '-'}
@@ -507,7 +506,7 @@ const ProfilePage = () => {
                                             <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                                             <Box>
                                                 <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                                                    Last Name
+                                                    {t('profile.lastName')}
                                                 </Typography>
                                                 <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                                                     {user.lastName || '-'}
@@ -520,7 +519,7 @@ const ProfilePage = () => {
                                             <Phone color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                                             <Box>
                                                 <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                                                    Phone Number
+                                                    {t('profile.phoneNumber')}
                                                 </Typography>
                                                 <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                                                     {user.phoneNumber || '-'}
@@ -540,7 +539,7 @@ const ProfilePage = () => {
                                         color="primary"
                                         sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                                     >
-                                        Save
+                                        {t('profile.save')}
                                     </Button>
                                     <Button
                                         startIcon={<CancelIcon />}
@@ -557,7 +556,7 @@ const ProfilePage = () => {
                                         color="inherit"
                                         sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                                     >
-                                        Cancel
+                                        {t('profile.cancel')}
                                     </Button>
                                 </Box>
                             )}
@@ -570,10 +569,10 @@ const ProfilePage = () => {
                 <Box sx={{ mb: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                         <Typography variant="h6" fontWeight="bold" color="text.secondary">
-                            Change Password
+                            {t('profile.changePassword')}
                         </Typography>
                         {!showPasswordSection && (
-                            <IconButton 
+                            <IconButton
                                 onClick={() => {
                                     setShowPasswordSection(true);
                                     dispatch(clearChangePasswordForm());
@@ -581,7 +580,7 @@ const ProfilePage = () => {
                                     setShowCurrentPassword(false);
                                     setShowNewPassword(false);
                                     setShowConfirmPassword(false);
-                                }} 
+                                }}
                                 color="primary"
                             >
                                 <EditIcon />
@@ -598,7 +597,7 @@ const ProfilePage = () => {
                                     required
                                     fullWidth
                                     name="currentPassword"
-                                    label="Current Password"
+                                    label={t('profile.currentPassword')}
                                     type={showCurrentPassword ? 'text' : 'password'}
                                     id="currentPassword"
                                     value={passwordFormState.currentPassword || ''}
@@ -632,7 +631,7 @@ const ProfilePage = () => {
                                     required
                                     fullWidth
                                     name="newPassword"
-                                    label="New Password"
+                                    label={t('profile.newPassword')}
                                     type={showNewPassword ? 'text' : 'password'}
                                     id="newPassword"
                                     value={passwordFormState.newPassword || ''}
@@ -666,7 +665,7 @@ const ProfilePage = () => {
                                     required
                                     fullWidth
                                     name="confirm"
-                                    label="Confirm New Password"
+                                    label={t('profile.confirmNewPassword')}
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     id="confirm"
                                     value={passwordFormState.confirm || ''}
@@ -705,7 +704,7 @@ const ProfilePage = () => {
                                 color="primary"
                                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                             >
-                                Save
+                                {t('profile.save')}
                             </Button>
                             <Button
                                 startIcon={<CancelIcon />}
@@ -721,7 +720,7 @@ const ProfilePage = () => {
                                 color="inherit"
                                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
                             >
-                                Cancel
+                                {t('profile.cancel')}
                             </Button>
                         </Box>
                     </Box>

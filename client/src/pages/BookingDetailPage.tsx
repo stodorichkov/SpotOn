@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 import { useCancelBookingMutation, useGetManagerTablesQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { BookingStatus, Role } from '../constants';
@@ -59,8 +60,8 @@ interface ClientContact {
 interface Booking {
   id: number;
   status: string;
-  restaurant?: RestaurantContact; // Present for clients
-  client?: ClientContact; // Present for employees
+  restaurant?: RestaurantContact;
+  client?: ClientContact;
   guestCount: number;
   isSmoking: boolean;
   dateTime: string;
@@ -114,30 +115,25 @@ const getStatusStyles = (status: string) => {
 };
 
 const BookingDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { role } = useSelector((state: RootState) => state.auth);
 
-  // Retrieve booking details from navigation state
   const booking = location.state?.booking as Booking | undefined;
 
-  // States for Cancel Confirmation Dialog
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation();
 
-  // States for Arrived Confirmation Dialog
   const [arrivedDialogOpen, setArrivedDialogOpen] = useState(false);
 
-  // States for Completed Confirmation Dialog
   const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
 
-  // Read confirm flag from navigation state
   const shouldStartInConfirmMode = location.state?.confirm === true;
   const [isConfirming, setIsConfirming] = useState(shouldStartInConfirmMode);
 
-  // States for Employee Booking Confirmation Section
   const [selectedTableId, setSelectedTableId] = useState<number | ''>('');
   const [tableError, setTableError] = useState('');
   const [confirmBooking, { isLoading: isConfirmingSubmit }] = useConfirmBookingMutation();
@@ -149,22 +145,20 @@ const BookingDetailPage: React.FC = () => {
     setTableError('');
   };
 
-  // Fetch tables dynamically only when confirmation section is opened by Employee
   const { data: tablesData, isLoading: isLoadingTables } = useGetManagerTablesQuery(
     { page: 0, size: 100 },
     { skip: !isConfirming }
   );
 
-  // Handle missing state gracefully if details are unavailable
   if (!booking) {
     return (
       <Container maxWidth="md" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Booking Details Unavailable
+            {t('bookingDetail.notFoundTitle')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Booking details could not be loaded directly. Please select a booking from your portal.
+            {t('bookingDetail.notFoundBody')}
           </Typography>
           <Button
             component={Link}
@@ -173,7 +167,7 @@ const BookingDetailPage: React.FC = () => {
             color="primary"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
           >
-            Go to My Bookings
+            {t('bookingDetail.backToBookings')}
           </Button>
         </Paper>
       </Container>
@@ -183,12 +177,12 @@ const BookingDetailPage: React.FC = () => {
   const handleCancelConfirm = async () => {
     try {
       await cancelBooking(booking.id).unwrap();
-      dispatch(addAlert({ message: 'Reservation cancelled successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('bookingDetail.cancelSuccess'), type: 'success' }));
       navigate(backPath);
     } catch (err: any) {
       console.error('Failed to cancel reservation:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to cancel reservation. Please try again.',
+        message: err?.data?.message || t('bookingDetail.cancelFailure'),
         type: 'error'
       }));
     } finally {
@@ -207,12 +201,12 @@ const BookingDetailPage: React.FC = () => {
   const handleArrivedConfirm = async () => {
     try {
       await arrivedBooking(booking.id).unwrap();
-      dispatch(addAlert({ message: `Booking #${booking.id} marked as arrived successfully!`, type: 'success' }));
+      dispatch(addAlert({ message: t('bookingDetail.arrivedSuccess', { id: booking.id }), type: 'success' }));
       navigate(backPath);
     } catch (err: any) {
       console.error('Failed to mark as arrived:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to mark as arrived. Please try again.',
+        message: err?.data?.message || t('bookingDetail.arrivedFailure'),
         type: 'error'
       }));
     } finally {
@@ -231,12 +225,12 @@ const BookingDetailPage: React.FC = () => {
   const handleCompletedConfirm = async () => {
     try {
       await completedBooking(booking.id).unwrap();
-      dispatch(addAlert({ message: `Booking #${booking.id} marked as completed successfully!`, type: 'success' }));
+      dispatch(addAlert({ message: t('bookingDetail.completedSuccess', { id: booking.id }), type: 'success' }));
       navigate(backPath);
     } catch (err: any) {
       console.error('Failed to mark as completed:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to mark as completed. Please try again.',
+        message: err?.data?.message || t('bookingDetail.completedFailure'),
         type: 'error'
       }));
     } finally {
@@ -251,7 +245,7 @@ const BookingDetailPage: React.FC = () => {
   const handleProcessConfirmSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedTableId === '') {
-      dispatch(addAlert({ message: 'Please select a table to confirm.', type: 'error' }));
+      dispatch(addAlert({ message: t('bookingDetail.selectTableError'), type: 'error' }));
       return;
     }
 
@@ -261,11 +255,14 @@ const BookingDetailPage: React.FC = () => {
     let hasValidationError = false;
 
     if (selectedTable.capacity < booking.guestCount) {
-      setTableError(`Table capacity is too small (${selectedTable.capacity} seats for ${booking.guestCount} guests).`);
+      setTableError(t('bookingDetail.capacityTooSmall', { capacity: selectedTable.capacity, guestCount: booking.guestCount }));
       hasValidationError = true;
     } else if (selectedTable.isSmokingAllowed !== booking.isSmoking) {
       setTableError(
-        `Smoking policy mismatch (Table is ${selectedTable.isSmokingAllowed ? 'Smoking Allowed' : 'Non-Smoking'}, but reservation requires ${booking.isSmoking ? 'Smoking Allowed' : 'Non-Smoking'}).`
+        t('bookingDetail.smokingMismatch', {
+          tableSmoking: selectedTable.isSmokingAllowed ? t('bookingDetail.smokingAllowed') : t('bookingDetail.nonSmoking'),
+          bookingSmoking: booking.isSmoking ? t('bookingDetail.smokingAllowed') : t('bookingDetail.nonSmoking'),
+        })
       );
       hasValidationError = true;
     }
@@ -281,15 +278,15 @@ const BookingDetailPage: React.FC = () => {
       }).unwrap();
 
       dispatch(addAlert({
-        message: `Reservation confirmed successfully with table: ${selectedTable.name}!`,
+        message: t('bookingDetail.confirmSuccess', { tableName: selectedTable.name }),
         type: 'success'
       }));
       navigate(backPath);
     } catch (err: any) {
       console.error('Failed to confirm reservation:', err);
-      dispatch(addAlert({ 
-        message: err?.data?.message || 'Failed to confirm reservation. Please try again.', 
-        type: 'error' 
+      dispatch(addAlert({
+        message: err?.data?.message || t('bookingDetail.confirmFailure'),
+        type: 'error'
       }));
     }
   };
@@ -298,7 +295,6 @@ const BookingDetailPage: React.FC = () => {
     setIsConfirming(false);
     setSelectedTableId('');
     setTableError('');
-    // If we started directly in confirm mode from the bookings list, clicking cancel should take us back
     if (shouldStartInConfirmMode) {
       navigate('/employee/bookings');
     }
@@ -309,20 +305,19 @@ const BookingDetailPage: React.FC = () => {
   const isEmployee = role === Role.EMPLOYEE || role === Role.MANAGER;
   const showConfirmButton = isEmployee && booking.status === BookingStatus.PENDING && !isConfirming;
 
-  // Dynamic back path based on role
   const backPath = role === Role.EMPLOYEE || role === Role.MANAGER ? '/employee/bookings' : '/bookings';
 
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
             gap: 2,
-            mb: 3 
+            mb: 3
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
@@ -343,10 +338,10 @@ const BookingDetailPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                Booking Details
+                {t('bookingDetail.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                Specifications & Reservation Specifications
+                {t('bookingDetail.subtitle')}
               </Typography>
             </Box>
           </Box>
@@ -354,11 +349,11 @@ const BookingDetailPage: React.FC = () => {
           <Chip
             label={booking.status || 'PENDING'}
             variant="outlined"
-            sx={{ 
+            sx={{
               ...getStatusStyles(booking.status),
-              px: 2, 
-              py: 0.5, 
-              fontSize: '0.85rem', 
+              px: 2,
+              py: 0.5,
+              fontSize: '0.85rem',
               borderRadius: 2,
               borderWidth: 1,
               borderStyle: 'solid',
@@ -373,10 +368,10 @@ const BookingDetailPage: React.FC = () => {
         <Box sx={{ mb: 4 }}>
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" fontWeight="bold" color="text.secondary">
-              Reservation Information
+              {t('bookingDetail.reservationInformation')}
             </Typography>
           </Box>
-          
+
           <Grid container spacing={4}>
             {/* Booking ID */}
             <Grid item xs={12} sm={6}>
@@ -384,7 +379,7 @@ const BookingDetailPage: React.FC = () => {
                 <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Booking ID
+                    {t('bookingDetail.bookingId')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                     {booking.id}
@@ -399,17 +394,17 @@ const BookingDetailPage: React.FC = () => {
                 <CalendarMonthIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Date & Time
+                    {t('bookingDetail.dateAndTime')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {bookingDate.toLocaleDateString(undefined, { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })} at {bookingDate.toLocaleTimeString(undefined, { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
+                    {bookingDate.toLocaleDateString(undefined, {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })} at {bookingDate.toLocaleTimeString(undefined, {
+                      hour: '2-digit',
+                      minute: '2-digit'
                     })}
                   </Typography>
                 </Box>
@@ -422,10 +417,10 @@ const BookingDetailPage: React.FC = () => {
                 <PeopleIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Guests Count
+                    {t('bookingDetail.guestsCount')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {booking.guestCount} {booking.guestCount === 1 ? 'guest' : 'guests'}
+                    {t('bookingDetail.guest', { count: booking.guestCount })}
                   </Typography>
                 </Box>
               </Box>
@@ -441,10 +436,10 @@ const BookingDetailPage: React.FC = () => {
                 )}
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Smoking Policy
+                    {t('bookingDetail.smokingPolicy')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {booking.isSmoking ? 'Smoking Allowed' : 'Non-Smoking'}
+                    {booking.isSmoking ? t('bookingDetail.smokingAllowed') : t('bookingDetail.nonSmoking')}
                   </Typography>
                 </Box>
               </Box>
@@ -458,10 +453,10 @@ const BookingDetailPage: React.FC = () => {
         <Box sx={{ mb: 2 }}>
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" fontWeight="bold" color="text.secondary">
-              {role === Role.CLIENT ? 'Restaurant Information' : 'Client Information'}
+              {role === Role.CLIENT ? t('bookingDetail.restaurantInformation') : t('bookingDetail.clientInformation')}
             </Typography>
           </Box>
-          
+
           <Grid container spacing={4}>
             {role === Role.CLIENT ? (
               <>
@@ -471,10 +466,10 @@ const BookingDetailPage: React.FC = () => {
                     <BusinessIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Restaurant Name
+                        {t('bookingDetail.restaurantName')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {booking.restaurant?.name || 'Restaurant'}
+                        {booking.restaurant?.name || t('bookingDetail.restaurantFallback')}
                       </Typography>
                     </Box>
                   </Box>
@@ -486,10 +481,10 @@ const BookingDetailPage: React.FC = () => {
                     <PhoneIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Phone Number
+                        {t('bookingDetail.phoneNumber')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {booking.restaurant?.phoneNumber || 'No phone listed'}
+                        {booking.restaurant?.phoneNumber || t('bookingDetail.noPhoneListed')}
                       </Typography>
                     </Box>
                   </Box>
@@ -501,10 +496,10 @@ const BookingDetailPage: React.FC = () => {
                     <LocationOnIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Address
+                        {t('bookingDetail.address')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {booking.restaurant?.address || 'No address listed'}
+                        {booking.restaurant?.address || t('bookingDetail.noAddressListed')}
                       </Typography>
                     </Box>
                   </Box>
@@ -518,10 +513,10 @@ const BookingDetailPage: React.FC = () => {
                     <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Client Name
+                        {t('bookingDetail.clientName')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {booking.client ? `${booking.client.firstName} ${booking.client.lastName}` : 'Client'}
+                        {booking.client ? `${booking.client.firstName} ${booking.client.lastName}` : t('bookingDetail.clientFallback')}
                       </Typography>
                     </Box>
                   </Box>
@@ -533,10 +528,10 @@ const BookingDetailPage: React.FC = () => {
                     <PhoneIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Phone Number
+                        {t('bookingDetail.phoneNumber')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {booking.client?.phoneNumber || 'No phone listed'}
+                        {booking.client?.phoneNumber || t('bookingDetail.noPhoneListed')}
                       </Typography>
                     </Box>
                   </Box>
@@ -552,26 +547,26 @@ const BookingDetailPage: React.FC = () => {
             <Divider sx={{ my: 4 }} />
             <Box component="form" onSubmit={handleProcessConfirmSubmit}>
               <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 3 }}>
-                Assign Table & Confirm Reservation
+                {t('bookingDetail.assignTable')}
               </Typography>
 
               {isLoadingTables ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
                   <CircularProgress size={24} />
                   <Typography variant="body2" color="text.secondary">
-                    Loading available tables...
+                    {t('bookingDetail.loadingTables')}
                   </Typography>
                 </Box>
               ) : (
                 <Grid container spacing={3} direction="column">
                   <Grid item xs={12}>
                     <FormControl required fullWidth error={!!tableError} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2.5 } }}>
-                      <InputLabel id="table-select-label">Select Table</InputLabel>
+                      <InputLabel id="table-select-label">{t('bookingDetail.selectTable')}</InputLabel>
                       <Select
                         labelId="table-select-label"
                         id="table-select"
                         value={selectedTableId}
-                        label="Select Table"
+                        label={t('bookingDetail.selectTable')}
                         onChange={(e) => handleTableChange(Number(e.target.value))}
                       >
                         {tablesData?.content.map((table) => (
@@ -579,7 +574,11 @@ const BookingDetailPage: React.FC = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                               <TableBarIcon color="primary" fontSize="small" />
                               <Typography variant="body2">
-                                {table.name} (Capacity: {table.capacity} {table.capacity === 1 ? 'seat' : 'seats'}) {table.isSmokingAllowed ? '• Smoking' : '• Non-Smoking'}
+                                {t('bookingDetail.tableOption', {
+                                  name: table.name,
+                                  capacity: table.capacity,
+                                  smoking: table.isSmokingAllowed ? '• Smoking' : '• Non-Smoking',
+                                })}
                               </Typography>
                             </Box>
                           </MenuItem>
@@ -601,7 +600,7 @@ const BookingDetailPage: React.FC = () => {
                   startIcon={isConfirmingSubmit ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
                   sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2.5 }}
                 >
-                  Confirm Booking
+                  {t('bookingDetail.confirmBooking')}
                 </Button>
                 <Button
                   variant="outlined"
@@ -611,7 +610,7 @@ const BookingDetailPage: React.FC = () => {
                   startIcon={<CancelIcon />}
                   sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2.5 }}
                 >
-                  Cancel
+                  {t('bookingDetail.cancel')}
                 </Button>
               </Box>
             </Box>
@@ -630,9 +629,9 @@ const BookingDetailPage: React.FC = () => {
                   size="large"
                   startIcon={<CheckCircleIcon />}
                   onClick={() => setIsConfirming(true)}
-                  sx={{ 
-                    textTransform: 'none', 
-                    fontWeight: 'bold', 
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 'bold',
                     borderRadius: 3,
                     px: { xs: 4, sm: 6 },
                     py: 1.5,
@@ -643,7 +642,7 @@ const BookingDetailPage: React.FC = () => {
                     }
                   }}
                 >
-                  Process Booking
+                  {t('bookingDetail.processBooking')}
                 </Button>
               )}
               {isEmployee && booking.status === BookingStatus.CONFIRMED && (
@@ -654,9 +653,9 @@ const BookingDetailPage: React.FC = () => {
                   startIcon={isMarkingArrived ? <CircularProgress size={20} color="inherit" /> : <HowToRegIcon />}
                   onClick={handleArrivedClick}
                   disabled={isMarkingArrived || isCancelling}
-                  sx={{ 
-                    textTransform: 'none', 
-                    fontWeight: 'bold', 
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 'bold',
                     borderRadius: 3,
                     px: { xs: 4, sm: 6 },
                     py: 1.5,
@@ -667,7 +666,7 @@ const BookingDetailPage: React.FC = () => {
                     }
                   }}
                 >
-                  Mark as Arrived
+                  {t('bookingDetail.markArrived')}
                 </Button>
               )}
               {isEmployee && booking.status === BookingStatus.ARRIVED && (
@@ -678,9 +677,9 @@ const BookingDetailPage: React.FC = () => {
                   startIcon={isCompleting ? <CircularProgress size={20} color="inherit" /> : <TaskAltIcon />}
                   onClick={handleCompletedClick}
                   disabled={isCompleting}
-                  sx={{ 
-                    textTransform: 'none', 
-                    fontWeight: 'bold', 
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 'bold',
                     borderRadius: 3,
                     px: { xs: 4, sm: 6 },
                     py: 1.5,
@@ -691,7 +690,7 @@ const BookingDetailPage: React.FC = () => {
                     }
                   }}
                 >
-                  Mark as Completed
+                  {t('bookingDetail.markCompleted')}
                 </Button>
               )}
               {canCancel && (
@@ -702,9 +701,9 @@ const BookingDetailPage: React.FC = () => {
                   startIcon={<CancelIcon />}
                   onClick={() => setCancelDialogOpen(true)}
                   disabled={isCancelling || isMarkingArrived || isCompleting}
-                  sx={{ 
-                    textTransform: 'none', 
-                    fontWeight: 'bold', 
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 'bold',
                     borderRadius: 3,
                     px: { xs: 4, sm: 6 },
                     py: 1.5,
@@ -715,7 +714,7 @@ const BookingDetailPage: React.FC = () => {
                     }
                   }}
                 >
-                  Cancel Reservation
+                  {t('bookingDetail.cancelReservation')}
                 </Button>
               )}
             </Box>
@@ -738,32 +737,32 @@ const BookingDetailPage: React.FC = () => {
         }}
       >
         <DialogTitle id="cancel-dialog-title" fontWeight="bold">
-          Cancel Reservation
+          {t('bookingDetail.cancelDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="cancel-dialog-description">
-            Are you sure you want to cancel reservation <strong>{booking.id}</strong>? This action cannot be undone.
+            <Trans i18nKey="bookingDetail.cancelDialogBody" values={{ id: booking.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleCancelClose} 
-            color="inherit" 
+          <Button
+            onClick={handleCancelClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isCancelling}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleCancelConfirm} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleCancelConfirm}
+            color="error"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isCancelling}
             startIcon={isCancelling && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Cancel Booking
+            {t('bookingDetail.cancelDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -783,32 +782,32 @@ const BookingDetailPage: React.FC = () => {
         }}
       >
         <DialogTitle id="arrived-dialog-title" fontWeight="bold">
-          Confirm Guest Arrival
+          {t('bookingDetail.arrivedDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="arrived-dialog-description">
-            Are you sure you want to mark reservation <strong>{booking.id}</strong> as ARRIVED? The guests will be checked in.
+            <Trans i18nKey="bookingDetail.arrivedDialogBody" values={{ id: booking.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleArrivedClose} 
-            color="inherit" 
+          <Button
+            onClick={handleArrivedClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isMarkingArrived}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleArrivedConfirm} 
-            color="info" 
-            variant="contained" 
+          <Button
+            onClick={handleArrivedConfirm}
+            color="info"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isMarkingArrived}
             startIcon={isMarkingArrived && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Confirm Arrival
+            {t('bookingDetail.arrivedDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -828,32 +827,32 @@ const BookingDetailPage: React.FC = () => {
         }}
       >
         <DialogTitle id="completed-dialog-title" fontWeight="bold">
-          Complete Reservation
+          {t('bookingDetail.completedDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="completed-dialog-description">
-            Are you sure you want to mark reservation <strong>{booking.id}</strong> as COMPLETED? The table will be freed.
+            <Trans i18nKey="bookingDetail.completedDialogBody" values={{ id: booking.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleCompletedClose} 
-            color="inherit" 
+          <Button
+            onClick={handleCompletedClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isCompleting}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleCompletedConfirm} 
-            color="success" 
-            variant="contained" 
+          <Button
+            onClick={handleCompletedConfirm}
+            color="success"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isCompleting}
             startIcon={isCompleting && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Complete Booking
+            {t('bookingDetail.completedDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>

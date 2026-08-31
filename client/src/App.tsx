@@ -33,10 +33,10 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1976d2', // Blue
+      main: '#1976d2',
     },
     secondary: {
-      main: '#b71c1c', // A shade of red for accents
+      main: '#b71c1c',
     },
     background: {
       default: '#f5f5f5',
@@ -103,6 +103,7 @@ function App() {
               <Route path="/admin/restaurants/new" element={<AddRestaurantPage />} />
               <Route path="/admin/restaurants/:id/employees" element={<RestaurantEmployeesPage />} />
               <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
+              <Route path="/admin/restaurants/:restaurantId/employees/:id" element={<UserDetailsPage />} />
             </Route>
             <Route element={<ManagerRoute />}>
               <Route path="/manager/restaurant" element={<ManagerRestaurantPage />} />

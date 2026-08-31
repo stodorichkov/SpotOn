@@ -13,14 +13,16 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import { RegexConstants, MessageConstants } from '../constants';
+import { RegexConstants } from '../constants';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { useGetRestaurantFormQuery, useCreateRestaurantMutation } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
 
 const AddRestaurantPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data: availableCategories = [], isLoading, error } = useGetRestaurantFormQuery();
@@ -50,18 +52,18 @@ const AddRestaurantPage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) {
-      newErrors.name = MessageConstants.BLANK_FIELD;
+      newErrors.name = t('validation.blankField');
     }
     if (!address.trim()) {
-      newErrors.address = MessageConstants.BLANK_FIELD;
+      newErrors.address = t('validation.blankField');
     }
     if (!phoneNumber.trim()) {
-      newErrors.phoneNumber = MessageConstants.BLANK_FIELD;
+      newErrors.phoneNumber = t('validation.blankField');
     } else if (!RegexConstants.PHONE_NUMBER_REGEX.test(phoneNumber.trim())) {
-      newErrors.phoneNumber = MessageConstants.INVALID_PHONE_NUMBER;
+      newErrors.phoneNumber = t('validation.invalidPhoneNumber');
     }
     if (selectedCategoryIds.length === 0) {
-      newErrors.categories = 'Please select at least one category.';
+      newErrors.categories = t('addRestaurant.atLeastOneCategory');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -77,18 +79,16 @@ const AddRestaurantPage: React.FC = () => {
         categories: selectedCategoryIds
       }).unwrap();
 
-      // Show a success alert
       dispatch(addAlert({
-        message: `Restaurant "${name.trim()}" added successfully!`,
+        message: t('addRestaurant.success', { name: name.trim() }),
         type: 'success'
       }));
 
-      // Redirect to the restaurants list
       navigate('/admin/restaurants');
     } catch (err: any) {
       console.error('Failed to save the restaurant:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to add the restaurant. Please try again.',
+        message: err?.data?.message || t('addRestaurant.failure'),
         type: 'error'
       }));
     }
@@ -98,10 +98,10 @@ const AddRestaurantPage: React.FC = () => {
     <Container maxWidth="sm" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
       <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Avatar 
-            sx={{ 
-              m: 1, 
-              backgroundColor: 'primary.main', 
+          <Avatar
+            sx={{
+              m: 1,
+              backgroundColor: 'primary.main',
               color: 'primary.contrastText',
               width: 52,
               height: 52
@@ -111,10 +111,10 @@ const AddRestaurantPage: React.FC = () => {
           </Avatar>
 
           <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
-            Add New Restaurant
+            {t('addRestaurant.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, mb: 3 }}>
-            Register a new restaurant in the system.
+            {t('addRestaurant.subtitle')}
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
@@ -124,7 +124,7 @@ const AddRestaurantPage: React.FC = () => {
                   required
                   fullWidth
                   id="name"
-                  label="Restaurant Name"
+                  label={t('addRestaurant.name')}
                   variant="outlined"
                   value={name}
                   onChange={(e) => {
@@ -147,7 +147,7 @@ const AddRestaurantPage: React.FC = () => {
                   required
                   fullWidth
                   id="address"
-                  label="Address"
+                  label={t('addRestaurant.address')}
                   variant="outlined"
                   value={address}
                   onChange={(e) => {
@@ -170,7 +170,7 @@ const AddRestaurantPage: React.FC = () => {
                   required
                   fullWidth
                   id="phoneNumber"
-                  label="Phone Number"
+                  label={t('addRestaurant.phoneNumber')}
                   variant="outlined"
                   value={phoneNumber}
                   onChange={(e) => {
@@ -190,11 +190,11 @@ const AddRestaurantPage: React.FC = () => {
 
               <Grid item xs={12}>
                 <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, color: 'text.secondary', ml: 0.5 }}>
-                  Select Categories
+                  {t('addRestaurant.selectCategories')}
                 </Typography>
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexWrap: 'wrap', 
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
                   gap: 1,
                   maxHeight: 130,
                   overflowY: 'auto',
@@ -211,10 +211,10 @@ const AddRestaurantPage: React.FC = () => {
                   {isLoading ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
                       <CircularProgress size={20} />
-                      <Typography variant="body2" color="text.secondary">Loading categories...</Typography>
+                      <Typography variant="body2" color="text.secondary">{t('addRestaurant.loadingCategories')}</Typography>
                     </Box>
                   ) : error ? (
-                    <Typography variant="body2" color="error" sx={{ py: 1 }}>Failed to load categories.</Typography>
+                    <Typography variant="body2" color="error" sx={{ py: 1 }}>{t('addRestaurant.failedLoadCategories')}</Typography>
                   ) : availableCategories && availableCategories.length > 0 ? (
                     availableCategories.map((cat) => {
                       const isSelected = selectedCategoryIds.includes(cat.id);
@@ -237,7 +237,7 @@ const AddRestaurantPage: React.FC = () => {
                       );
                     })
                   ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>No categories available.</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>{t('addRestaurant.noCategoriesAvailable')}</Typography>
                   )}
                 </Box>
                 {errors.categories && (
@@ -255,15 +255,15 @@ const AddRestaurantPage: React.FC = () => {
                   fullWidth
                   startIcon={isCreating ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
                   disabled={isCreating}
-                  sx={{ 
-                    textTransform: 'none', 
-                    fontWeight: 'bold', 
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 'bold',
                     py: 1.2,
                     borderRadius: 2,
                     fontSize: '1rem'
                   }}
                 >
-                  {isCreating ? 'Adding restaurant...' : 'Add restaurant'}
+                  {isCreating ? t('addRestaurant.adding') : t('addRestaurant.addButton')}
                 </Button>
               </Grid>
             </Grid>

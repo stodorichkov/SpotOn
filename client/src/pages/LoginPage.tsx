@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Paper, Grid, InputAdornment, IconButton, Avatar } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import LockIcon from '@mui/icons-material/Lock';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState, AppDispatch } from '../store/store';
 import { updateLoginFormField, clearLoginForm } from '../features/auth/loginSlice';
 import * as yup from 'yup';
-import { MessageConstants } from '../constants';
 import { useLoginMutation, ClientLoginRequest } from '../features/auth/authApi';
 import { useNavigate, Link } from 'react-router-dom';
 import { addAlert } from '../features/alerts/alertsSlice';
@@ -14,22 +14,23 @@ import { addAlert } from '../features/alerts/alertsSlice';
 type LoginFormState = ClientLoginRequest;
 type ValidationErrors = Partial<Record<keyof LoginFormState, string>>;
 
-const validationSchema = yup.object({
-    username: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD),
-    password: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD),
-});
-
 const LoginPage = () => {
+    const { t } = useTranslation();
     const dispatch: AppDispatch = useDispatch();
     const navigate = useNavigate();
     const formState = useSelector((state: RootState) => state.loginForm as LoginFormState);
     const [login, { isLoading }] = useLoginMutation();
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [showPassword, setShowPassword] = useState(false);
+
+    const validationSchema = useMemo(() => yup.object({
+        username: yup
+            .string()
+            .required(t('validation.blankField')),
+        password: yup
+            .string()
+            .required(t('validation.blankField')),
+    }), [t]);
 
     useEffect(() => {
         return () => {
@@ -70,10 +71,9 @@ const LoginPage = () => {
 
         try {
             await login(formState).unwrap();
-            dispatch(addAlert({ message: 'Logged in successfully!', type: 'success' }));
+            dispatch(addAlert({ message: t('login.success'), type: 'success' }));
             navigate('/');
         } catch (err) {
-            // The error will be handled by the middleware
         }
     };
 
@@ -89,10 +89,10 @@ const LoginPage = () => {
         <Container maxWidth="xs" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
             <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Avatar 
-                        sx={{ 
-                            m: 1, 
-                            backgroundColor: 'primary.main', 
+                    <Avatar
+                        sx={{
+                            m: 1,
+                            backgroundColor: 'primary.main',
                             color: 'primary.contrastText',
                             width: 52,
                             height: 52
@@ -100,12 +100,12 @@ const LoginPage = () => {
                     >
                         <LockIcon sx={{ fontSize: 28 }} />
                     </Avatar>
-                    
+
                     <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
-                        Login
+                        {t('login.title')}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, mb: 3 }}>
-                        Welcome back! Please enter your details.
+                        {t('login.subtitle')}
                     </Typography>
 
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ width: '100%' }}>
@@ -115,7 +115,7 @@ const LoginPage = () => {
                                     required
                                     fullWidth
                                     id="username"
-                                    label="Username"
+                                    label={t('login.username')}
                                     name="username"
                                     value={formState.username || ''}
                                     onChange={handleChange}
@@ -134,7 +134,7 @@ const LoginPage = () => {
                                     required
                                     fullWidth
                                     name="password"
-                                    label="Password"
+                                    label={t('login.password')}
                                     type={showPassword ? 'text' : 'password'}
                                     id="password"
                                     value={formState.password || ''}
@@ -179,14 +179,14 @@ const LoginPage = () => {
                             }}
                             disabled={isLoading}
                         >
-                            {isLoading ? 'Logging in...' : 'Login'}
+                            {isLoading ? t('login.loggingIn') : t('login.loginButton')}
                         </Button>
 
                         <Box sx={{ mt: 3, textAlign: 'center' }}>
                             <Typography variant="body2" color="text.secondary">
-                                Don't have an account?{' '}
+                                {t('login.noAccount')}{' '}
                                 <Link to="/register" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
-                                    Register
+                                    {t('login.registerLink')}
                                 </Link>
                             </Typography>
                         </Box>

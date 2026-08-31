@@ -78,7 +78,6 @@ export interface RegisterManagerResponse {
 
 const AUTH_API_PATH = '/auth';
 
-// Inject endpoints into the base api slice
 export const authApi = api.injectEndpoints({
     endpoints: (builder) => ({
         getProfile: builder.query<ProfileResponse, void>({
@@ -138,27 +137,22 @@ export const authApi = api.injectEndpoints({
             }),
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
-                    // Set the token first to authenticate the getProfile call
                     const { data: token } = await queryFulfilled;
-                    dispatch(setCredentials({ token, role: null })); // Temporarily set token
+                    dispatch(setCredentials({ token, role: null }));
 
-                    // Fetch profile to get the role, forcing a fresh request to avoid cached old profile
                     const profileResult = await dispatch(
                         authApi.endpoints.getProfile.initiate(undefined, { forceRefetch: true })
                     );
-                    
+
                     if (profileResult.data) {
                         const role = profileResult.data.role;
-                        // Set final credentials with role
                         dispatch(setCredentials({ token, role }));
                     } else {
-                        // If profile fetch fails, logout the user
                         throw new Error("Profile fetch failed");
                     }
 
                 } catch (error) {
                     console.error("Login process failed:", error);
-                    // Clear credentials on any failure in the process
                     dispatch(setCredentials({ token: null, role: null }));
                 }
             },
@@ -175,7 +169,6 @@ export const authApi = api.injectEndpoints({
                     console.error("Logout failed:", error);
                 } finally {
                     dispatch(setCredentials({ token: null, role: null }));
-                    // Defer resetting the entire RTK Query API state to clear cache for security and allow alerts to propagate
                     setTimeout(() => {
                         dispatch({ type: 'api/resetApiState' });
                     }, 0);

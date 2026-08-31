@@ -16,15 +16,10 @@ export const getCategoryStyle = (name: string) => {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  // Hue: 0 - 359
   const hue = Math.abs(hash % 360);
-  // Saturation: 65% for pleasant pastel coloring
   const saturation = 65;
-  // Lightness: 92% for soft, readable background
   const backgroundColor = `hsl(${hue}, ${saturation}%, 92%)`;
-  // Dark text color with the same hue but 25% lightness for contrast and readability
   const textColor = `hsl(${hue}, 75%, 25%)`;
-  // Border color: slightly darker than background
   const borderColor = `hsl(${hue}, ${saturation}%, 80%)`;
 
   return {

@@ -68,6 +68,7 @@ export interface RestaurantResponse {
   id: number;
   name: string;
   categories: CategoryResponse[];
+  address: string;
 }
 
 export interface PaginatedRestaurantsResponse {
@@ -196,8 +197,25 @@ export interface PaginatedTablesResponse {
 
 export const restaurantsSlice = api.injectEndpoints({
   endpoints: (builder) => ({
-    getRestaurants: builder.query<PaginatedRestaurantsResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `restaurant/restaurants?page=${page}&size=${size}&sort=id,asc`,
+    getRestaurants: builder.query<
+      PaginatedRestaurantsResponse,
+      { page: number; size: number; sort?: string; name?: string; address?: string; categoryIds?: number[] }
+    >({
+      query: ({ page, size, sort = 'id,asc', name, address, categoryIds }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (name) {
+          params.set('name', name);
+        }
+        if (address) {
+          params.set('address', address);
+        }
+        (categoryIds || []).forEach((id) => params.append('categoryIds', String(id)));
+
+        return `restaurant/restaurants?${params.toString()}`;
+      },
       providesTags: ['Restaurants'],
     }),
     getRestaurantById: builder.query<RestaurantDetailsResponse, number>({
@@ -210,6 +228,9 @@ export const restaurantsSlice = api.injectEndpoints({
     }),
     getRestaurantForm: builder.query<CategoryResponse[], void>({
       query: () => 'restaurant/restaurants/form',
+    }),
+    getCategories: builder.query<CategoryResponse[], void>({
+      query: () => 'restaurant/categories',
     }),
     createRestaurant: builder.mutation<RestaurantResponse, RestaurantRequest>({
       query: (body) => ({
@@ -317,4 +338,4 @@ export const restaurantsSlice = api.injectEndpoints({
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;

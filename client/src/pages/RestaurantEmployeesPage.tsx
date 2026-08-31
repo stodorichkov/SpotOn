@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { useGetEmployeesQuery } from '../features/restaurants/restaurantsSlice';
+import { useTranslation } from 'react-i18next';
 import { Role } from '../constants';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  TablePagination, 
-  Skeleton, 
-  Typography, 
-  Container, 
-  Chip, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  Skeleton,
+  Typography,
+  Container,
+  Chip,
   Box,
   Button,
   Divider,
@@ -44,6 +45,7 @@ const getRoleChipColor = (role: string) => {
 };
 
 const RestaurantEmployeesPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const restaurantId = Number(id);
@@ -74,13 +76,13 @@ const RestaurantEmployeesPage: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h6" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Invalid Restaurant ID.
+            {t('restaurantEmployees.invalidId')}
           </Typography>
           <Button component={Link} to="/admin/restaurants" startIcon={<ArrowBackIcon />} sx={{ mt: 2, textTransform: 'none', fontWeight: 'bold' }}>
-            Back to Restaurants
+            {t('restaurantEmployees.backToRestaurants')}
           </Button>
         </Paper>
       </Container>
@@ -91,11 +93,11 @@ const RestaurantEmployeesPage: React.FC = () => {
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Box sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between', 
+              justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', sm: 'center' },
               gap: 2
             }}
@@ -118,10 +120,10 @@ const RestaurantEmployeesPage: React.FC = () => {
               </Box>
               <Box>
                 <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
-                  Employees
+                  {t('restaurantEmployees.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                  Manage employees for {restaurantName}
+                  {t('restaurantEmployees.subtitle', { restaurantName })}
                 </Typography>
               </Box>
             </Box>
@@ -131,14 +133,14 @@ const RestaurantEmployeesPage: React.FC = () => {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 'bold', 
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
                 borderRadius: 2,
                 width: { xs: '100%', sm: 'auto' }
               }}
             >
-              Add Manager
+              {t('restaurantEmployees.addManager')}
             </Button>
           </Box>
         </Box>
@@ -148,12 +150,12 @@ const RestaurantEmployeesPage: React.FC = () => {
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('restaurantEmployees.id')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.username')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('restaurantEmployees.name')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurantEmployees.phoneNumber')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.role')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -173,13 +175,13 @@ const RestaurantEmployeesPage: React.FC = () => {
         ) : error ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography color="error" variant="h6">
-              Error loading employees.
+              {t('restaurantEmployees.errorLoading')}
             </Typography>
           </Box>
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No employees found for this restaurant.
+              {t('restaurantEmployees.noEmployees')}
             </Typography>
           </Box>
         ) : (
@@ -188,12 +190,12 @@ const RestaurantEmployeesPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="employees table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('restaurantEmployees.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.username')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('restaurantEmployees.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurantEmployees.phoneNumber')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.role')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -216,10 +218,10 @@ const RestaurantEmployeesPage: React.FC = () => {
                           ) : '-'}
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip title="User Details" arrow>
+                          <Tooltip title={t('restaurantEmployees.userDetailsTooltip')} arrow>
                             <IconButton
                               component={Link}
-                              to={`/admin/users/${employee.id}`}
+                              to={`/admin/restaurants/${restaurantId}/employees/${employee.id}`}
                               state={{ user: employee }}
                               color="primary"
                               size="small"
@@ -247,7 +249,7 @@ const RestaurantEmployeesPage: React.FC = () => {
                             sx={{ visibility: 'hidden' }}
                             aria-hidden="true"
                           >
-                            Info
+                            {t('users.info')}
                           </Button>
                         </TableCell>
                       </TableRow>

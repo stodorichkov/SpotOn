@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { useGetClientBookingsQuery, useCancelBookingMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  TablePagination, 
-  Skeleton, 
-  Typography, 
-  Container, 
-  Chip, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  Skeleton,
+  Typography,
+  Container,
+  Chip,
   Box,
   Divider,
   IconButton,
@@ -89,15 +90,14 @@ const getStatusStyles = (status: string) => {
 };
 
 const ClientBookingsPage: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // States for the collapsing actions menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [activeBooking, setActiveBooking] = useState<any>(null);
 
-  // States for the Cancel Confirmation Dialog
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<any>(null);
 
@@ -132,11 +132,11 @@ const ClientBookingsPage: React.FC = () => {
     if (!bookingToCancel) return;
     try {
       await cancelBooking(bookingToCancel.id).unwrap();
-      dispatch(addAlert({ message: 'Reservation cancelled successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('clientBookings.cancelSuccess'), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to cancel reservation:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to cancel reservation. Please try again.',
+        message: err?.data?.message || t('clientBookings.cancelFailure'),
         type: 'error'
       }));
     } finally {
@@ -150,7 +150,7 @@ const ClientBookingsPage: React.FC = () => {
     setBookingToCancel(null);
   };
 
-  const rowHeight = 65; // Slightly taller rows to accommodate restaurant details neatly
+  const rowHeight = 65;
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
   if (error) {
@@ -158,10 +158,10 @@ const ClientBookingsPage: React.FC = () => {
       <Container maxWidth="lg" sx={{ mt: { xs: 4, sm: 6 }, px: { xs: 2, sm: 0 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load your bookings. Please try again later.
+            {t('clientBookings.errorLoading')}
           </Typography>
         </Paper>
       </Container>
@@ -171,14 +171,14 @@ const ClientBookingsPage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 3, sm: 5 }, mb: 4, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
             gap: 2,
-            mb: 3 
+            mb: 3
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -199,10 +199,10 @@ const ClientBookingsPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-                My Bookings
+                {t('clientBookings.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                View and manage your restaurant bookings
+                {t('clientBookings.subtitle')}
               </Typography>
             </Box>
           </Box>
@@ -215,13 +215,13 @@ const ClientBookingsPage: React.FC = () => {
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>Restaurant</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Date & Time</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Guests</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Smoking</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Status</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('clientBookings.id')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>{t('clientBookings.restaurant')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('clientBookings.dateAndTime')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('clientBookings.guests')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('clientBookings.smoking')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('clientBookings.status')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('clientBookings.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -242,7 +242,7 @@ const ClientBookingsPage: React.FC = () => {
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              You have no active bookings at the moment.
+              {t('clientBookings.noBookings')}
             </Typography>
           </Box>
         ) : (
@@ -251,21 +251,20 @@ const ClientBookingsPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="bookings table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>Restaurant</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Date & Time</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Guests</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Smoking</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Status</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('clientBookings.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>{t('clientBookings.restaurant')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('clientBookings.dateAndTime')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('clientBookings.guests')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('clientBookings.smoking')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('clientBookings.status')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('clientBookings.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.content.map((booking) => {
                     if (!booking) return null;
                     const bookingDate = new Date(booking.dateTime);
-                    
-                    // Reservation can be cancelled if status is PENDING or CONFIRMED
+
                     const canCancel = booking.status === BookingStatus.PENDING || booking.status === BookingStatus.CONFIRMED;
 
                     return (
@@ -276,10 +275,10 @@ const ClientBookingsPage: React.FC = () => {
                             <BusinessIcon color="primary" sx={{ fontSize: 24, opacity: 0.8 }} />
                             <Box>
                               <Typography variant="body2" fontWeight="bold">
-                                {booking.restaurant?.name || 'Restaurant'}
+                                {booking.restaurant?.name || t('clientBookings.restaurantFallback')}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" display="block">
-                                {booking.restaurant?.address || 'No address listed'}
+                                {booking.restaurant?.address || t('clientBookings.noAddressListed')}
                               </Typography>
                             </Box>
                           </Box>
@@ -287,22 +286,22 @@ const ClientBookingsPage: React.FC = () => {
                         <TableCell>
                           <Box>
                             <Typography variant="body2" fontWeight="medium">
-                              {bookingDate.toLocaleDateString(undefined, { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
+                              {bookingDate.toLocaleDateString(undefined, {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
                               })}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" display="block">
-                              {bookingDate.toLocaleTimeString(undefined, { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
+                              {bookingDate.toLocaleTimeString(undefined, {
+                                hour: '2-digit',
+                                minute: '2-digit'
                               })}
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>{booking.guestCount} {booking.guestCount === 1 ? 'guest' : 'guests'}</TableCell>
+                        <TableCell>{t('clientBookings.guest', { count: booking.guestCount })}</TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             {booking.isSmoking ? (
@@ -311,7 +310,7 @@ const ClientBookingsPage: React.FC = () => {
                               <SmokeFreeIcon color="action" fontSize="small" />
                             )}
                             <Typography variant="caption" color="text.secondary">
-                              {booking.isSmoking ? 'Smoking' : 'Non-Smoking'}
+                              {booking.isSmoking ? t('clientBookings.smokingAllowed') : t('clientBookings.nonSmoking')}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -320,8 +319,8 @@ const ClientBookingsPage: React.FC = () => {
                             label={booking.status || 'PENDING'}
                             size="small"
                             variant="outlined"
-                            sx={{ 
-                              ...getStatusStyles(booking.status), 
+                            sx={{
+                              ...getStatusStyles(booking.status),
                               fontSize: '0.75rem',
                               borderWidth: 1,
                               borderStyle: 'solid'
@@ -330,7 +329,6 @@ const ClientBookingsPage: React.FC = () => {
                         </TableCell>
                         <TableCell align="right">
                           {canCancel ? (
-                            // More than 1 action -> collapse under 3-dots MoreVertIcon
                             <IconButton
                               color="primary"
                               size="small"
@@ -340,8 +338,7 @@ const ClientBookingsPage: React.FC = () => {
                               <MoreVertIcon />
                             </IconButton>
                           ) : (
-                            // Only 1 action -> show Details directly as single button
-                            <Tooltip title="Booking Details" arrow>
+                            <Tooltip title={t('clientBookings.bookingDetailsTooltip')} arrow>
                               <IconButton
                                 component={Link}
                                 to={`/bookings/${booking.id}`}
@@ -407,19 +404,19 @@ const ClientBookingsPage: React.FC = () => {
         }}
       >
         {activeBooking && [
-          <MenuItem 
+          <MenuItem
             key="details"
-            component={Link} 
-            to={`/bookings/${activeBooking.id}`} 
+            component={Link}
+            to={`/bookings/${activeBooking.id}`}
             state={{ booking: activeBooking }}
             onClick={handleMenuClose}
           >
             <ListItemIcon>
               <InfoIcon color="primary" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Details" />
+            <ListItemText primary={t('clientBookings.menuDetails')} />
           </MenuItem>,
-          <MenuItem 
+          <MenuItem
             key="cancel"
             onClick={() => {
               handleMenuClose();
@@ -430,7 +427,7 @@ const ClientBookingsPage: React.FC = () => {
             <ListItemIcon>
               <CancelIcon color="error" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Cancel Booking" />
+            <ListItemText primary={t('clientBookings.menuCancel')} />
           </MenuItem>
         ]}
       </Menu>
@@ -450,32 +447,32 @@ const ClientBookingsPage: React.FC = () => {
         }}
       >
         <DialogTitle id="cancel-dialog-title" fontWeight="bold">
-          Cancel Reservation
+          {t('clientBookings.cancelDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="cancel-dialog-description">
-            Are you sure you want to cancel reservation <strong>{bookingToCancel?.id}</strong>? This action cannot be undone.
+            <Trans i18nKey="clientBookings.cancelDialogBody" values={{ id: bookingToCancel?.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleCancelClose} 
-            color="inherit" 
+          <Button
+            onClick={handleCancelClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isCancelling}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleCancelConfirm} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleCancelConfirm}
+            color="error"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isCancelling}
             startIcon={isCancelling && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Cancel Booking
+            {t('clientBookings.cancelDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>

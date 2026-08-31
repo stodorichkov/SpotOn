@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { useGetRestaurantBookingsQuery, useCancelBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  TablePagination, 
-  Skeleton, 
-  Typography, 
-  Container, 
-  Chip, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  Skeleton,
+  Typography,
+  Container,
+  Chip,
   Box,
   Divider,
   IconButton,
@@ -92,23 +93,20 @@ const getStatusStyles = (status: string) => {
 };
 
 const EmployeeBookingsPage: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // States for the collapsing actions menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [activeBooking, setActiveBooking] = useState<any>(null);
 
-  // States for the Cancel Confirmation Dialog
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<any>(null);
 
-  // States for the Arrived Confirmation Dialog
   const [arrivedDialogOpen, setArrivedDialogOpen] = useState(false);
   const [bookingToArrive, setBookingToArrive] = useState<any>(null);
 
-  // States for the Completed Confirmation Dialog
   const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
   const [bookingToComplete, setBookingToComplete] = useState<any>(null);
 
@@ -145,11 +143,11 @@ const EmployeeBookingsPage: React.FC = () => {
     if (!bookingToCancel) return;
     try {
       await cancelBooking(bookingToCancel.id).unwrap();
-      dispatch(addAlert({ message: 'Reservation cancelled successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('employeeBookings.cancelSuccess'), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to cancel reservation:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to cancel reservation. Please try again.',
+        message: err?.data?.message || t('employeeBookings.cancelFailure'),
         type: 'error'
       }));
     } finally {
@@ -167,11 +165,11 @@ const EmployeeBookingsPage: React.FC = () => {
     if (!bookingToArrive) return;
     try {
       await arrivedBooking(bookingToArrive.id).unwrap();
-      dispatch(addAlert({ message: `Booking #${bookingToArrive.id} marked as arrived successfully!`, type: 'success' }));
+      dispatch(addAlert({ message: t('employeeBookings.arrivedSuccess', { id: bookingToArrive.id }), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to mark as arrived:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to mark as arrived. Please try again.',
+        message: err?.data?.message || t('employeeBookings.arrivedFailure'),
         type: 'error'
       }));
     } finally {
@@ -194,11 +192,11 @@ const EmployeeBookingsPage: React.FC = () => {
     if (!bookingToComplete) return;
     try {
       await completedBooking(bookingToComplete.id).unwrap();
-      dispatch(addAlert({ message: `Booking #${bookingToComplete.id} marked as completed successfully!`, type: 'success' }));
+      dispatch(addAlert({ message: t('employeeBookings.completedSuccess', { id: bookingToComplete.id }), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to mark as completed:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to mark as completed. Please try again.',
+        message: err?.data?.message || t('employeeBookings.completedFailure'),
         type: 'error'
       }));
     } finally {
@@ -217,7 +215,7 @@ const EmployeeBookingsPage: React.FC = () => {
     setBookingToCancel(null);
   };
 
-  const rowHeight = 65; // Matches the standard row height for bookings
+  const rowHeight = 65;
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
   if (error) {
@@ -225,10 +223,10 @@ const EmployeeBookingsPage: React.FC = () => {
       <Container maxWidth="lg" sx={{ mt: { xs: 4, sm: 6 }, px: { xs: 2, sm: 0 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load restaurant bookings. Please try again later.
+            {t('employeeBookings.errorLoading')}
           </Typography>
         </Paper>
       </Container>
@@ -238,14 +236,14 @@ const EmployeeBookingsPage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 3, sm: 5 }, mb: 4, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
             gap: 2,
-            mb: 3 
+            mb: 3
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -266,10 +264,10 @@ const EmployeeBookingsPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
-                Restaurant Bookings
+                {t('employeeBookings.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                View and manage incoming reservations for your venue
+                {t('employeeBookings.subtitle')}
               </Typography>
             </Box>
           </Box>
@@ -282,13 +280,13 @@ const EmployeeBookingsPage: React.FC = () => {
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>Client</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Date & Time</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Guests</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Smoking</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Status</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.id')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>{t('employeeBookings.client')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('employeeBookings.dateAndTime')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.guests')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.smoking')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.status')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -309,7 +307,7 @@ const EmployeeBookingsPage: React.FC = () => {
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No active reservations found for your restaurant.
+              {t('employeeBookings.noBookings')}
             </Typography>
           </Box>
         ) : (
@@ -318,21 +316,20 @@ const EmployeeBookingsPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="bookings table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>Client</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Date & Time</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Guests</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Smoking</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Status</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>{t('employeeBookings.client')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('employeeBookings.dateAndTime')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.guests')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.smoking')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.status')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.content.map((booking) => {
                     if (!booking) return null;
                     const bookingDate = new Date(booking.dateTime);
-                    
-                    // Actions can collapse if status is PENDING or CONFIRMED or ARRIVED
+
                     const hasMultipleActions = booking.status === BookingStatus.PENDING || booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.ARRIVED;
 
                     return (
@@ -343,10 +340,10 @@ const EmployeeBookingsPage: React.FC = () => {
                             <PersonIcon color="primary" sx={{ fontSize: 24, opacity: 0.8 }} />
                             <Box>
                               <Typography variant="body2" fontWeight="bold">
-                                {booking.client ? `${booking.client.firstName} ${booking.client.lastName}` : 'Client'}
+                                {booking.client ? `${booking.client.firstName} ${booking.client.lastName}` : t('employeeBookings.clientFallback')}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" display="block">
-                                Phone: {booking.client?.phoneNumber || 'No phone'}
+                                {t('employeeBookings.phonePrefix', { phone: booking.client?.phoneNumber || t('employeeBookings.noPhone') })}
                               </Typography>
                             </Box>
                           </Box>
@@ -354,22 +351,22 @@ const EmployeeBookingsPage: React.FC = () => {
                         <TableCell>
                           <Box>
                             <Typography variant="body2" fontWeight="medium">
-                              {bookingDate.toLocaleDateString(undefined, { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
+                              {bookingDate.toLocaleDateString(undefined, {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
                               })}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" display="block">
-                              {bookingDate.toLocaleTimeString(undefined, { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
+                              {bookingDate.toLocaleTimeString(undefined, {
+                                hour: '2-digit',
+                                minute: '2-digit'
                               })}
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>{booking.guestCount} {booking.guestCount === 1 ? 'guest' : 'guests'}</TableCell>
+                        <TableCell>{t('employeeBookings.guest', { count: booking.guestCount })}</TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             {booking.isSmoking ? (
@@ -378,7 +375,7 @@ const EmployeeBookingsPage: React.FC = () => {
                               <SmokeFreeIcon color="action" fontSize="small" />
                             )}
                             <Typography variant="caption" color="text.secondary">
-                              {booking.isSmoking ? 'Smoking' : 'Non-Smoking'}
+                              {booking.isSmoking ? t('employeeBookings.smokingAllowed') : t('employeeBookings.nonSmoking')}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -387,8 +384,8 @@ const EmployeeBookingsPage: React.FC = () => {
                             label={booking.status || 'PENDING'}
                             size="small"
                             variant="outlined"
-                            sx={{ 
-                              ...getStatusStyles(booking.status), 
+                            sx={{
+                              ...getStatusStyles(booking.status),
                               fontSize: '0.75rem',
                               borderWidth: 1,
                               borderStyle: 'solid'
@@ -397,7 +394,6 @@ const EmployeeBookingsPage: React.FC = () => {
                         </TableCell>
                         <TableCell align="right">
                           {hasMultipleActions ? (
-                            // More than 1 action -> collapse under 3-dots MoreVertIcon
                             <IconButton
                               color="primary"
                               size="small"
@@ -407,8 +403,7 @@ const EmployeeBookingsPage: React.FC = () => {
                               <MoreVertIcon />
                             </IconButton>
                           ) : (
-                            // Only 1 action -> show Details directly as single button
-                            <Tooltip title="Booking Details" arrow>
+                            <Tooltip title={t('employeeBookings.bookingDetailsTooltip')} arrow>
                               <IconButton
                                 component={Link}
                                 to={`/employee/bookings/${booking.id}`}
@@ -474,34 +469,34 @@ const EmployeeBookingsPage: React.FC = () => {
         }}
       >
         {activeBooking && [
-          <MenuItem 
+          <MenuItem
             key="details"
-            component={Link} 
-            to={`/employee/bookings/${activeBooking.id}`} 
+            component={Link}
+            to={`/employee/bookings/${activeBooking.id}`}
             state={{ booking: activeBooking }}
             onClick={handleMenuClose}
           >
             <ListItemIcon>
               <InfoIcon color="primary" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Details" />
+            <ListItemText primary={t('employeeBookings.menuDetails')} />
           </MenuItem>,
           activeBooking.status === BookingStatus.PENDING && (
-            <MenuItem 
+            <MenuItem
               key="confirm"
-              component={Link} 
-              to={`/employee/bookings/${activeBooking.id}`} 
+              component={Link}
+              to={`/employee/bookings/${activeBooking.id}`}
               state={{ booking: activeBooking, confirm: true }}
               onClick={handleMenuClose}
             >
               <ListItemIcon>
                 <CheckCircleIcon color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Confirm Booking" />
+              <ListItemText primary={t('employeeBookings.menuConfirm')} />
             </MenuItem>
           ),
           activeBooking.status === BookingStatus.CONFIRMED && (
-            <MenuItem 
+            <MenuItem
               key="arrived"
               onClick={() => {
                 handleMenuClose();
@@ -511,11 +506,11 @@ const EmployeeBookingsPage: React.FC = () => {
               <ListItemIcon>
                 <HowToRegIcon color="info" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Mark as Arrived" />
+              <ListItemText primary={t('employeeBookings.menuArrived')} />
             </MenuItem>
           ),
           activeBooking.status === BookingStatus.ARRIVED && (
-            <MenuItem 
+            <MenuItem
               key="completed"
               onClick={() => {
                 handleMenuClose();
@@ -525,11 +520,11 @@ const EmployeeBookingsPage: React.FC = () => {
               <ListItemIcon>
                 <TaskAltIcon color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Mark as Completed" />
+              <ListItemText primary={t('employeeBookings.menuCompleted')} />
             </MenuItem>
           ),
           (activeBooking.status === BookingStatus.PENDING || activeBooking.status === BookingStatus.CONFIRMED) && (
-            <MenuItem 
+            <MenuItem
               key="cancel"
               onClick={() => {
                 handleMenuClose();
@@ -540,7 +535,7 @@ const EmployeeBookingsPage: React.FC = () => {
               <ListItemIcon>
                 <CancelIcon color="error" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Cancel Booking" />
+              <ListItemText primary={t('employeeBookings.menuCancel')} />
             </MenuItem>
           )
         ]}
@@ -561,32 +556,32 @@ const EmployeeBookingsPage: React.FC = () => {
         }}
       >
         <DialogTitle id="cancel-dialog-title" fontWeight="bold">
-          Cancel Reservation
+          {t('employeeBookings.cancelDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="cancel-dialog-description">
-            Are you sure you want to cancel reservation <strong>{bookingToCancel?.id}</strong>? This action cannot be undone.
+            <Trans i18nKey="employeeBookings.cancelDialogBody" values={{ id: bookingToCancel?.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleCancelClose} 
-            color="inherit" 
+          <Button
+            onClick={handleCancelClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isCancelling}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleCancelConfirm} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleCancelConfirm}
+            color="error"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isCancelling}
             startIcon={isCancelling && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Cancel Booking
+            {t('employeeBookings.cancelDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -606,32 +601,32 @@ const EmployeeBookingsPage: React.FC = () => {
         }}
       >
         <DialogTitle id="arrived-dialog-title" fontWeight="bold">
-          Confirm Guest Arrival
+          {t('employeeBookings.arrivedDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="arrived-dialog-description">
-            Are you sure you want to mark reservation <strong>{bookingToArrive?.id}</strong> as ARRIVED? The guests will be checked in.
+            <Trans i18nKey="employeeBookings.arrivedDialogBody" values={{ id: bookingToArrive?.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleArrivedClose} 
-            color="inherit" 
+          <Button
+            onClick={handleArrivedClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isMarkingArrived}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleArrivedConfirm} 
-            color="info" 
-            variant="contained" 
+          <Button
+            onClick={handleArrivedConfirm}
+            color="info"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isMarkingArrived}
             startIcon={isMarkingArrived && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Confirm Arrival
+            {t('employeeBookings.arrivedDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -651,32 +646,32 @@ const EmployeeBookingsPage: React.FC = () => {
         }}
       >
         <DialogTitle id="completed-dialog-title" fontWeight="bold">
-          Complete Reservation
+          {t('employeeBookings.completedDialogTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="completed-dialog-description">
-            Are you sure you want to mark reservation <strong>{bookingToComplete?.id}</strong> as COMPLETED? The table will be freed.
+            <Trans i18nKey="employeeBookings.completedDialogBody" values={{ id: bookingToComplete?.id }} components={{ bold: <strong /> }} />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleCompletedClose} 
-            color="inherit" 
+          <Button
+            onClick={handleCompletedClose}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isCompleting}
           >
-            Go Back
+            {t('common.goBack')}
           </Button>
-          <Button 
-            onClick={handleCompletedConfirm} 
-            color="success" 
-            variant="contained" 
+          <Button
+            onClick={handleCompletedConfirm}
+            color="success"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isCompleting}
             startIcon={isCompleting && <CircularProgress size={16} color="inherit" />}
             autoFocus
           >
-            Complete Booking
+            {t('employeeBookings.completedDialogConfirm')}
           </Button>
         </DialogActions>
       </Dialog>

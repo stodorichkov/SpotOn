@@ -47,8 +47,22 @@ export interface PaginatedUsersResponse {
 
 export const usersSlice = api.injectEndpoints({
   endpoints: (builder) => ({
-    getUsers: builder.query<PaginatedUsersResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `auth/users?page=${page}&size=${size}`,
+    getUsers: builder.query<
+      PaginatedUsersResponse,
+      { page: number; size: number; sort?: string; username?: string; roles?: string[] }
+    >({
+      query: ({ page, size, sort = 'id,asc', username, roles }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (username) {
+          params.set('username', username);
+        }
+        (roles || []).forEach((role) => params.append('roles', role));
+
+        return `auth/users?${params.toString()}`;
+      },
     }),
     getUserDetails: builder.query<UserDetailsResponse, number>({
         query: (id) => `auth/users/${id}`,

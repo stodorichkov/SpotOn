@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useGetRestaurantProfileQuery, useGetRestaurantFormQuery, useUpdateRestaurantProfileMutation } from '../features/restaurants/restaurantsSlice';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { RegexConstants, MessageConstants } from '../constants';
+import { RegexConstants } from '../constants';
 import { getCategoryStyle } from '../utils/categoryColor';
 import {
   Container,
@@ -27,6 +28,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 const ManagerRestaurantPage: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const { data: restaurant, isLoading, error, refetch } = useGetRestaurantProfileQuery();
   const [updateRestaurant, { isLoading: isSaving }] = useUpdateRestaurantProfileMutation();
@@ -38,7 +40,6 @@ const ManagerRestaurantPage: React.FC = () => {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Query categories only when isEditing is true
   const { data: availableCategories = [], isLoading: isLoadingCategories } = useGetRestaurantFormQuery(
     undefined,
     { skip: !isEditing }
@@ -71,18 +72,18 @@ const ManagerRestaurantPage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) {
-      newErrors.name = MessageConstants.BLANK_FIELD;
+      newErrors.name = t('validation.blankField');
     }
     if (!address.trim()) {
-      newErrors.address = MessageConstants.BLANK_FIELD;
+      newErrors.address = t('validation.blankField');
     }
     if (!phoneNumber.trim()) {
-      newErrors.phoneNumber = MessageConstants.BLANK_FIELD;
+      newErrors.phoneNumber = t('validation.blankField');
     } else if (!RegexConstants.PHONE_NUMBER_REGEX.test(phoneNumber.trim())) {
-      newErrors.phoneNumber = MessageConstants.INVALID_PHONE_NUMBER;
+      newErrors.phoneNumber = t('validation.invalidPhoneNumber');
     }
     if (selectedCategoryIds.length === 0) {
-      newErrors.categories = MessageConstants.NO_CATEGORY;
+      newErrors.categories = t('validation.noCategory');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -98,13 +99,13 @@ const ManagerRestaurantPage: React.FC = () => {
         categories: selectedCategoryIds
       }).unwrap();
 
-      dispatch(addAlert({ message: 'Restaurant profile updated successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('managerRestaurant.success'), type: 'success' }));
       setIsEditing(false);
       refetch();
     } catch (err: any) {
       console.error('Failed to update restaurant:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to update restaurant details.',
+        message: err?.data?.message || t('managerRestaurant.failure'),
         type: 'error'
       }));
     }
@@ -150,10 +151,10 @@ const ManagerRestaurantPage: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load restaurant profile. Please make sure you are logged in as a manager.
+            {t('managerRestaurant.errorLoading')}
           </Typography>
         </Paper>
       </Container>
@@ -163,14 +164,14 @@ const ManagerRestaurantPage: React.FC = () => {
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
-            gap: 2, 
-            mb: 3 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: 2,
+            mb: 3
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
@@ -191,17 +192,17 @@ const ManagerRestaurantPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                {isEditing ? 'Edit Restaurant' : restaurant.name}
+                {isEditing ? t('managerRestaurant.editTitle') : restaurant.name}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                Restaurant Profile & Details
+                {t('managerRestaurant.subtitle')}
               </Typography>
             </Box>
           </Box>
 
           {!isEditing && (
-            <IconButton 
-              onClick={() => setIsEditing(true)} 
+            <IconButton
+              onClick={() => setIsEditing(true)}
               color="primary"
               sx={{ alignSelf: { xs: 'flex-end', sm: 'auto' } }}
             >
@@ -220,7 +221,7 @@ const ManagerRestaurantPage: React.FC = () => {
                   required
                   fullWidth
                   id="name"
-                  label="Restaurant Name"
+                  label={t('managerRestaurant.name')}
                   variant="outlined"
                   value={name}
                   onChange={(e) => {
@@ -243,7 +244,7 @@ const ManagerRestaurantPage: React.FC = () => {
                   required
                   fullWidth
                   id="address"
-                  label="Address"
+                  label={t('managerRestaurant.address')}
                   variant="outlined"
                   value={address}
                   onChange={(e) => {
@@ -266,7 +267,7 @@ const ManagerRestaurantPage: React.FC = () => {
                   required
                   fullWidth
                   id="phoneNumber"
-                  label="Phone Number"
+                  label={t('managerRestaurant.phoneNumber')}
                   variant="outlined"
                   value={phoneNumber}
                   onChange={(e) => {
@@ -286,11 +287,11 @@ const ManagerRestaurantPage: React.FC = () => {
 
               <Grid item xs={12}>
                 <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, color: 'text.secondary', ml: 0.5 }}>
-                  Select Categories
+                  {t('managerRestaurant.selectCategories')}
                 </Typography>
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexWrap: 'wrap', 
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
                   gap: 1,
                   maxHeight: 130,
                   overflowY: 'auto',
@@ -307,7 +308,7 @@ const ManagerRestaurantPage: React.FC = () => {
                   {isLoadingCategories ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1 }}>
                       <CircularProgress size={20} />
-                      <Typography variant="body2" color="text.secondary">Loading categories...</Typography>
+                      <Typography variant="body2" color="text.secondary">{t('managerRestaurant.loadingCategories')}</Typography>
                     </Box>
                   ) : availableCategories && availableCategories.length > 0 ? (
                     availableCategories.map((cat) => {
@@ -331,7 +332,7 @@ const ManagerRestaurantPage: React.FC = () => {
                       );
                     })
                   ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>No categories available.</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>{t('managerRestaurant.noCategoriesAvailable')}</Typography>
                   )}
                 </Box>
                 {errors.categories && (
@@ -351,7 +352,7 @@ const ManagerRestaurantPage: React.FC = () => {
                 color="primary"
                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
               >
-                Save
+                {t('managerRestaurant.save')}
               </Button>
               <Button
                 startIcon={<CancelIcon />}
@@ -368,7 +369,7 @@ const ManagerRestaurantPage: React.FC = () => {
                 disabled={isSaving}
                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
               >
-                Cancel
+                {t('managerRestaurant.cancel')}
               </Button>
             </Box>
           </Box>
@@ -379,7 +380,7 @@ const ManagerRestaurantPage: React.FC = () => {
                 <LocationOnIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Address
+                    {t('managerRestaurant.address')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                     {restaurant.address}
@@ -393,7 +394,7 @@ const ManagerRestaurantPage: React.FC = () => {
                 <PhoneIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Phone Number
+                    {t('managerRestaurant.phoneNumber')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                     {restaurant.phoneNumber}
@@ -407,7 +408,7 @@ const ManagerRestaurantPage: React.FC = () => {
                 <CategoryIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold" sx={{ mb: 1 }}>
-                    Categories
+                    {t('managerRestaurant.categories')}
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {restaurant.categories && restaurant.categories.length > 0 ? (
@@ -420,7 +421,7 @@ const ManagerRestaurantPage: React.FC = () => {
                       ))
                     ) : (
                       <Typography variant="body2" color="text.secondary">
-                        No categories specified.
+                        {t('managerRestaurant.noCategoriesSpecified')}
                       </Typography>
                     )}
                   </Box>

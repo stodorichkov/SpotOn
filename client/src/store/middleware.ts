@@ -1,7 +1,6 @@
 import { Middleware, isRejectedWithValue, isFulfilled } from '@reduxjs/toolkit';
 import { addAlert } from '../features/alerts/alertsSlice';
 
-// Helper to check if a value is an object with a 'message' property of type string
 const hasMessage = (value: unknown): value is { message: string } => {
   return (
     typeof value === 'object' &&
@@ -27,7 +26,6 @@ export const rtkQueryErrorLogger: Middleware = (store) => (next) => (action) => 
       ) {
         errorMessage = 'No response from the server. Please check your connection and try again.';
       } else if (typeof payload.status === 'number') {
-        // HTTP Error
         let msg: string | null = null;
         if (payload.data) {
           if (typeof payload.data === 'string' && payload.data.trim() !== '') {
@@ -46,7 +44,6 @@ export const rtkQueryErrorLogger: Middleware = (store) => (next) => (action) => 
         if (msg) {
           errorMessage = msg;
         } else {
-          // Fallback based on HTTP status when data is empty or does not contain a message
           if (payload.status === 500) {
             errorMessage = 'Internal Server Error';
           } else if (payload.status === 400) {
@@ -60,7 +57,6 @@ export const rtkQueryErrorLogger: Middleware = (store) => (next) => (action) => 
           }
         }
       } else if (payload.message && typeof payload.message === 'string' && payload.message.trim() !== '') {
-        // SerializedError or standard JS Error
         errorMessage = payload.message;
       }
     }

@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TextField, Button, Container, Typography, Box, Paper, Grid, InputAdornment, IconButton, Avatar } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState, AppDispatch } from '../store/store';
 import { updateRegisterFormField, clearRegisterForm } from '../features/auth/registerSlice';
 import * as yup from 'yup';
-import { RegexConstants, MessageConstants } from '../constants';
+import { RegexConstants } from '../constants';
 import { useRegisterClientMutation, ClientRegistrationRequest } from '../features/auth/authApi';
 import { useNavigate, Link } from 'react-router-dom';
 import { addAlert } from '../features/alerts/alertsSlice';
@@ -14,49 +15,8 @@ import { addAlert } from '../features/alerts/alertsSlice';
 type RegisterFormState = ClientRegistrationRequest & { confirm: string };
 type ValidationErrors = Partial<Record<keyof RegisterFormState, string>>;
 
-const validationSchema = yup.object({
-    username: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('username-format', MessageConstants.INVALID_USERNAME, (value) => {
-            if (!value) return true;
-            return RegexConstants.USERNAME_REGEX.test(value);
-        }),
-    firstName: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('firstName-format', MessageConstants.INVALID_NAME, (value) => {
-            if (!value) return true;
-            return RegexConstants.NAME_REGEX.test(value);
-        }),
-    lastName: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('lastName-format', MessageConstants.INVALID_NAME, (value) => {
-            if (!value) return true;
-            return RegexConstants.NAME_REGEX.test(value);
-        }),
-    phoneNumber: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('phoneNumber-format', MessageConstants.INVALID_PHONE_NUMBER, (value) => {
-            if (!value) return true;
-            return RegexConstants.PHONE_NUMBER_REGEX.test(value);
-        }),
-    password: yup
-        .string()
-        .required(MessageConstants.BLANK_FIELD)
-        .test('password-format', MessageConstants.INVALID_PASSWORD, (value) => {
-            if (!value) return true;
-            return RegexConstants.PASSWORD_REGEX.test(value);
-        }),
-    confirm: yup
-        .string()
-        .oneOf([yup.ref('password')], MessageConstants.PASSWORD_MISMATCH)
-        .required(MessageConstants.BLANK_FIELD),
-});
-
 const RegisterPage = () => {
+    const { t } = useTranslation();
     const dispatch: AppDispatch = useDispatch();
     const navigate = useNavigate();
     const formState = useSelector((state: RootState) => state.registerForm as RegisterFormState);
@@ -64,6 +24,48 @@ const RegisterPage = () => {
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const validationSchema = useMemo(() => yup.object({
+        username: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('username-format', t('validation.invalidUsername'), (value) => {
+                if (!value) return true;
+                return RegexConstants.USERNAME_REGEX.test(value);
+            }),
+        firstName: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('firstName-format', t('validation.invalidName'), (value) => {
+                if (!value) return true;
+                return RegexConstants.NAME_REGEX.test(value);
+            }),
+        lastName: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('lastName-format', t('validation.invalidName'), (value) => {
+                if (!value) return true;
+                return RegexConstants.NAME_REGEX.test(value);
+            }),
+        phoneNumber: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('phoneNumber-format', t('validation.invalidPhoneNumber'), (value) => {
+                if (!value) return true;
+                return RegexConstants.PHONE_NUMBER_REGEX.test(value);
+            }),
+        password: yup
+            .string()
+            .required(t('validation.blankField'))
+            .test('password-format', t('validation.invalidPassword'), (value) => {
+                if (!value) return true;
+                return RegexConstants.PASSWORD_REGEX.test(value);
+            }),
+        confirm: yup
+            .string()
+            .oneOf([yup.ref('password')], t('validation.passwordMismatch'))
+            .required(t('validation.blankField')),
+    }), [t]);
 
     useEffect(() => {
         return () => {
@@ -104,7 +106,7 @@ const RegisterPage = () => {
 
         try {
             await registerClient(formState as ClientRegistrationRequest).unwrap();
-            dispatch(addAlert({ message: 'Registered successfully!', type: 'success' }));
+            dispatch(addAlert({ message: t('register.success'), type: 'success' }));
             navigate('/login');
         } catch (err) {}
     };
@@ -125,10 +127,10 @@ const RegisterPage = () => {
         <Container maxWidth="xs" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
             <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Avatar 
-                        sx={{ 
-                            m: 1, 
-                            backgroundColor: 'secondary.main', 
+                    <Avatar
+                        sx={{
+                            m: 1,
+                            backgroundColor: 'secondary.main',
                             color: 'secondary.contrastText',
                             width: 52,
                             height: 52
@@ -136,12 +138,12 @@ const RegisterPage = () => {
                     >
                         <PersonAddIcon sx={{ fontSize: 28 }} />
                     </Avatar>
-                    
+
                     <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
-                        Register
+                        {t('register.title')}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, mb: 3 }}>
-                        Create a new account to get started.
+                        {t('register.subtitle')}
                     </Typography>
 
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ width: '100%' }}>
@@ -151,7 +153,7 @@ const RegisterPage = () => {
                                     required
                                     fullWidth
                                     id="username"
-                                    label="Username"
+                                    label={t('register.username')}
                                     name="username"
                                     value={formState.username || ''}
                                     onChange={handleChange}
@@ -170,7 +172,7 @@ const RegisterPage = () => {
                                     required
                                     fullWidth
                                     id="firstName"
-                                    label="First Name"
+                                    label={t('register.firstName')}
                                     name="firstName"
                                     value={formState.firstName || ''}
                                     onChange={handleChange}
@@ -189,7 +191,7 @@ const RegisterPage = () => {
                                     required
                                     fullWidth
                                     id="lastName"
-                                    label="Last Name"
+                                    label={t('register.lastName')}
                                     name="lastName"
                                     value={formState.lastName || ''}
                                     onChange={handleChange}
@@ -208,7 +210,7 @@ const RegisterPage = () => {
                                     required
                                     fullWidth
                                     id="phoneNumber"
-                                    label="Phone Number"
+                                    label={t('register.phoneNumber')}
                                     name="phoneNumber"
                                     value={formState.phoneNumber || ''}
                                     onChange={handleChange}
@@ -227,7 +229,7 @@ const RegisterPage = () => {
                                     required
                                     fullWidth
                                     name="password"
-                                    label="Password"
+                                    label={t('register.password')}
                                     type={showPassword ? 'text' : 'password'}
                                     id="password"
                                     value={formState.password || ''}
@@ -261,7 +263,7 @@ const RegisterPage = () => {
                                     required
                                     fullWidth
                                     name="confirm"
-                                    label="Confirm Password"
+                                    label={t('register.confirmPassword')}
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     id="confirm"
                                     value={formState.confirm || ''}
@@ -306,14 +308,14 @@ const RegisterPage = () => {
                             }}
                             disabled={isLoading}
                         >
-                            {isLoading ? 'Registering...' : 'Register'}
+                            {isLoading ? t('register.registering') : t('register.registerButton')}
                         </Button>
 
                         <Box sx={{ mt: 3, textAlign: 'center' }}>
                             <Typography variant="body2" color="text.secondary">
-                                Already have an account?{' '}
+                                {t('register.haveAccount')}{' '}
                                 <Link to="/login" style={{ textDecoration: 'none', color: '#b71c1c', fontWeight: 'bold' }}>
-                                    Login
+                                    {t('register.loginLink')}
                                 </Link>
                             </Typography>
                         </Box>

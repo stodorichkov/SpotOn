@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, Tabs, Tab, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, useTheme } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, Tabs, Tab, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState } from '../store/store';
 import { useLogoutMutation } from '../features/auth/authApi';
 import PersonIcon from '@mui/icons-material/Person';
@@ -13,13 +14,92 @@ import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import TableBarIcon from '@mui/icons-material/TableBar';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import CheckIcon from '@mui/icons-material/Check';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { Role } from '../constants';
+import bgFlag from 'flag-icons/flags/1x1/bg.svg';
+import gbFlag from 'flag-icons/flags/1x1/gb.svg';
+
+const LANGUAGES = [
+  { code: 'bg', flag: bgFlag },
+  { code: 'en', flag: gbFlag },
+];
+
+const FlagIcon: React.FC<{ src: string; size: number }> = ({ src, size }) => (
+  <Box
+    component="img"
+    src={src}
+    alt=""
+    sx={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      flexShrink: 0,
+      display: 'block',
+      objectFit: 'cover',
+    }}
+  />
+);
+
+const LanguageSwitcher: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+
+  const currentLanguage = LANGUAGES.find((lang) => lang.code === i18n.resolvedLanguage) || LANGUAGES[1];
+
+  const handleSelect = (code: string) => {
+    i18n.changeLanguage(code);
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <IconButton
+        onClick={() => setOpen(true)}
+        color="inherit"
+        aria-label={t('appBar.selectLanguage')}
+      >
+        <FlagIcon src={currentLanguage.flag} size={26} />
+      </IconButton>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>{t('appBar.selectLanguage')}</DialogTitle>
+        <DialogContent dividers sx={{ p: 0 }}>
+          <List disablePadding>
+            {LANGUAGES.map((lang) => {
+              const isSelected = lang.code === i18n.resolvedLanguage;
+              return (
+                <ListItemButton
+                  key={lang.code}
+                  selected={isSelected}
+                  onClick={() => handleSelect(lang.code)}
+                >
+                  <ListItemIcon sx={{ minWidth: 44 }}>
+                    <FlagIcon src={lang.flag} size={28} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={t(`language.${lang.code}`)}
+                    primaryTypographyProps={{ fontWeight: isSelected ? 'bold' : 'normal' }}
+                  />
+                  {isSelected && (
+                    <ListItemIcon sx={{ minWidth: 'auto', color: 'primary.main' }}>
+                      <CheckIcon />
+                    </ListItemIcon>
+                  )}
+                </ListItemButton>
+              );
+            })}
+          </List>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
 
 const AppTopBar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const { t } = useTranslation();
   const { token, role } = useSelector((state: RootState) => state.auth);
   const [logoutApi] = useLogoutMutation();
 
@@ -33,12 +113,11 @@ const AppTopBar = () => {
     } catch (error) {
       console.error("Failed to logout:", error);
     } finally {
-      dispatch(addAlert({ message: 'Logged out successfully!', type: 'success' }));
-      navigate('/login'); // Redirect to login page after logout
+      dispatch(addAlert({ message: t('appBar.loggedOut'), type: 'success' }));
+      navigate('/');
     }
   };
 
-  // Determine the current tab value based on the path
   const currentTab = location.pathname.startsWith('/admin/users')
     ? '/admin/users'
     : location.pathname.startsWith('/admin/restaurants')
@@ -58,37 +137,37 @@ const AppTopBar = () => {
   const menuItems = [];
   if (role === Role.ADMIN) {
     menuItems.push(
-      { label: 'Users', path: '/admin/users', icon: <GroupIcon /> },
-      { label: 'Restaurants', path: '/admin/restaurants', icon: <RestaurantIcon /> }
+      { label: t('appBar.users'), path: '/admin/users', icon: <GroupIcon /> },
+      { label: t('appBar.restaurants'), path: '/admin/restaurants', icon: <RestaurantIcon /> }
     );
   } else if (role === Role.MANAGER) {
     menuItems.push(
-      { label: 'Restaurant', path: '/manager/restaurant', icon: <RestaurantIcon /> },
-      { label: 'Employees', path: '/manager/employees', icon: <GroupIcon /> },
-      { label: 'Tables', path: '/manager/tables', icon: <TableBarIcon /> }
+      { label: t('appBar.restaurant'), path: '/manager/restaurant', icon: <RestaurantIcon /> },
+      { label: t('appBar.employees'), path: '/manager/employees', icon: <GroupIcon /> },
+      { label: t('appBar.tables'), path: '/manager/tables', icon: <TableBarIcon /> }
     );
   }
 
   if (role === Role.CLIENT) {
     menuItems.push(
-      { label: 'My Bookings', path: '/bookings', icon: <CalendarMonthIcon /> }
+      { label: t('appBar.myBookings'), path: '/bookings', icon: <CalendarMonthIcon /> }
     );
   }
 
   if (role === Role.EMPLOYEE) {
     menuItems.push(
-      { label: 'Bookings', path: '/employee/bookings', icon: <CalendarMonthIcon /> }
+      { label: t('appBar.bookings'), path: '/employee/bookings', icon: <CalendarMonthIcon /> }
     );
   }
 
   if (token) {
     menuItems.push(
-      { label: 'Profile', path: '/profile', icon: <PersonIcon /> }
+      { label: t('appBar.profile'), path: '/profile', icon: <PersonIcon /> }
     );
   } else {
     menuItems.push(
-      { label: 'Login', path: '/login', icon: <PersonIcon /> },
-      { label: 'Register', path: '/register', icon: <PersonIcon /> }
+      { label: t('appBar.login'), path: '/login', icon: <PersonIcon /> },
+      { label: t('appBar.register'), path: '/register', icon: <PersonIcon /> }
     );
   }
 
@@ -106,9 +185,9 @@ const AppTopBar = () => {
             flexGrow: isMobile ? 1 : 0
           }}
         >
-          SpotOn
+          {t('appBar.brand')}
         </Typography>
-        
+
         {!isMobile && (
           <>
             {role === Role.ADMIN && (
@@ -119,7 +198,7 @@ const AppTopBar = () => {
                 sx={{ ml: 2, '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
               >
                 <Tab
-                  label="Users"
+                  label={t('appBar.users')}
                   value="/admin/users"
                   icon={<GroupIcon />}
                   iconPosition="start"
@@ -127,7 +206,7 @@ const AppTopBar = () => {
                   to="/admin/users"
                 />
                 <Tab
-                  label="Restaurants"
+                  label={t('appBar.restaurants')}
                   value="/admin/restaurants"
                   icon={<RestaurantIcon />}
                   iconPosition="start"
@@ -145,7 +224,7 @@ const AppTopBar = () => {
                 sx={{ ml: 2, '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
               >
                 <Tab
-                  label="Restaurant"
+                  label={t('appBar.restaurant')}
                   value="/manager/restaurant"
                   icon={<RestaurantIcon />}
                   iconPosition="start"
@@ -153,7 +232,7 @@ const AppTopBar = () => {
                   to="/manager/restaurant"
                 />
                 <Tab
-                  label="Employees"
+                  label={t('appBar.employees')}
                   value="/manager/employees"
                   icon={<GroupIcon />}
                   iconPosition="start"
@@ -161,7 +240,7 @@ const AppTopBar = () => {
                   to="/manager/employees"
                 />
                 <Tab
-                  label="Tables"
+                  label={t('appBar.tables')}
                   value="/manager/tables"
                   icon={<TableBarIcon />}
                   iconPosition="start"
@@ -179,7 +258,7 @@ const AppTopBar = () => {
                 sx={{ ml: 2, '& .MuiTabs-indicator': { backgroundColor: 'white' } }}
               >
                 <Tab
-                  label="Bookings"
+                  label={t('appBar.bookings')}
                   value="/employee/bookings"
                   icon={<CalendarMonthIcon />}
                   iconPosition="start"
@@ -202,7 +281,7 @@ const AppTopBar = () => {
                   >
                     {role === Role.CLIENT && (
                       <Tab
-                        label="My Bookings"
+                        label={t('appBar.myBookings')}
                         value="/bookings"
                         icon={<CalendarMonthIcon />}
                         iconPosition="start"
@@ -211,7 +290,7 @@ const AppTopBar = () => {
                       />
                     )}
                     <Tab
-                      label="Profile"
+                      label={t('appBar.profile')}
                       value="/profile"
                       icon={<PersonIcon />}
                       iconPosition="start"
@@ -237,7 +316,7 @@ const AppTopBar = () => {
                       }
                     }}
                   >
-                    Logout
+                    {t('appBar.logout')}
                   </Button>
                 </>
               ) : (
@@ -262,16 +341,16 @@ const AppTopBar = () => {
                       }
                     }}
                   >
-                    Login
+                    {t('appBar.login')}
                   </Button>
                   <Button
                     variant="contained"
                     component={Link}
                     to="/register"
                     startIcon={<PersonAddIcon />}
-                    sx={{ 
-                      textTransform: 'none', 
-                      fontWeight: 'bold', 
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 'bold',
                       borderRadius: 2,
                       px: 2.5,
                       py: 0.8,
@@ -284,7 +363,7 @@ const AppTopBar = () => {
                       }
                     }}
                   >
-                    Register
+                    {t('appBar.register')}
                   </Button>
                 </>
               )}
@@ -324,12 +403,12 @@ const AppTopBar = () => {
                         <ListItemIcon sx={{ color: currentTab === item.path ? 'primary.main' : 'inherit' }}>
                           {item.icon}
                         </ListItemIcon>
-                        <ListItemText 
-                          primary={item.label} 
-                          primaryTypographyProps={{ 
+                        <ListItemText
+                          primary={item.label}
+                          primaryTypographyProps={{
                             fontWeight: currentTab === item.path ? 'bold' : 'normal',
                             color: currentTab === item.path ? 'primary.main' : 'inherit'
-                          }} 
+                          }}
                         />
                       </ListItemButton>
                     </ListItem>
@@ -345,7 +424,7 @@ const AppTopBar = () => {
                         <ListItemIcon>
                           <LogoutIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Logout" />
+                        <ListItemText primary={t('appBar.logout')} />
                       </ListItemButton>
                     </ListItem>
                   )}
@@ -354,6 +433,10 @@ const AppTopBar = () => {
             </Drawer>
           </>
         )}
+
+        <Box sx={{ ml: isMobile ? 1 : 2 }}>
+          <LanguageSwitcher />
+        </Box>
       </Toolbar>
     </AppBar>
   );

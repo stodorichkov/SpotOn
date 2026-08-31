@@ -1,34 +1,96 @@
-import React, { useState } from 'react';
-import { useGetRestaurantsQuery } from '../features/restaurants/restaurantsSlice';
+import React, { useEffect, useState } from 'react';
+import { useGetRestaurantsQuery, useGetCategoriesQuery } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  TablePagination, 
-  Skeleton, 
-  Typography, 
-  Container, 
-  Chip, 
+import { useTranslation } from 'react-i18next';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  Skeleton,
+  Typography,
+  Container,
+  Chip,
   Box,
   Button,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
+import ClearIcon from '@mui/icons-material/Clear';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import CategoryIcon from '@mui/icons-material/Category';
+import SortIcon from '@mui/icons-material/Sort';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import { getCategoryStyle } from '../utils/categoryColor';
 
+const SORT_VALUES = ['id,asc', 'id,desc', 'name,asc', 'name,desc'] as const;
+
+const SORT_LABEL_KEYS: Record<(typeof SORT_VALUES)[number], string> = {
+  'id,asc': 'restaurants.sortIdAsc',
+  'id,desc': 'restaurants.sortIdDesc',
+  'name,asc': 'restaurants.sortNameAsc',
+  'name,desc': 'restaurants.sortNameDesc',
+};
+
 const RestaurantsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const { data, error, isLoading } = useGetRestaurantsQuery({ page, size: rowsPerPage });
+  const [sort, setSort] = useState('id,asc');
+
+  const [nameInput, setNameInput] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [categoryIds, setCategoryIds] = useState<number[]>([]);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [draftCategoryIds, setDraftCategoryIds] = useState<number[]>([]);
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
+
+  const { data: availableCategories = [] } = useGetCategoriesQuery();
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setName(nameInput.trim());
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [nameInput]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setAddress(addressInput.trim());
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [addressInput]);
+
+  const { data, error, isFetching } = useGetRestaurantsQuery({
+    page,
+    size: rowsPerPage,
+    sort,
+    name: name || undefined,
+    address: address || undefined,
+    categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
+  });
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -39,125 +101,72 @@ const RestaurantsPage: React.FC = () => {
     setPage(0);
   };
 
+  const handleOpenSortDialog = () => {
+    setIsSortDialogOpen(true);
+  };
+
+  const handleCloseSortDialog = () => {
+    setIsSortDialogOpen(false);
+  };
+
+  const handleSortSelect = (value: string) => {
+    setSort(value);
+    setPage(0);
+    setIsSortDialogOpen(false);
+  };
+
+  const handleOpenCategoryDialog = () => {
+    setDraftCategoryIds(categoryIds);
+    setIsCategoryDialogOpen(true);
+  };
+
+  const handleCloseCategoryDialog = () => {
+    setIsCategoryDialogOpen(false);
+  };
+
+  const handleToggleDraftCategory = (categoryId: number) => {
+    setDraftCategoryIds((prev) =>
+      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
+    );
+  };
+
+  const handleApplyCategoryDialog = () => {
+    setCategoryIds(draftCategoryIds);
+    setPage(0);
+    setIsCategoryDialogOpen(false);
+  };
+
+  const categoryFieldValue = (() => {
+    if (categoryIds.length === 0) {
+      return '';
+    }
+    if (categoryIds.length === 1) {
+      return availableCategories.find((c) => c.id === categoryIds[0])?.name || '';
+    }
+    return t('restaurants.categoriesCount', { count: categoryIds.length });
+  })();
+
+  const hasActiveFilters = nameInput !== '' || addressInput !== '' || categoryIds.length > 0;
+
+  const handleClearFilters = () => {
+    setNameInput('');
+    setAddressInput('');
+    setCategoryIds([]);
+    setPage(0);
+  };
+
   const rowHeight = 53;
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
-
-  if (isLoading) {
-    return (
-      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
-        <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          <Box sx={{ p: { xs: 2, sm: 3 } }}>
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between', 
-                alignItems: { xs: 'flex-start', sm: 'center' },
-                gap: 2
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
-                    borderRadius: '50%',
-                    width: { xs: 45, sm: 50 },
-                    height: { xs: 45, sm: 50 },
-                    flexShrink: 0
-                  }}
-                >
-                  <RestaurantIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
-                </Box>
-                <Box>
-                  <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
-                    Restaurants
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                    Manage list of active restaurants
-                  </Typography>
-                </Box>
-              </Box>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                disabled
-                sx={{ 
-                  textTransform: 'none', 
-                  fontWeight: 'bold', 
-                  borderRadius: 2,
-                  width: { xs: '100%', sm: 'auto' }
-                }}
-              >
-                Add Restaurant
-              </Button>
-            </Box>
-          </Box>
-          <Divider />
-          <TableContainer>
-            <Table sx={{ minWidth: 650 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Categories</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {[...Array(rowsPerPage)].map((_, index) => (
-                  <TableRow key={`skeleton-${index}`} style={{ height: rowHeight }}>
-                    <TableCell><Skeleton /></TableCell>
-                    <TableCell><Skeleton /></TableCell>
-                    <TableCell><Skeleton /></TableCell>
-                    <TableCell><Skeleton /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10]}
-            component="div"
-            count={0}
-            rowsPerPage={rowsPerPage}
-            page={0}
-            onPageChange={() => {}}
-            onRowsPerPageChange={() => {}}
-          />
-        </Paper>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
-          <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Error loading restaurants.
-          </Typography>
-        </Paper>
-      </Container>
-    );
-  }
 
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Box sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between', 
+              justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', sm: 'center' },
               gap: 2
             }}
@@ -180,10 +189,10 @@ const RestaurantsPage: React.FC = () => {
               </Box>
               <Box>
                 <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
-                  Restaurants
+                  {t('restaurants.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                  Manage list of active restaurants
+                  {t('restaurants.subtitle')}
                 </Typography>
               </Box>
             </Box>
@@ -193,22 +202,219 @@ const RestaurantsPage: React.FC = () => {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 'bold', 
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
                 borderRadius: 2,
                 width: { xs: '100%', sm: 'auto' }
               }}
             >
-              Add Restaurant
+              {t('restaurants.addRestaurant')}
             </Button>
           </Box>
         </Box>
         <Divider />
-        {!data || data.content.length === 0 ? (
+        <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('restaurants.searchByName')}
+            size="small"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            sx={{ minWidth: 180, flex: '1 1 180px' }}
+          />
+          <TextField
+            label={t('restaurants.searchByAddress')}
+            size="small"
+            value={addressInput}
+            onChange={(e) => setAddressInput(e.target.value)}
+            sx={{ minWidth: 180, flex: '1 1 180px' }}
+          />
+          <Button
+            variant={categoryIds.length > 0 ? 'contained' : 'outlined'}
+            color={categoryIds.length > 0 ? 'primary' : 'inherit'}
+            onClick={handleOpenCategoryDialog}
+            startIcon={<CategoryIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+            }}
+          >
+            {categoryIds.length === 0 ? t('restaurants.categoriesButton') : categoryFieldValue}
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={handleOpenSortDialog}
+            startIcon={<SortIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+            }}
+          >
+            {t(SORT_LABEL_KEYS[sort as (typeof SORT_VALUES)[number]])}
+          </Button>
+          {hasActiveFilters && (
+            <Tooltip title={t('restaurants.clearFilters')} arrow>
+              <IconButton onClick={handleClearFilters} size="small" sx={{ alignSelf: 'center' }}>
+                <ClearIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+        <Dialog open={isCategoryDialogOpen} onClose={handleCloseCategoryDialog} fullWidth maxWidth="xs">
+          <DialogTitle>{t('restaurants.categoryDialogTitle')}</DialogTitle>
+          <DialogContent dividers>
+            {availableCategories.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">{t('restaurants.noCategoriesAvailable')}</Typography>
+            ) : (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {availableCategories.map((category) => {
+                  const isSelected = draftCategoryIds.includes(category.id);
+                  return (
+                    <Chip
+                      key={category.id}
+                      label={category.name}
+                      onClick={() => handleToggleDraftCategory(category.id)}
+                      variant="outlined"
+                      sx={{
+                        ...(isSelected ? getCategoryStyle(category.name) : { borderColor: 'divider', color: 'text.secondary' }),
+                        fontWeight: isSelected ? 'bold' : 'normal',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={() => setDraftCategoryIds([])}
+              variant="contained"
+              color="error"
+              startIcon={<ClearIcon />}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, mr: 'auto' }}
+            >
+              {t('common.clear')}
+            </Button>
+            <Button
+              onClick={handleCloseCategoryDialog}
+              variant="contained"
+              startIcon={<CloseIcon />}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                borderRadius: 2,
+                backgroundColor: 'grey.200',
+                color: 'text.primary',
+                '&:hover': { backgroundColor: 'grey.300' },
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              onClick={handleApplyCategoryDialog}
+              variant="contained"
+              color="primary"
+              startIcon={<CheckIcon />}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+            >
+              {t('common.apply')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={isSortDialogOpen} onClose={handleCloseSortDialog} fullWidth maxWidth="xs">
+          <DialogTitle>{t('restaurants.sortDialogTitle')}</DialogTitle>
+          <DialogContent dividers sx={{ p: 0 }}>
+            <List disablePadding>
+              {SORT_VALUES.map((value) => {
+                const isSelected = value === sort;
+                return (
+                  <ListItemButton
+                    key={value}
+                    selected={isSelected}
+                    onClick={() => handleSortSelect(value)}
+                  >
+                    <ListItemText
+                      primary={t(SORT_LABEL_KEYS[value])}
+                      primaryTypographyProps={{ fontWeight: isSelected ? 'bold' : 'normal' }}
+                    />
+                    {isSelected && (
+                      <ListItemIcon sx={{ minWidth: 'auto', color: 'primary.main' }}>
+                        <CheckIcon />
+                      </ListItemIcon>
+                    )}
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              onClick={handleCloseSortDialog}
+              variant="contained"
+              startIcon={<CloseIcon />}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                borderRadius: 2,
+                backgroundColor: 'grey.200',
+                color: 'text.primary',
+                '&:hover': { backgroundColor: 'grey.300' },
+              }}
+            >
+              {t('common.close')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Divider />
+        {error ? (
+          <Box sx={{ p: 6, textAlign: 'center' }}>
+            <Typography color="error" variant="body1">
+              {t('restaurants.errorLoading')}
+            </Typography>
+          </Box>
+        ) : isFetching ? (
+          <TableContainer>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('restaurants.id')}</TableCell>
+                  <TableCell>{t('restaurants.name')}</TableCell>
+                  <TableCell>{t('restaurants.address')}</TableCell>
+                  <TableCell>{t('restaurants.categories')}</TableCell>
+                  <TableCell align="right">{t('restaurants.actions')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...Array(rowsPerPage)].map((_, index) => (
+                  <TableRow key={`skeleton-${index}`} style={{ height: rowHeight }}>
+                    <TableCell><Skeleton /></TableCell>
+                    <TableCell><Skeleton /></TableCell>
+                    <TableCell><Skeleton /></TableCell>
+                    <TableCell><Skeleton /></TableCell>
+                    <TableCell><Skeleton /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No restaurants found.
+              {t('restaurants.noRestaurantsFound')}
             </Typography>
           </Box>
         ) : (
@@ -217,10 +423,11 @@ const RestaurantsPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="restaurants table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>Categories</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('restaurants.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('restaurants.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('restaurants.address')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '27%' }}>{t('restaurants.categories')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurants.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -230,6 +437,7 @@ const RestaurantsPage: React.FC = () => {
                       <TableRow key={restaurant.id}>
                         <TableCell>{restaurant.id}</TableCell>
                         <TableCell>{restaurant.name}</TableCell>
+                        <TableCell>{restaurant.address}</TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                             {restaurant.categories && restaurant.categories.length > 0 ? (
@@ -242,12 +450,12 @@ const RestaurantsPage: React.FC = () => {
                                 />
                               ))
                             ) : (
-                              <Typography variant="body2" color="text.secondary">No categories</Typography>
+                              <Typography variant="body2" color="text.secondary">{t('restaurants.noCategories')}</Typography>
                             )}
                           </Box>
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip title="View Employees" arrow>
+                          <Tooltip title={t('restaurants.viewEmployeesTooltip')} arrow>
                             <IconButton
                               component={Link}
                               to={`/admin/restaurants/${restaurant.id}/employees`}
@@ -268,6 +476,7 @@ const RestaurantsPage: React.FC = () => {
                         <TableCell component="th" scope="row">&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
+                        <TableCell>&nbsp;</TableCell>
                         <TableCell align="right">
                           <Button
                             variant="text"
@@ -276,7 +485,7 @@ const RestaurantsPage: React.FC = () => {
                             sx={{ visibility: 'hidden' }}
                             aria-hidden="true"
                           >
-                            Employees
+                            {t('restaurants.viewEmployeesTooltip')}
                           </Button>
                         </TableCell>
                       </TableRow>

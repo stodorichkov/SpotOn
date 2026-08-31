@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { useCreateTableMutation } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { MessageConstants } from '../constants';
 import {
   Container,
   Paper,
@@ -23,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 
 const AddTablePage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -72,13 +73,13 @@ const AddTablePage: React.FC = () => {
     const newErrors: typeof errors = {};
 
     if (!name.trim()) {
-      newErrors.name = MessageConstants.BLANK_FIELD;
+      newErrors.name = t('validation.blankField');
     }
 
     if (capacity === '') {
-      newErrors.capacity = MessageConstants.BLANK_FIELD;
+      newErrors.capacity = t('validation.blankField');
     } else if (Number(capacity) < 1) {
-      newErrors.capacity = MessageConstants.TABLE_MIN_CAPACITY;
+      newErrors.capacity = t('validation.tableMinCapacity');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -93,12 +94,12 @@ const AddTablePage: React.FC = () => {
         isSmokingAllowed,
       }).unwrap();
 
-      dispatch(addAlert({ message: `Table "${name.trim()}" added successfully!`, type: 'success' }));
+      dispatch(addAlert({ message: t('addTable.success', { name: name.trim() }), type: 'success' }));
       navigate('/manager/tables');
     } catch (err: any) {
       console.error('Failed to add table:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to add table. Please try again.',
+        message: err?.data?.message || t('addTable.failure'),
         type: 'error'
       }));
     }
@@ -108,7 +109,7 @@ const AddTablePage: React.FC = () => {
     <Container maxWidth="xs" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
       <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          
+
           <Box
             sx={{
               display: 'flex',
@@ -124,12 +125,12 @@ const AddTablePage: React.FC = () => {
           >
             <TableBarIcon sx={{ fontSize: 28 }} />
           </Box>
-          
+
           <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1, mb: 1 }}>
-            Add New Table
+            {t('addTable.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Add a new table to your restaurant layout.
+            {t('addTable.subtitle')}
           </Typography>
 
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ width: '100%' }}>
@@ -139,7 +140,7 @@ const AddTablePage: React.FC = () => {
                   required
                   fullWidth
                   id="name"
-                  label="Table Name / Number"
+                  label={t('addTable.tableName')}
                   name="name"
                   value={name}
                   onChange={(e) => {
@@ -160,7 +161,7 @@ const AddTablePage: React.FC = () => {
                   required
                   fullWidth
                   id="capacity"
-                  label="Capacity"
+                  label={t('addTable.capacity')}
                   name="capacity"
                   type="number"
                   value={capacity}
@@ -174,9 +175,9 @@ const AddTablePage: React.FC = () => {
                   }}
                   error={!!errors.capacity}
                   helperText={errors.capacity}
-                  inputProps={{ 
-                    min: 1, 
-                    style: { textAlign: 'center' } 
+                  inputProps={{
+                    min: 1,
+                    style: { textAlign: 'center' }
                   }}
                   InputProps={{
                     startAdornment: (
@@ -232,7 +233,7 @@ const AddTablePage: React.FC = () => {
                   }}
                 >
                   <Typography variant="body1" color="text.secondary">
-                    Smoking Allowed
+                    {t('addTable.smokingAllowed')}
                   </Typography>
                   <Switch
                     checked={isSmokingAllowed}
@@ -264,7 +265,7 @@ const AddTablePage: React.FC = () => {
                 fontSize: '1rem'
               }}
             >
-              {isCreating ? <CircularProgress size={24} color="inherit" /> : 'Add Table'}
+              {isCreating ? <CircularProgress size={24} color="inherit" /> : t('addTable.addButton')}
             </Button>
           </Box>
         </Box>

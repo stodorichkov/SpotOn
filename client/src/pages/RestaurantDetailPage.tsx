@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { RootState } from '../store/store';
 import { Role } from '../constants';
 import { useGetRestaurantByIdQuery } from '../features/restaurants/restaurantsSlice';
@@ -24,12 +25,12 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
 
 const RestaurantDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const restaurantId = Number(id);
   const navigate = useNavigate();
   const { token, role } = useSelector((state: RootState) => state.auth);
 
-  // Fetch restaurant details dynamically from the API by ID
   const { data: restaurant, isLoading, error } = useGetRestaurantByIdQuery(
     restaurantId,
     { skip: isNaN(restaurantId) }
@@ -45,16 +46,15 @@ const RestaurantDetailPage: React.FC = () => {
     }
   };
 
-  // Handle error or invalid ID gracefully
   if (isNaN(restaurantId) || error) {
     return (
       <Container maxWidth="md" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Restaurant Details Unavailable
+            {t('restaurantDetail.errorTitle')}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            The restaurant details could not be loaded. It may not exist or there might be a network issue.
+            {t('restaurantDetail.errorBody')}
           </Typography>
           <Button
             component={Link}
@@ -63,7 +63,7 @@ const RestaurantDetailPage: React.FC = () => {
             color="primary"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
           >
-            Go to Home Page
+            {t('restaurantDetail.backHome')}
           </Button>
         </Paper>
       </Container>
@@ -74,7 +74,6 @@ const RestaurantDetailPage: React.FC = () => {
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 4 }}>
         {isLoading ? (
-          // Skeleton Loader while fetching details from the API
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
               <Skeleton variant="circular" width={70} height={70} />
@@ -102,12 +101,12 @@ const RestaurantDetailPage: React.FC = () => {
         ) : restaurant ? (
           <>
             {/* Header Block */}
-            <Box 
-              sx={{ 
-                display: 'flex', 
+            <Box
+              sx={{
+                display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between', 
-                alignItems: { xs: 'flex-start', sm: 'center' }, 
+                justifyContent: 'space-between',
+                alignItems: { xs: 'flex-start', sm: 'center' },
                 gap: 2,
                 mb: 4
               }}
@@ -133,7 +132,7 @@ const RestaurantDetailPage: React.FC = () => {
                     {restaurant.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
-                    Detailed specifications & dining catalog
+                    {t('restaurantDetail.subtitle')}
                   </Typography>
                 </Box>
               </Box>
@@ -144,7 +143,7 @@ const RestaurantDetailPage: React.FC = () => {
             {/* Specifications Section */}
             <Box sx={{ mb: 5 }}>
               <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 3 }}>
-                About the Restaurant
+                {t('restaurantDetail.aboutTitle')}
               </Typography>
 
               <Grid container spacing={4}>
@@ -154,7 +153,7 @@ const RestaurantDetailPage: React.FC = () => {
                     <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Restaurant ID
+                        {t('restaurantDetail.restaurantId')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                         #{restaurant.id}
@@ -169,7 +168,7 @@ const RestaurantDetailPage: React.FC = () => {
                     <RestaurantIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Official Name
+                        {t('restaurantDetail.officialName')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                         {restaurant.name}
@@ -184,10 +183,10 @@ const RestaurantDetailPage: React.FC = () => {
                     <LocationOnIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Address
+                        {t('restaurantDetail.address')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {restaurant.address || 'Address not listed'}
+                        {restaurant.address || t('restaurantDetail.addressNotListed')}
                       </Typography>
                     </Box>
                   </Box>
@@ -199,10 +198,10 @@ const RestaurantDetailPage: React.FC = () => {
                     <PhoneIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Phone Number
+                        {t('restaurantDetail.phoneNumber')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                        {restaurant.phoneNumber || 'Phone not listed'}
+                        {restaurant.phoneNumber || t('restaurantDetail.phoneNotListed')}
                       </Typography>
                     </Box>
                   </Box>
@@ -214,7 +213,7 @@ const RestaurantDetailPage: React.FC = () => {
                     <CategoryIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box sx={{ width: '100%' }}>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold" sx={{ mb: 1.5 }}>
-                        Categories
+                        {t('restaurantDetail.categories')}
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                         {restaurant.categories && restaurant.categories.length > 0 ? (
@@ -224,7 +223,7 @@ const RestaurantDetailPage: React.FC = () => {
                               <Chip
                                 key={category.id}
                                 label={category.name}
-                                sx={{ 
+                                sx={{
                                   fontWeight: 'semibold',
                                   fontSize: '0.85rem',
                                   px: 1.5,
@@ -236,8 +235,8 @@ const RestaurantDetailPage: React.FC = () => {
                           })
                         ) : (
                           <Chip
-                            label="General"
-                            sx={{ 
+                            label={t('common.generalCategory')}
+                            sx={{
                               fontWeight: 'medium',
                               fontSize: '0.85rem',
                               backgroundColor: 'action.hover',
@@ -262,9 +261,9 @@ const RestaurantDetailPage: React.FC = () => {
                 size="large"
                 startIcon={<CalendarMonthIcon />}
                 onClick={handleReserveClick}
-                sx={{ 
-                  textTransform: 'none', 
-                  fontWeight: 'bold', 
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 'bold',
                   borderRadius: 3,
                   px: { xs: 4, sm: 6 },
                   py: 1.5,
@@ -275,7 +274,7 @@ const RestaurantDetailPage: React.FC = () => {
                   }
                 }}
               >
-                Book Table
+                {t('restaurantDetail.bookTable')}
               </Button>
             </Box>
           </>

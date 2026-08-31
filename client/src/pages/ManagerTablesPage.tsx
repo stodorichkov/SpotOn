@@ -2,19 +2,20 @@ import React, { useState } from 'react';
 import { useGetManagerTablesQuery, useDeleteTableMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  TablePagination, 
-  Skeleton, 
-  Typography, 
-  Container, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  Skeleton,
+  Typography,
+  Container,
   Box,
   Divider,
   Button,
@@ -39,6 +40,7 @@ import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const ManagerTablesPage: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -68,11 +70,11 @@ const ManagerTablesPage: React.FC = () => {
     if (!tableToDelete) return;
     try {
       await deleteTable(tableToDelete.id).unwrap();
-      dispatch(addAlert({ message: 'Table removed successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('managerTables.success'), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to remove table:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to remove table. Please try again.',
+        message: err?.data?.message || t('managerTables.failure'),
         type: 'error'
       }));
     } finally {
@@ -105,10 +107,10 @@ const ManagerTablesPage: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load restaurant tables. Please try again.
+            {t('managerTables.errorLoading')}
           </Typography>
         </Paper>
       </Container>
@@ -119,11 +121,11 @@ const ManagerTablesPage: React.FC = () => {
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Box sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between', 
+              justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', sm: 'center' },
               gap: 2
             }}
@@ -146,10 +148,10 @@ const ManagerTablesPage: React.FC = () => {
               </Box>
               <Box>
                 <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
-                  Tables
+                  {t('managerTables.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                  View and manage your restaurant tables
+                  {t('managerTables.subtitle')}
                 </Typography>
               </Box>
             </Box>
@@ -159,29 +161,29 @@ const ManagerTablesPage: React.FC = () => {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 'bold', 
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
                 borderRadius: 2,
                 width: { xs: '100%', sm: 'auto' }
               }}
             >
-              Add Table
+              {t('managerTables.addTable')}
             </Button>
           </Box>
         </Box>
         <Divider />
-        
+
         {isLoading ? (
           <TableContainer>
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Capacity</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Smoking Allowed</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerTables.id')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>{t('managerTables.name')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerTables.capacity')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerTables.smokingAllowedColumn')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerTables.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -200,7 +202,7 @@ const ManagerTablesPage: React.FC = () => {
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No tables found for your restaurant.
+              {t('managerTables.noTables')}
             </Typography>
           </Box>
         ) : (
@@ -209,11 +211,11 @@ const ManagerTablesPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="tables table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Capacity</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Smoking Allowed</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerTables.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>{t('managerTables.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerTables.capacity')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerTables.smokingAllowedColumn')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerTables.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -232,7 +234,7 @@ const ManagerTablesPage: React.FC = () => {
                               <SmokeFreeIcon color="action" fontSize="small" />
                             )}
                             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                              {table.isSmokingAllowed ? 'Smoking Allowed' : 'Non-Smoking'}
+                              {table.isSmokingAllowed ? t('managerTables.smokingAllowed') : t('managerTables.nonSmoking')}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -297,31 +299,31 @@ const ManagerTablesPage: React.FC = () => {
         }}
       >
         {activeTable && [
-          <MenuItem 
+          <MenuItem
             key="details"
-            component={Link} 
-            to={`/manager/tables/${activeTable.id}`} 
+            component={Link}
+            to={`/manager/tables/${activeTable.id}`}
             state={{ table: activeTable }}
             onClick={handleMenuClose}
           >
             <ListItemIcon>
               <InfoIcon color="primary" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Details" />
+            <ListItemText primary={t('managerTables.menuDetails')} />
           </MenuItem>,
-          <MenuItem 
+          <MenuItem
             key="edit"
-            component={Link} 
-            to={`/manager/tables/${activeTable.id}`} 
+            component={Link}
+            to={`/manager/tables/${activeTable.id}`}
             state={{ table: activeTable, edit: true }}
             onClick={handleMenuClose}
           >
             <ListItemIcon>
               <EditIcon color="primary" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Edit" />
+            <ListItemText primary={t('managerTables.menuEdit')} />
           </MenuItem>,
-          <MenuItem 
+          <MenuItem
             key="delete"
             onClick={() => {
               handleMenuClose();
@@ -332,7 +334,7 @@ const ManagerTablesPage: React.FC = () => {
             <ListItemIcon>
               <DeleteIcon color="error" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Remove" />
+            <ListItemText primary={t('managerTables.menuRemove')} />
           </MenuItem>
         ]}
       </Menu>
@@ -352,31 +354,35 @@ const ManagerTablesPage: React.FC = () => {
         }}
       >
         <DialogTitle id="delete-dialog-title" fontWeight="bold">
-          Remove Table
+          {t('managerTables.deleteTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
-            Are you sure you want to remove table <strong>{tableToDelete?.name}</strong>? This action will completely remove the table from the restaurant and cannot be undone.
+            <Trans
+              i18nKey="managerTables.deleteBody"
+              values={{ name: tableToDelete?.name }}
+              components={{ bold: <strong /> }}
+            />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleDeleteCancel} 
-            color="inherit" 
+          <Button
+            onClick={handleDeleteCancel}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isDeleting}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isDeleting}
             autoFocus
           >
-            Remove
+            {t('common.remove')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { useRegisterEmployeeMutation } from '../features/auth/authApi';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { RegexConstants, MessageConstants } from '../constants';
+import { RegexConstants } from '../constants';
 import {
   Container,
   Paper,
@@ -19,6 +20,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const AddEmployeePage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -33,7 +35,7 @@ const AddEmployeePage: React.FC = () => {
   const handleCopyBoth = (username: string, password: string) => {
     const textToCopy = `username: ${username}\npassword: ${password}`;
     navigator.clipboard.writeText(textToCopy);
-    dispatch(addAlert({ message: 'Credentials copied to clipboard!', type: 'info' }));
+    dispatch(addAlert({ message: t('addEmployee.credentialsCopied'), type: 'info' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,21 +43,21 @@ const AddEmployeePage: React.FC = () => {
     const newErrors: typeof errors = {};
 
     if (!firstName.trim()) {
-      newErrors.firstName = MessageConstants.BLANK_FIELD;
+      newErrors.firstName = t('validation.blankField');
     } else if (!RegexConstants.NAME_REGEX.test(firstName.trim())) {
-      newErrors.firstName = MessageConstants.INVALID_NAME;
+      newErrors.firstName = t('validation.invalidName');
     }
 
     if (!lastName.trim()) {
-      newErrors.lastName = MessageConstants.BLANK_FIELD;
+      newErrors.lastName = t('validation.blankField');
     } else if (!RegexConstants.NAME_REGEX.test(lastName.trim())) {
-      newErrors.lastName = MessageConstants.INVALID_NAME;
+      newErrors.lastName = t('validation.invalidName');
     }
 
     if (!phoneNumber.trim()) {
-      newErrors.phoneNumber = MessageConstants.BLANK_FIELD;
+      newErrors.phoneNumber = t('validation.blankField');
     } else if (!RegexConstants.PHONE_NUMBER_REGEX.test(phoneNumber.trim())) {
-      newErrors.phoneNumber = MessageConstants.INVALID_PHONE_NUMBER;
+      newErrors.phoneNumber = t('validation.invalidPhoneNumber');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -74,11 +76,11 @@ const AddEmployeePage: React.FC = () => {
         username: response.username,
         password: response.password,
       });
-      dispatch(addAlert({ message: 'Employee registered successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('addEmployee.success'), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to register employee:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to add employee. Please try again.',
+        message: err?.data?.message || t('addEmployee.failure'),
         type: 'error'
       }));
     }
@@ -95,15 +97,15 @@ const AddEmployeePage: React.FC = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="h5" component="h1" fontWeight="bold" color="success.main" align="center">
-                Employee Credentials
+                {t('addEmployee.credentialsTitle')}
               </Typography>
               <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5 }}>
-                The employee has been registered successfully. Copy these credentials now. The password will not be shown again.
+                {t('addEmployee.credentialsSubtitle')}
               </Typography>
             </Box>
-            
+
             <TextField
-              label="Username"
+              label={t('addEmployee.username')}
               value={successData.username}
               InputProps={{
                 readOnly: true,
@@ -117,7 +119,7 @@ const AddEmployeePage: React.FC = () => {
               }}
             />
             <TextField
-              label="Password"
+              label={t('addEmployee.password')}
               value={successData.password}
               InputProps={{
                 readOnly: true,
@@ -137,7 +139,7 @@ const AddEmployeePage: React.FC = () => {
               onClick={() => handleCopyBoth(successData.username, successData.password)}
               sx={{ textTransform: 'none', fontWeight: 'bold', py: 1.2, borderRadius: 2 }}
             >
-              Copy Credentials
+              {t('addEmployee.copyCredentials')}
             </Button>
             <Button
               onClick={handleBack}
@@ -146,15 +148,15 @@ const AddEmployeePage: React.FC = () => {
               size="large"
               sx={{ textTransform: 'none', fontWeight: 'bold', py: 1.5, borderRadius: 2 }}
             >
-              Done
+              {t('addEmployee.done')}
             </Button>
           </Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Avatar 
-              sx={{ 
-                m: 1, 
-                backgroundColor: 'info.main', 
+            <Avatar
+              sx={{
+                m: 1,
+                backgroundColor: 'info.main',
                 color: 'info.contrastText',
                 width: 52,
                 height: 52
@@ -164,10 +166,10 @@ const AddEmployeePage: React.FC = () => {
             </Avatar>
 
             <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1 }}>
-              Add New Employee
+              {t('addEmployee.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5, mb: 3 }}>
-              Register a new employee for your restaurant.
+              {t('addEmployee.subtitle')}
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
@@ -177,7 +179,7 @@ const AddEmployeePage: React.FC = () => {
                     required
                     fullWidth
                     id="firstName"
-                    label="First Name"
+                    label={t('addEmployee.firstName')}
                     variant="outlined"
                     value={firstName}
                     onChange={(e) => {
@@ -200,7 +202,7 @@ const AddEmployeePage: React.FC = () => {
                     required
                     fullWidth
                     id="lastName"
-                    label="Last Name"
+                    label={t('addEmployee.lastName')}
                     variant="outlined"
                     value={lastName}
                     onChange={(e) => {
@@ -223,7 +225,7 @@ const AddEmployeePage: React.FC = () => {
                     required
                     fullWidth
                     id="phoneNumber"
-                    label="Phone Number"
+                    label={t('addEmployee.phoneNumber')}
                     variant="outlined"
                     value={phoneNumber}
                     onChange={(e) => {
@@ -257,7 +259,7 @@ const AddEmployeePage: React.FC = () => {
                       fontSize: '1rem'
                     }}
                   >
-                    {registering ? 'Adding employee...' : 'Add employee'}
+                    {registering ? t('addEmployee.adding') : t('addEmployee.addButton')}
                   </Button>
                 </Grid>
               </Grid>

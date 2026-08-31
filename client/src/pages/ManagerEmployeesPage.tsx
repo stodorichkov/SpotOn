@@ -2,21 +2,22 @@ import React, { useState } from 'react';
 import { useGetManagerEmployeesQuery, useDeleteEmployeeMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 import { RootState } from '../store/store';
 import { addAlert } from '../features/alerts/alertsSlice';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
-  TablePagination, 
-  Skeleton, 
-  Typography, 
-  Container, 
-  Chip, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination,
+  Skeleton,
+  Typography,
+  Container,
+  Chip,
   Box,
   Divider,
   Button,
@@ -56,6 +57,7 @@ const getRoleChipColor = (role: string) => {
 };
 
 const ManagerEmployeesPage: React.FC = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -98,11 +100,11 @@ const ManagerEmployeesPage: React.FC = () => {
     if (!employeeToDelete) return;
     try {
       await deleteEmployee(employeeToDelete.id).unwrap();
-      dispatch(addAlert({ message: 'Employee removed successfully!', type: 'success' }));
+      dispatch(addAlert({ message: t('managerEmployees.success'), type: 'success' }));
     } catch (err: any) {
       console.error('Failed to remove employee:', err);
       dispatch(addAlert({
-        message: err?.data?.message || 'Failed to remove employee. Please try again.',
+        message: err?.data?.message || t('managerEmployees.failure'),
         type: 'error'
       }));
     } finally {
@@ -124,10 +126,10 @@ const ManagerEmployeesPage: React.FC = () => {
       <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load restaurant employees. Please try again.
+            {t('managerEmployees.errorLoading')}
           </Typography>
         </Paper>
       </Container>
@@ -138,11 +140,11 @@ const ManagerEmployeesPage: React.FC = () => {
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Box sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box 
-            sx={{ 
-              display: 'flex', 
+          <Box
+            sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between', 
+              justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', sm: 'center' },
               gap: 2
             }}
@@ -165,10 +167,10 @@ const ManagerEmployeesPage: React.FC = () => {
               </Box>
               <Box>
                 <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.3rem', sm: '1.6rem' } }}>
-                  Employees
+                  {t('managerEmployees.title')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
-                  Manage restaurant employees
+                  {t('managerEmployees.subtitle')}
                 </Typography>
               </Box>
             </Box>
@@ -178,30 +180,30 @@ const ManagerEmployeesPage: React.FC = () => {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 'bold', 
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
                 borderRadius: 2,
                 width: { xs: '100%', sm: 'auto' }
               }}
             >
-              Add Employee
+              {t('managerEmployees.addEmployee')}
             </Button>
           </Box>
         </Box>
         <Divider />
-        
+
         {isLoading ? (
           <TableContainer>
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>Actions</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerEmployees.id')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.username')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.name')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.role')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -221,7 +223,7 @@ const ManagerEmployeesPage: React.FC = () => {
         ) : !data || data.content.length === 0 ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
             <Typography variant="body1" color="text.secondary">
-              No employees found for your restaurant.
+              {t('managerEmployees.noEmployees')}
             </Typography>
           </Box>
         ) : (
@@ -230,12 +232,12 @@ const ManagerEmployeesPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="employees table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>ID</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Username</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>Phone Number</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>Role</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerEmployees.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.username')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.role')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -270,7 +272,7 @@ const ManagerEmployeesPage: React.FC = () => {
                               <MoreVertIcon />
                             </IconButton>
                           ) : (
-                            <Tooltip title="User Details" arrow>
+                            <Tooltip title={t('managerEmployees.userDetailsTooltip')} arrow>
                               <IconButton
                                 component={Link}
                                 to={`/manager/employees/${employee.id}`}
@@ -302,7 +304,7 @@ const ManagerEmployeesPage: React.FC = () => {
                             sx={{ visibility: 'hidden' }}
                             aria-hidden="true"
                           >
-                            Info
+                            {t('managerEmployees.menuDetails')}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -338,31 +340,35 @@ const ManagerEmployeesPage: React.FC = () => {
         }}
       >
         <DialogTitle id="delete-dialog-title" fontWeight="bold">
-          Remove Employee
+          {t('managerEmployees.deleteTitle')}
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
-            Are you sure you want to remove employee <strong>{employeeToDelete?.name}</strong>? This action will completely revoke their access and cannot be undone.
+            <Trans
+              i18nKey="managerEmployees.deleteBody"
+              values={{ name: employeeToDelete?.name }}
+              components={{ bold: <strong /> }}
+            />
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button 
-            onClick={handleDeleteCancel} 
-            color="inherit" 
+          <Button
+            onClick={handleDeleteCancel}
+            color="inherit"
             sx={{ textTransform: 'none', fontWeight: 'bold' }}
             disabled={isDeleting}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            variant="contained" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
             sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
             disabled={isDeleting}
             autoFocus
           >
-            Remove
+            {t('common.remove')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -381,20 +387,20 @@ const ManagerEmployeesPage: React.FC = () => {
         }}
       >
         {activeEmployee && [
-          <MenuItem 
+          <MenuItem
             key="details"
-            component={Link} 
-            to={`/manager/employees/${activeEmployee.id}`} 
+            component={Link}
+            to={`/manager/employees/${activeEmployee.id}`}
             state={{ user: activeEmployee }}
             onClick={handleMenuClose}
           >
             <ListItemIcon>
               <InfoIcon color="primary" fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Details" />
+            <ListItemText primary={t('managerEmployees.menuDetails')} />
           </MenuItem>,
           activeEmployee.id !== currentUserId && (activeEmployee.role?.toUpperCase() === 'EMPLOYEE' || activeEmployee.role?.toUpperCase() === 'STAFF') && (
-            <MenuItem 
+            <MenuItem
               key="delete"
               onClick={() => {
                 handleMenuClose();
@@ -405,7 +411,7 @@ const ManagerEmployeesPage: React.FC = () => {
               <ListItemIcon>
                 <DeleteIcon color="error" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Remove" />
+              <ListItemText primary={t('managerEmployees.menuRemove')} />
             </MenuItem>
           )
         ]}

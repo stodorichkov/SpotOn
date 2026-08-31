@@ -22,8 +22,8 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'], // Persist only the auth slice
-  blacklist: [api.reducerPath, 'registerForm', 'loginForm', 'alerts'], // Blacklist other slices
+  whitelist: ['auth'],
+  blacklist: [api.reducerPath, 'registerForm', 'loginForm', 'alerts'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

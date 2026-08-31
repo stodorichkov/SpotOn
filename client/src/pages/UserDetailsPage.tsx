@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useGetUserDetailsQuery } from '../features/users/usersSlice';
+import { useTranslation } from 'react-i18next';
 import {
   Container,
   Paper,
@@ -38,15 +39,14 @@ const getRoleChipColor = (role?: string) => {
 };
 
 const UserDetailsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
 
-  // Use passed state if available
   const stateUser = location.state?.user;
 
-  // Skip the query if we already have the full user details in state
   const hasFullStateData = stateUser && (
-    stateUser.role === Role.ADMIN || 
+    stateUser.role === Role.ADMIN ||
     (stateUser.firstName !== undefined && stateUser.lastName !== undefined)
   );
 
@@ -85,14 +85,14 @@ const UserDetailsPage: React.FC = () => {
           startIcon={<ArrowBackIcon />}
           sx={{ mb: 2, textTransform: 'none', fontWeight: 'bold' }}
         >
-          Back to Users
+          {t('userDetails.backToUsers')}
         </Button>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: 'center' }}>
           <Typography color="error" variant="h5" fontWeight="bold" gutterBottom>
-            Error
+            {t('common.error')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Failed to load user details or user not found.
+            {t('userDetails.failedToLoad')}
           </Typography>
         </Paper>
       </Container>
@@ -102,14 +102,14 @@ const UserDetailsPage: React.FC = () => {
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
             gap: 2,
-            mb: 3 
+            mb: 3
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
@@ -133,7 +133,7 @@ const UserDetailsPage: React.FC = () => {
                 {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                User Profile Details
+                {t('userDetails.subtitle')}
               </Typography>
             </Box>
           </Box>
@@ -142,11 +142,11 @@ const UserDetailsPage: React.FC = () => {
             label={user.role}
             color={getRoleChipColor(user.role)}
             variant="outlined"
-            sx={{ 
-              fontWeight: 'bold', 
-              px: 1.5, 
-              py: 0.5, 
-              fontSize: '0.85rem', 
+            sx={{
+              fontWeight: 'bold',
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.85rem',
               borderRadius: 2,
               alignSelf: { xs: 'flex-end', sm: 'auto' }
             }}
@@ -158,7 +158,7 @@ const UserDetailsPage: React.FC = () => {
         {/* Account Details Section */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 2 }}>
-            Account Details
+            {t('userDetails.accountDetails')}
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
@@ -166,7 +166,7 @@ const UserDetailsPage: React.FC = () => {
                 <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    User ID
+                    {t('userDetails.userId')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                     {user.id}
@@ -179,7 +179,7 @@ const UserDetailsPage: React.FC = () => {
                 <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    Username
+                    {t('userDetails.username')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                     {user.username}
@@ -196,7 +196,7 @@ const UserDetailsPage: React.FC = () => {
             <Divider sx={{ my: 3 }} />
             <Box>
               <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 2 }}>
-                Personal Information
+                {t('userDetails.personalInformation')}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
@@ -204,7 +204,7 @@ const UserDetailsPage: React.FC = () => {
                     <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        First Name
+                        {t('userDetails.firstName')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                         {user.firstName || '-'}
@@ -217,7 +217,7 @@ const UserDetailsPage: React.FC = () => {
                     <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Last Name
+                        {t('userDetails.lastName')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                         {user.lastName || '-'}
@@ -230,7 +230,7 @@ const UserDetailsPage: React.FC = () => {
                     <PhoneIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        Phone Number
+                        {t('userDetails.phoneNumber')}
                       </Typography>
                       <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
                         {user.phoneNumber || '-'}
