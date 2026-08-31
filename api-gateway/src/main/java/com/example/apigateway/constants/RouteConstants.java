@@ -12,6 +12,8 @@ public class RouteConstants {
     public static final Set<Route> PUBLIC = Set.of(
             new Route("/auth/login", Set.of(HttpMethod.POST)),
             new Route("/auth/register/client", Set.of(HttpMethod.POST)),
-            new Route("/restaurant/restaurants/**", Set.of(HttpMethod.GET))
+            new Route("/restaurant/restaurants", Set.of(HttpMethod.GET)),
+            new Route("/restaurant/restaurants/{id:[0-9]+}", Set.of(HttpMethod.GET)),
+            new Route("/restaurant/categories", Set.of(HttpMethod.GET))
     );
 }
