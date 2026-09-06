@@ -13,6 +13,7 @@ import com.example.booking.model.payload.filter.BookingFilter;
 import com.example.booking.model.payload.request.BookingClientRequest;
 import com.example.booking.model.payload.request.BookingConfirmRequest;
 import com.example.booking.model.payload.request.RestaurantTableValidationRequest;
+import com.example.booking.model.payload.request.RestaurantWorkingHoursValidationRequest;
 import com.example.booking.model.payload.response.ClientContactResponse;
 import com.example.booking.model.payload.response.RestaurantContactResponse;
 import com.example.booking.model.payload.response.BookingClientResponse;
@@ -47,6 +48,9 @@ public class BookingServiceImpl implements BookingService {
         final var restaurantId = request.restaurantId();
 
         this.restaurantBookingClient.restaurantExists(restaurantId);
+        this.restaurantBookingClient.validateWorkingHours(
+                new RestaurantWorkingHoursValidationRequest(restaurantId, request.dateTime())
+        );
 
         final var status = this.statusService.getStatusByName(StatuEnum.PENDING);
 
@@ -145,19 +149,24 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
+        this.restaurantBookingClient.validateWorkingHours(
+                new RestaurantWorkingHoursValidationRequest(restaurantId, booking.getDateTime())
+        );
+
         final var validationRequest = new RestaurantTableValidationRequest(
                 request.tableId(),
                 booking.getGuestCount(),
                 booking.getIsSmoking()
         );
 
-        this.restaurantBookingClient.validateRestaurantTable(validationRequest);
+        final var reservationDurationMinutes = this.restaurantBookingClient.validateRestaurantTable(validationRequest);
 
-        final var twoHoursBefore = booking.getDateTime().minus(2, ChronoUnit.HOURS);
+        final var windowStart = booking.getDateTime().minus(reservationDurationMinutes, ChronoUnit.MINUTES);
+        final var windowEnd = booking.getDateTime().plus(reservationDurationMinutes, ChronoUnit.MINUTES);
         final var conflictingBookings = this.bookingRepository.findAllByTableIdAndDateTimeBetween(
                 request.tableId(),
-                twoHoursBefore,
-                booking.getDateTime()
+                windowStart,
+                windowEnd
         );
 
         final var busyStatuses = List.of(StatuEnum.CONFIRMED, StatuEnum.ARRIVED);

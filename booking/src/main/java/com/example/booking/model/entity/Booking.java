@@ -28,7 +28,6 @@ public class Booking {
     @Column(nullable = false)
     private Integer guestCount;
 
-    @Column(nullable = false)
     private Boolean isSmoking;
 
     @Column(nullable = false)

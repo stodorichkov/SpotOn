@@ -7,7 +7,7 @@ public record BookingEmployeeResponse(
         String status,
         ClientContactResponse client,
         Integer guestCount,
-        boolean isSmoking,
+        Boolean isSmoking,
         Instant dateTime
 ) {
 }

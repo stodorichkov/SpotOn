@@ -16,7 +16,6 @@ public record BookingClientRequest(
         @Min(value = 1, message = MessageConstants.MIN_GUEST_COUNT)
         Integer guestCount,
 
-        @NotNull(message = MessageConstants.BLANK_FIELD)
         Boolean isSmoking,
 
         @NotNull(message = MessageConstants.BLANK_FIELD)

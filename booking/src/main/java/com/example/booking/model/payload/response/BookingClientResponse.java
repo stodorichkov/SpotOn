@@ -7,7 +7,7 @@ public record BookingClientResponse(
         String status,
         RestaurantContactResponse restaurant,
         Integer guestCount,
-        boolean isSmoking,
+        Boolean isSmoking,
         Instant dateTime
 ) {
 }
