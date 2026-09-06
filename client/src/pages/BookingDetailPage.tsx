@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Trans, useTranslation } from 'react-i18next';
-import { useCancelBookingMutation, useGetManagerTablesQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } from '../features/restaurants/restaurantsSlice';
+import { useCancelBookingMutation, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation, RestaurantTableResponse } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { BookingStatus, Role } from '../constants';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { getIntlLocale } from '../utils/dateLocale';
+import TableSelectionDialog from '../components/TableSelectionDialog';
 import {
   Container,
   Paper,
@@ -21,12 +23,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText
+  CircularProgress
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
@@ -115,7 +112,7 @@ const getStatusStyles = (status: string) => {
 };
 
 const BookingDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -134,21 +131,11 @@ const BookingDetailPage: React.FC = () => {
   const shouldStartInConfirmMode = location.state?.confirm === true;
   const [isConfirming, setIsConfirming] = useState(shouldStartInConfirmMode);
 
-  const [selectedTableId, setSelectedTableId] = useState<number | ''>('');
-  const [tableError, setTableError] = useState('');
+  const [selectedTable, setSelectedTable] = useState<RestaurantTableResponse | null>(null);
+  const [isTableDialogOpen, setIsTableDialogOpen] = useState(false);
   const [confirmBooking, { isLoading: isConfirmingSubmit }] = useConfirmBookingMutation();
   const [arrivedBooking, { isLoading: isMarkingArrived }] = useArrivedBookingMutation();
   const [completedBooking, { isLoading: isCompleting }] = useCompletedBookingMutation();
-
-  const handleTableChange = (tableId: number) => {
-    setSelectedTableId(tableId);
-    setTableError('');
-  };
-
-  const { data: tablesData, isLoading: isLoadingTables } = useGetManagerTablesQuery(
-    { page: 0, size: 100 },
-    { skip: !isConfirming }
-  );
 
   if (!booking) {
     return (
@@ -244,37 +231,15 @@ const BookingDetailPage: React.FC = () => {
 
   const handleProcessConfirmSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedTableId === '') {
+    if (!selectedTable) {
       dispatch(addAlert({ message: t('bookingDetail.selectTableError'), type: 'error' }));
-      return;
-    }
-
-    const selectedTable = tablesData?.content.find(t => t.id === selectedTableId);
-    if (!selectedTable) return;
-
-    let hasValidationError = false;
-
-    if (selectedTable.capacity < booking.guestCount) {
-      setTableError(t('bookingDetail.capacityTooSmall', { capacity: selectedTable.capacity, guestCount: booking.guestCount }));
-      hasValidationError = true;
-    } else if (selectedTable.isSmokingAllowed !== booking.isSmoking) {
-      setTableError(
-        t('bookingDetail.smokingMismatch', {
-          tableSmoking: selectedTable.isSmokingAllowed ? t('bookingDetail.smokingAllowed') : t('bookingDetail.nonSmoking'),
-          bookingSmoking: booking.isSmoking ? t('bookingDetail.smokingAllowed') : t('bookingDetail.nonSmoking'),
-        })
-      );
-      hasValidationError = true;
-    }
-
-    if (hasValidationError) {
       return;
     }
 
     try {
       await confirmBooking({
         bookingId: booking.id,
-        body: { tableId: Number(selectedTableId) }
+        body: { tableId: selectedTable.id }
       }).unwrap();
 
       dispatch(addAlert({
@@ -293,8 +258,7 @@ const BookingDetailPage: React.FC = () => {
 
   const handleCancelSection = () => {
     setIsConfirming(false);
-    setSelectedTableId('');
-    setTableError('');
+    setSelectedTable(null);
     if (shouldStartInConfirmMode) {
       navigate('/employee/bookings');
     }
@@ -397,14 +361,15 @@ const BookingDetailPage: React.FC = () => {
                     {t('bookingDetail.dateAndTime')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {bookingDate.toLocaleDateString(undefined, {
+                    {bookingDate.toLocaleDateString(getIntlLocale(i18n.language), {
                       weekday: 'long',
                       year: 'numeric',
-                      month: 'long',
+                      month: 'numeric',
                       day: 'numeric'
-                    })} at {bookingDate.toLocaleTimeString(undefined, {
+                    })} {t('bookingDetail.dateTimeAt')} {bookingDate.toLocaleTimeString(getIntlLocale(i18n.language), {
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
+                      hour12: false
                     })}
                   </Typography>
                 </Box>
@@ -550,45 +515,40 @@ const BookingDetailPage: React.FC = () => {
                 {t('bookingDetail.assignTable')}
               </Typography>
 
-              {isLoadingTables ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
-                  <CircularProgress size={24} />
-                  <Typography variant="body2" color="text.secondary">
-                    {t('bookingDetail.loadingTables')}
-                  </Typography>
-                </Box>
-              ) : (
-                <Grid container spacing={3} direction="column">
-                  <Grid item xs={12}>
-                    <FormControl required fullWidth error={!!tableError} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2.5 } }}>
-                      <InputLabel id="table-select-label">{t('bookingDetail.selectTable')}</InputLabel>
-                      <Select
-                        labelId="table-select-label"
-                        id="table-select"
-                        value={selectedTableId}
-                        label={t('bookingDetail.selectTable')}
-                        onChange={(e) => handleTableChange(Number(e.target.value))}
-                      >
-                        {tablesData?.content.map((table) => (
-                          <MenuItem key={table.id} value={table.id}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                              <TableBarIcon color="primary" fontSize="small" />
-                              <Typography variant="body2">
-                                {t('bookingDetail.tableOption', {
-                                  name: table.name,
-                                  capacity: table.capacity,
-                                  smoking: table.isSmokingAllowed ? '• Smoking' : '• Non-Smoking',
-                                })}
-                              </Typography>
-                            </Box>
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {tableError && <FormHelperText error>{tableError}</FormHelperText>}
-                    </FormControl>
-                  </Grid>
+              <Grid container spacing={3} direction="column">
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="outlined"
+                      color={selectedTable ? 'primary' : 'inherit'}
+                      startIcon={<TableBarIcon />}
+                      onClick={() => setIsTableDialogOpen(true)}
+                      sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2.5 }}
+                    >
+                      {selectedTable ? t('bookingDetail.changeTable') : t('bookingDetail.chooseTable')}
+                    </Button>
+                    {selectedTable && (
+                      <Chip
+                        icon={<TableBarIcon />}
+                        label={t('bookingDetail.selectedTableLabel', {
+                          name: selectedTable.name,
+                          capacity: selectedTable.capacity
+                        })}
+                        color="primary"
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
                 </Grid>
-              )}
+              </Grid>
+              <TableSelectionDialog
+                open={isTableDialogOpen}
+                onClose={() => setIsTableDialogOpen(false)}
+                title={t('bookingDetail.tableSelectionDialogTitle')}
+                minCapacity={booking.guestCount}
+                isSmokingAllowed={booking.isSmoking}
+                onSelect={setSelectedTable}
+              />
 
               {/* Action Buttons inside Section */}
               <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-start' }}>
