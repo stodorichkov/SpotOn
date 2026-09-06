@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, Tabs, Tab, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, Tabs, Tab, IconButton, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, Divider } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -41,11 +41,21 @@ const FlagIcon: React.FC<{ src: string; size: number }> = ({ src, size }) => (
   />
 );
 
-const LanguageSwitcher: React.FC = () => {
+interface LanguageSwitcherProps {
+  variant?: 'icon' | 'listItem';
+  onOpen?: () => void;
+}
+
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'icon', onOpen }) => {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const currentLanguage = LANGUAGES.find((lang) => lang.code === i18n.resolvedLanguage) || LANGUAGES[1];
+
+  const handleOpen = () => {
+    setOpen(true);
+    onOpen?.();
+  };
 
   const handleSelect = (code: string) => {
     i18n.changeLanguage(code);
@@ -54,13 +64,22 @@ const LanguageSwitcher: React.FC = () => {
 
   return (
     <>
-      <IconButton
-        onClick={() => setOpen(true)}
-        color="inherit"
-        aria-label={t('appBar.selectLanguage')}
-      >
-        <FlagIcon src={currentLanguage.flag} size={26} />
-      </IconButton>
+      {variant === 'listItem' ? (
+        <ListItemButton onClick={handleOpen}>
+          <ListItemIcon sx={{ minWidth: 44 }}>
+            <FlagIcon src={currentLanguage.flag} size={24} />
+          </ListItemIcon>
+          <ListItemText primary={t('appBar.selectLanguage')} />
+        </ListItemButton>
+      ) : (
+        <IconButton
+          onClick={() => setOpen(true)}
+          color="inherit"
+          aria-label={t('appBar.selectLanguage')}
+        >
+          <FlagIcon src={currentLanguage.flag} size={26} />
+        </IconButton>
+      )}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle>{t('appBar.selectLanguage')}</DialogTitle>
         <DialogContent dividers sx={{ p: 0 }}>
@@ -386,6 +405,7 @@ const AppTopBar = () => {
               anchor="right"
               open={drawerOpen}
               onClose={() => setDrawerOpen(false)}
+              ModalProps={{ keepMounted: true }}
             >
               <Box
                 sx={{ width: 250, pt: 2 }}
@@ -428,15 +448,21 @@ const AppTopBar = () => {
                       </ListItemButton>
                     </ListItem>
                   )}
+                  <Divider sx={{ my: 1 }} />
+                  <ListItem disablePadding>
+                    <LanguageSwitcher variant="listItem" onOpen={() => setDrawerOpen(false)} />
+                  </ListItem>
                 </List>
               </Box>
             </Drawer>
           </>
         )}
 
-        <Box sx={{ ml: isMobile ? 1 : 2 }}>
-          <LanguageSwitcher />
-        </Box>
+        {!isMobile && (
+          <Box sx={{ ml: 2 }}>
+            <LanguageSwitcher />
+          </Box>
+        )}
       </Toolbar>
     </AppBar>
   );
