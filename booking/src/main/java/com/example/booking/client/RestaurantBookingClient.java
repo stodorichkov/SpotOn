@@ -19,6 +19,9 @@ public interface RestaurantBookingClient {
     @GetMapping("/restaurants/{restaurantId}/exists")
     void restaurantExists(@PathVariable Long restaurantId);
 
+    @GetMapping("/restaurants/search")
+    List<Long> searchRestaurantIds(@RequestParam String name);
+
     @PostMapping("/table/validation")
     void validateRestaurantTable(@RequestBody RestaurantTableValidationRequest request);
 }

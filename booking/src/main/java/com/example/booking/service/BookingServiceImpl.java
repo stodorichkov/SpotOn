@@ -17,13 +17,18 @@ import com.example.booking.model.payload.response.RestaurantContactResponse;
 import com.example.booking.model.payload.response.BookingClientResponse;
 import com.example.booking.model.payload.response.BookingEmployeeResponse;
 import com.example.booking.repository.BookingRepository;
+import com.example.booking.specification.BookingSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Function;
@@ -63,8 +68,20 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Page<BookingClientResponse> getClientBookings(Long clientId, Pageable pageable) {
-        final var bookingsPage = this.bookingRepository.findAllByClientId(clientId, pageable);
+    public Page<BookingClientResponse> getClientBookings(Long clientId, List<StatuEnum> statuses, String restaurantName, LocalDate from, LocalDate to, Pageable pageable) {
+        var specification = buildSpecification(BookingSpecification.hasClientId(clientId), statuses, from, to);
+
+        if (StringUtils.hasText(restaurantName)) {
+            final var matchingRestaurantIds = this.restaurantBookingClient.searchRestaurantIds(restaurantName);
+
+            if (matchingRestaurantIds.isEmpty()) {
+                return Page.empty(pageable);
+            }
+
+            specification = specification.and(BookingSpecification.hasRestaurantIdIn(matchingRestaurantIds));
+        }
+
+        final var bookingsPage = this.bookingRepository.findAll(specification, pageable);
         final var restaurantIds = bookingsPage.getContent().stream()
                 .map(Booking::getRestaurantId)
                 .toList();
@@ -85,8 +102,20 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, Pageable pageable) {
-        final var bookingsPage = this.bookingRepository.findAllByRestaurantId(restaurantId, pageable);
+    public Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, List<StatuEnum> statuses, String clientName, LocalDate from, LocalDate to, Pageable pageable) {
+        var specification = buildSpecification(BookingSpecification.hasRestaurantId(restaurantId), statuses, from, to);
+
+        if (StringUtils.hasText(clientName)) {
+            final var matchingClientIds = this.authBookingClient.searchClientIds(clientName);
+
+            if (matchingClientIds.isEmpty()) {
+                return Page.empty(pageable);
+            }
+
+            specification = specification.and(BookingSpecification.hasClientIdIn(matchingClientIds));
+        }
+
+        final var bookingsPage = this.bookingRepository.findAll(specification, pageable);
         final var userIds = bookingsPage.getContent().stream()
                 .map(Booking::getClientId)
                 .toList();
@@ -217,5 +246,25 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(status);
 
         this.bookingRepository.save(booking);
+    }
+
+    private Specification<Booking> buildSpecification(Specification<Booking> base, List<StatuEnum> statuses, LocalDate from, LocalDate to) {
+        var specification = base;
+
+        if (statuses != null && !statuses.isEmpty()) {
+            specification = specification.and(BookingSpecification.hasStatuses(statuses));
+        }
+
+        if (from != null) {
+            final var fromInstant = from.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            specification = specification.and(BookingSpecification.hasDateTimeFrom(fromInstant));
+        }
+
+        if (to != null) {
+            final var toInstant = to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+            specification = specification.and(BookingSpecification.hasDateTimeTo(toInstant));
+        }
+
+        return specification;
     }
 }
