@@ -42,12 +42,16 @@ public class RestaurantTableController {
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Boolean isSmokingAllowed,
+            @RequestParam(required = false) Integer minCapacity,
+            @RequestParam(required = false) Integer maxCapacity,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.EMPLOYEE);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
-        return this.restaurantTableService.getTables(restaurantIdHeader, pageable);
+        return this.restaurantTableService.getTables(restaurantIdHeader, name, isSmokingAllowed, minCapacity, maxCapacity, pageable);
     }
 
     @PutMapping("/{id}")

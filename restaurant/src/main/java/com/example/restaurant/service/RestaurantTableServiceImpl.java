@@ -8,13 +8,17 @@ import com.example.restaurant.mapper.RestaurantTableMapper;
 import com.example.restaurant.model.payload.request.RestaurantTableRequest;
 import com.example.restaurant.model.payload.request.RestaurantTableValidationRequest;
 import com.example.restaurant.model.payload.response.RestaurantTableResponse;
+import com.example.restaurant.model.enity.RestaurantTable;
 import com.example.restaurant.repository.RestaurantRepository;
 import com.example.restaurant.repository.RestaurantTableRepository;
+import com.example.restaurant.specification.RestaurantTableSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -37,8 +41,26 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     }
 
     @Override
-    public Page<RestaurantTableResponse> getTables(Long restaurantId, Pageable pageable) {
-        return this.restaurantTableRepository.findAllByRestaurantId(restaurantId, pageable)
+    public Page<RestaurantTableResponse> getTables(Long restaurantId, String name, Boolean isSmokingAllowed, Integer minCapacity, Integer maxCapacity, Pageable pageable) {
+        Specification<RestaurantTable> specification = RestaurantTableSpecification.hasRestaurantId(restaurantId);
+
+        if (StringUtils.hasText(name)) {
+            specification = specification.and(RestaurantTableSpecification.hasNameContaining(name));
+        }
+
+        if (isSmokingAllowed != null) {
+            specification = specification.and(RestaurantTableSpecification.hasSmokingAllowed(isSmokingAllowed));
+        }
+
+        if (minCapacity != null) {
+            specification = specification.and(RestaurantTableSpecification.hasCapacityAtLeast(minCapacity));
+        }
+
+        if (maxCapacity != null) {
+            specification = specification.and(RestaurantTableSpecification.hasCapacityAtMost(maxCapacity));
+        }
+
+        return this.restaurantTableRepository.findAll(specification, pageable)
                 .map(this.restaurantTableMapper::mapToRestaurantTableResponse);
     }
 

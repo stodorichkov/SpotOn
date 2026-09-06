@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface RestaurantTableService {
     RestaurantTableResponse addTable(RestaurantTableRequest request, Long restaurantId);
-    Page<RestaurantTableResponse> getTables(Long restaurantId, Pageable pageable);
+    Page<RestaurantTableResponse> getTables(Long restaurantId, String name, Boolean isSmokingAllowed, Integer minCapacity, Integer maxCapacity, Pageable pageable);
     RestaurantTableResponse editTable(Long tableId, Long restaurantId, RestaurantTableRequest request);
     void removeTable(Long tableId, Long restaurantId);
     void validateTable(RestaurantTableValidationRequest request, Long restaurantId);
