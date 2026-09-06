@@ -77,7 +77,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
 
     @Override
     @Transactional
-    public void validateTable(RestaurantTableValidationRequest request, Long restaurantId) {
+    public Integer validateTable(RestaurantTableValidationRequest request, Long restaurantId) {
         final var table = this.restaurantTableRepository.findById(request.tableId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TABLE_NOT_FOUND));
 
@@ -85,8 +85,10 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         } else if (table.getCapacity() < request.guestCount()) {
             throw new BadRequestException(MessageConstants.TABLE_NOT_MATCH_REQUIREMENTS);
-        } else if (request.isSmoking() && !table.getIsSmokingAllowed()) {
+        } else if (request.isSmoking() != null && !table.getIsSmokingAllowed().equals(request.isSmoking())) {
             throw new BadRequestException(MessageConstants.TABLE_NOT_MATCH_REQUIREMENTS);
         }
+
+        return table.getRestaurant().getReservationDurationMinutes();
     }
 }

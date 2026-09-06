@@ -33,4 +33,7 @@ public class Restaurant {
 
     @Column(nullable = false)
     private Boolean isOpen = false;
+
+    @Column(nullable = false, columnDefinition = "integer not null default 120")
+    private Integer reservationDurationMinutes = 120;
 }

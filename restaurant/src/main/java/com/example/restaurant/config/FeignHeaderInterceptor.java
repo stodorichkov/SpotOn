@@ -5,6 +5,7 @@ import com.example.restaurant.model.enums.ServiceEnum;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -39,5 +40,8 @@ public class FeignHeaderInterceptor implements RequestInterceptor {
 
         Optional.ofNullable(request.getHeader(HeaderConstants.RESTAURANT_ID))
                 .ifPresent(restaurantId -> template.header(HeaderConstants.RESTAURANT_ID, restaurantId));
+
+        Optional.ofNullable(request.getHeader(HttpHeaders.ACCEPT_LANGUAGE))
+                .ifPresent(acceptLanguage -> template.header(HttpHeaders.ACCEPT_LANGUAGE, acceptLanguage));
     }
 }

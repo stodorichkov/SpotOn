@@ -4,6 +4,7 @@ import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.enums.ServiceEnum;
 import com.example.restaurant.model.payload.request.RestaurantTableValidationRequest;
+import com.example.restaurant.model.payload.request.RestaurantWorkingHoursValidationRequest;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.service.AuthorizationService;
 import com.example.restaurant.service.EmployeeService;
@@ -64,7 +65,7 @@ public class BookingController {
 
     @PostMapping("/table/validation")
     @ResponseStatus(HttpStatus.OK)
-    void validateTable(
+    Integer validateTable(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
@@ -77,6 +78,20 @@ public class BookingController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
-        this.restaurantTableService.validateTable(request, restaurantIdHeader);
+        return this.restaurantTableService.validateTable(request, restaurantIdHeader);
+    }
+
+    @PostMapping("/working-hours/validation")
+    @ResponseStatus(HttpStatus.OK)
+    void validateWorkingHours(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String secret,
+            @RequestBody RestaurantWorkingHoursValidationRequest request
+    ) {
+        this.authorizationService.hasInternalAccess(secret, service, ServiceEnum.BOOKING);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT, RoleEnum.EMPLOYEE);
+
+        this.restaurantService.validateWithinWorkingHours(request.restaurantId(), request.dateTime());
     }
 }

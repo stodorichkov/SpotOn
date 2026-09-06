@@ -3,6 +3,7 @@ package com.example.restaurant.controller;
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.request.RestaurantReservationDurationRequest;
 import com.example.restaurant.model.payload.request.RestaurantStatusRequest;
 import com.example.restaurant.model.payload.request.RestaurantWorkingHoursRequest;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
@@ -75,5 +76,19 @@ public class RestaurantProfileController {
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.restaurantService.updateWorkingHours(restaurantIdHeader, request);
+    }
+
+    @PatchMapping("/reservation-duration")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantDetailsResponse updateReservationDuration(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @Valid @RequestBody RestaurantReservationDurationRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+
+        return this.restaurantService.updateReservationDuration(restaurantIdHeader, request);
     }
 }

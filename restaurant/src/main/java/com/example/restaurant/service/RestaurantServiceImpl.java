@@ -8,6 +8,7 @@ import com.example.restaurant.model.enity.Restaurant;
 import com.example.restaurant.model.enity.RestaurantWorkingHours;
 import com.example.restaurant.model.payload.filter.RestaurantFilter;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.request.RestaurantReservationDurationRequest;
 import com.example.restaurant.model.payload.request.RestaurantStatusRequest;
 import com.example.restaurant.model.payload.request.RestaurantWorkingHoursRequest;
 import com.example.restaurant.model.payload.request.WorkingHoursEntryRequest;
@@ -26,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -155,6 +158,18 @@ public class RestaurantServiceImpl implements RestaurantService {
         return this.buildRestaurantDetailsResponse(restaurant);
     }
 
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse updateReservationDuration(Long id, RestaurantReservationDurationRequest request) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        restaurant.setReservationDurationMinutes(request.reservationDurationMinutes());
+        this.restaurantRepository.save(restaurant);
+
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
     private RestaurantDetailsResponse buildRestaurantDetailsResponse(Restaurant restaurant) {
         final var workingHours = this.restaurantWorkingHoursRepository.findByRestaurantId(restaurant.getId())
                 .stream()
@@ -188,5 +203,35 @@ public class RestaurantServiceImpl implements RestaurantService {
                 .stream()
                 .map(Restaurant::getId)
                 .toList();
+    }
+
+    @Override
+    public void validateWithinWorkingHours(Long restaurantId, Instant dateTime) {
+        final var workingHours = this.restaurantWorkingHoursRepository.findByRestaurantId(restaurantId);
+
+        if (workingHours.isEmpty()) {
+            return;
+        }
+
+        final var zonedDateTime = dateTime.atZone(ZoneId.systemDefault());
+        final var dayOfWeek = zonedDateTime.getDayOfWeek();
+        final var localTime = zonedDateTime.toLocalTime();
+
+        final var entry = workingHours.stream()
+                .filter(workingHoursEntry -> workingHoursEntry.getDayOfWeek() == dayOfWeek)
+                .findFirst()
+                .orElse(null);
+
+        if (entry == null) {
+            return;
+        }
+
+        if (
+                entry.getClosed()
+                || localTime.isBefore(entry.getOpenTime())
+                || localTime.isAfter(entry.getCloseTime())
+        ) {
+            throw new BadRequestException(MessageConstants.OUTSIDE_WORKING_HOURS);
+        }
     }
 }

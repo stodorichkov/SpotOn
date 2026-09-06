@@ -12,5 +12,5 @@ public interface RestaurantTableService {
     Page<RestaurantTableResponse> getTables(Long restaurantId, TableFilter filter, Pageable pageable);
     RestaurantTableResponse editTable(Long tableId, Long restaurantId, RestaurantTableRequest request);
     void removeTable(Long tableId, Long restaurantId);
-    void validateTable(RestaurantTableValidationRequest request, Long restaurantId);
+    Integer validateTable(RestaurantTableValidationRequest request, Long restaurantId);
 }
