@@ -50,6 +50,18 @@ public class BookingController {
         this.restaurantService.restaurantExists(restaurantId);
     }
 
+    @GetMapping("/restaurants/search")
+    @ResponseStatus(HttpStatus.OK)
+    List<Long> searchRestaurantIds(
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String secret,
+            @RequestParam String name
+    ) {
+        this.authorizationService.hasInternalAccess(secret, service, ServiceEnum.BOOKING);
+
+        return this.restaurantService.searchRestaurantIds(name);
+    }
+
     @PostMapping("/table/validation")
     @ResponseStatus(HttpStatus.OK)
     void validateTable(

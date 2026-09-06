@@ -17,4 +17,5 @@ public interface RestaurantService {
 
     List<RestaurantContactResponse> getRestaurantsContact(List<Long> restaurantIds);
     void restaurantExists(Long id);
+    List<Long> searchRestaurantIds(String name);
 }

@@ -110,4 +110,16 @@ public class RestaurantServiceImpl implements RestaurantService {
         this.restaurantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
     }
+
+    @Override
+    public List<Long> searchRestaurantIds(String name) {
+        if (!StringUtils.hasText(name)) {
+            return List.of();
+        }
+
+        return this.restaurantRepository.findAll(RestaurantSpecification.hasNameContaining(name))
+                .stream()
+                .map(Restaurant::getId)
+                .toList();
+    }
 }
