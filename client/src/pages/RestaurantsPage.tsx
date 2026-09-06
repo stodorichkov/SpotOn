@@ -24,11 +24,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText
+  DialogActions
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
@@ -40,21 +36,20 @@ import SortIcon from '@mui/icons-material/Sort';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { getCategoryStyle } from '../utils/categoryColor';
-
-const SORT_VALUES = ['id,asc', 'id,desc', 'name,asc', 'name,desc'] as const;
-
-const SORT_LABEL_KEYS: Record<(typeof SORT_VALUES)[number], string> = {
-  'id,asc': 'restaurants.sortIdAsc',
-  'id,desc': 'restaurants.sortIdDesc',
-  'name,asc': 'restaurants.sortNameAsc',
-  'name,desc': 'restaurants.sortNameDesc',
-};
+import SortDialog, { SortDirection } from '../components/SortDialog';
 
 const RestaurantsPage: React.FC = () => {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sort, setSort] = useState('id,asc');
+  const [sortField, setSortField] = useState('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const sort = `${sortField},${sortDirection}`;
+
+  const SORT_FIELDS = [
+    { value: 'id', label: t('common.id') },
+    { value: 'name', label: t('common.name') },
+  ];
 
   const [nameInput, setNameInput] = useState('');
   const [addressInput, setAddressInput] = useState('');
@@ -109,10 +104,14 @@ const RestaurantsPage: React.FC = () => {
     setIsSortDialogOpen(false);
   };
 
-  const handleSortSelect = (value: string) => {
-    setSort(value);
+  const handleSortFieldSelect = (value: string) => {
+    setSortField(value);
     setPage(0);
-    setIsSortDialogOpen(false);
+  };
+
+  const handleSortDirectionSelect = (value: SortDirection) => {
+    setSortDirection(value);
+    setPage(0);
   };
 
   const handleOpenCategoryDialog = () => {
@@ -261,7 +260,7 @@ const RestaurantsPage: React.FC = () => {
               width: { xs: '100%', sm: 'auto' },
             }}
           >
-            {t(SORT_LABEL_KEYS[sort as (typeof SORT_VALUES)[number]])}
+            {`${SORT_FIELDS.find((f) => f.value === sortField)?.label} · ${sortDirection === 'asc' ? t('common.ascending') : t('common.descending')}`}
           </Button>
           {hasActiveFilters && (
             <Tooltip title={t('restaurants.clearFilters')} arrow>
@@ -331,42 +330,16 @@ const RestaurantsPage: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
-        <Dialog open={isSortDialogOpen} onClose={handleCloseSortDialog} fullWidth maxWidth="xs">
-          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
-            {t('restaurants.sortDialogTitle')}
-            <IconButton
-              onClick={handleCloseSortDialog}
-              size="small"
-              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers sx={{ p: 0 }}>
-            <List disablePadding>
-              {SORT_VALUES.map((value) => {
-                const isSelected = value === sort;
-                return (
-                  <ListItemButton
-                    key={value}
-                    selected={isSelected}
-                    onClick={() => handleSortSelect(value)}
-                  >
-                    <ListItemText
-                      primary={t(SORT_LABEL_KEYS[value])}
-                      primaryTypographyProps={{ fontWeight: isSelected ? 'bold' : 'normal' }}
-                    />
-                    {isSelected && (
-                      <ListItemIcon sx={{ minWidth: 'auto', color: 'primary.main' }}>
-                        <CheckIcon />
-                      </ListItemIcon>
-                    )}
-                  </ListItemButton>
-                );
-              })}
-            </List>
-          </DialogContent>
-        </Dialog>
+        <SortDialog
+          open={isSortDialogOpen}
+          onClose={handleCloseSortDialog}
+          title={t('restaurants.sortDialogTitle')}
+          fields={SORT_FIELDS}
+          field={sortField}
+          direction={sortDirection}
+          onFieldSelect={handleSortFieldSelect}
+          onDirectionSelect={handleSortDirectionSelect}
+        />
         <Divider />
         {error ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>

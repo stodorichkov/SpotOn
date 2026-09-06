@@ -22,11 +22,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText
+  DialogActions
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -39,19 +35,9 @@ import SortIcon from '@mui/icons-material/Sort';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { Role } from '../constants';
+import SortDialog, { SortDirection } from '../components/SortDialog';
 
 const ROLE_OPTIONS = [Role.ADMIN, Role.MANAGER, Role.EMPLOYEE, Role.CLIENT];
-
-const SORT_VALUES = ['id,asc', 'id,desc', 'email,asc', 'email,desc', 'role.name,asc', 'role.name,desc'] as const;
-
-const SORT_LABEL_KEYS: Record<(typeof SORT_VALUES)[number], string> = {
-  'id,asc': 'users.sortIdAsc',
-  'id,desc': 'users.sortIdDesc',
-  'email,asc': 'users.sortEmailAsc',
-  'email,desc': 'users.sortEmailDesc',
-  'role.name,asc': 'users.sortRoleAsc',
-  'role.name,desc': 'users.sortRoleDesc',
-};
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
@@ -74,7 +60,15 @@ const UsersPage: React.FC = () => {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sort, setSort] = useState('id,asc');
+  const [sortField, setSortField] = useState('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const sort = `${sortField},${sortDirection}`;
+
+  const SORT_FIELDS = [
+    { value: 'id', label: t('common.id') },
+    { value: 'email', label: t('common.email') },
+    { value: 'role.name', label: t('common.role') },
+  ];
 
   const [emailInput, setEmailInput] = useState('');
   const [email, setEmail] = useState('');
@@ -116,10 +110,14 @@ const UsersPage: React.FC = () => {
     setIsSortDialogOpen(false);
   };
 
-  const handleSortSelect = (value: string) => {
-    setSort(value);
+  const handleSortFieldSelect = (value: string) => {
+    setSortField(value);
     setPage(0);
-    setIsSortDialogOpen(false);
+  };
+
+  const handleSortDirectionSelect = (value: SortDirection) => {
+    setSortDirection(value);
+    setPage(0);
   };
 
   const handleOpenRolesDialog = () => {
@@ -235,7 +233,7 @@ const UsersPage: React.FC = () => {
               width: { xs: '100%', sm: 'auto' },
             }}
           >
-            {t(SORT_LABEL_KEYS[sort as (typeof SORT_VALUES)[number]])}
+            {`${SORT_FIELDS.find((f) => f.value === sortField)?.label} · ${sortDirection === 'asc' ? t('common.ascending') : t('common.descending')}`}
           </Button>
           {hasActiveFilters && (
             <Tooltip title={t('users.clearFilters')} arrow>
@@ -301,42 +299,16 @@ const UsersPage: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
-        <Dialog open={isSortDialogOpen} onClose={handleCloseSortDialog} fullWidth maxWidth="xs">
-          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
-            {t('users.sortBy')}
-            <IconButton
-              onClick={handleCloseSortDialog}
-              size="small"
-              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers sx={{ p: 0 }}>
-            <List disablePadding>
-              {SORT_VALUES.map((value) => {
-                const isSelected = value === sort;
-                return (
-                  <ListItemButton
-                    key={value}
-                    selected={isSelected}
-                    onClick={() => handleSortSelect(value)}
-                  >
-                    <ListItemText
-                      primary={t(SORT_LABEL_KEYS[value])}
-                      primaryTypographyProps={{ fontWeight: isSelected ? 'bold' : 'normal' }}
-                    />
-                    {isSelected && (
-                      <ListItemIcon sx={{ minWidth: 'auto', color: 'primary.main' }}>
-                        <CheckIcon />
-                      </ListItemIcon>
-                    )}
-                  </ListItemButton>
-                );
-              })}
-            </List>
-          </DialogContent>
-        </Dialog>
+        <SortDialog
+          open={isSortDialogOpen}
+          onClose={handleCloseSortDialog}
+          title={t('users.sortBy')}
+          fields={SORT_FIELDS}
+          field={sortField}
+          direction={sortDirection}
+          onFieldSelect={handleSortFieldSelect}
+          onDirectionSelect={handleSortDirectionSelect}
+        />
         <Divider />
         {error ? (
           <Box sx={{ p: 6, textAlign: 'center' }}>
