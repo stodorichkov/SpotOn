@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGetManagerTablesQuery, useDeleteTableMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -16,10 +16,13 @@ import {
   Skeleton,
   Typography,
   Container,
+  Chip,
   Box,
   Divider,
   Button,
   IconButton,
+  Tooltip,
+  TextField,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -38,6 +41,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ClearIcon from '@mui/icons-material/Clear';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import SortIcon from '@mui/icons-material/Sort';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import SortDialog, { SortDirection } from '../components/SortDialog';
+import NumberRangeDialog from '../components/NumberRangeDialog';
+
+type SmokingFilter = 'all' | 'smoking' | 'nonSmoking';
+
+const SMOKING_FILTER_OPTIONS: SmokingFilter[] = ['all', 'smoking', 'nonSmoking'];
 
 const ManagerTablesPage: React.FC = () => {
   const { t } = useTranslation();
@@ -50,6 +65,96 @@ const ManagerTablesPage: React.FC = () => {
   const [deleteTable, { isLoading: isDeleting }] = useDeleteTableMutation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tableToDelete, setTableToDelete] = useState<{ id: number; name: string } | null>(null);
+
+  const [nameInput, setNameInput] = useState('');
+  const [name, setName] = useState('');
+
+  const [smokingFilter, setSmokingFilter] = useState<SmokingFilter>('all');
+  const [isSmokingDialogOpen, setIsSmokingDialogOpen] = useState(false);
+  const [draftSmokingFilter, setDraftSmokingFilter] = useState<SmokingFilter>('all');
+
+  const [minCapacity, setMinCapacity] = useState<number | null>(null);
+  const [maxCapacity, setMaxCapacity] = useState<number | null>(null);
+  const [isCapacityDialogOpen, setIsCapacityDialogOpen] = useState(false);
+
+  const [sortField, setSortField] = useState('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const sort = `${sortField},${sortDirection}`;
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
+
+  const SORT_FIELDS = [
+    { value: 'id', label: t('common.id') },
+    { value: 'name', label: t('common.name') },
+    { value: 'capacity', label: t('managerTables.capacity') },
+  ];
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setName(nameInput.trim());
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [nameInput]);
+
+  const isSmokingAllowed = smokingFilter === 'all' ? undefined : smokingFilter === 'smoking';
+
+  const handleSortFieldSelect = (value: string) => {
+    setSortField(value);
+    setPage(0);
+  };
+
+  const handleSortDirectionSelect = (value: SortDirection) => {
+    setSortDirection(value);
+    setPage(0);
+  };
+
+  const handleOpenSmokingDialog = () => {
+    setDraftSmokingFilter(smokingFilter);
+    setIsSmokingDialogOpen(true);
+  };
+
+  const handleApplySmokingDialog = () => {
+    setSmokingFilter(draftSmokingFilter);
+    setPage(0);
+    setIsSmokingDialogOpen(false);
+  };
+
+  const smokingFilterLabel = (() => {
+    switch (smokingFilter) {
+      case 'smoking':
+        return t('managerTables.smokingAllowed');
+      case 'nonSmoking':
+        return t('managerTables.nonSmoking');
+      default:
+        return t('managerTables.smokingFilterAll');
+    }
+  })();
+
+  const handleApplyCapacityRange = (from: number | null, to: number | null) => {
+    setMinCapacity(from);
+    setMaxCapacity(to);
+    setPage(0);
+  };
+
+  const capacityFieldValue = (() => {
+    if (minCapacity === null && maxCapacity === null) {
+      return '';
+    }
+    if (minCapacity !== null && maxCapacity !== null) {
+      return `${minCapacity} - ${maxCapacity}`;
+    }
+    return minCapacity !== null ? `${t('common.fromCapacity')}: ${minCapacity}` : `${t('common.toCapacity')}: ${maxCapacity}`;
+  })();
+
+  const hasActiveFilters = nameInput !== '' || smokingFilter !== 'all' || minCapacity !== null || maxCapacity !== null;
+
+  const handleClearFilters = () => {
+    setNameInput('');
+    setSmokingFilter('all');
+    setMinCapacity(null);
+    setMaxCapacity(null);
+    setPage(0);
+  };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, table: any) => {
     setAnchorEl(event.currentTarget);
@@ -88,7 +193,15 @@ const ManagerTablesPage: React.FC = () => {
     setTableToDelete(null);
   };
 
-  const { data, error, isLoading } = useGetManagerTablesQuery({ page, size: rowsPerPage });
+  const { data, error, isLoading } = useGetManagerTablesQuery({
+    page,
+    size: rowsPerPage,
+    sort,
+    name: name || undefined,
+    isSmokingAllowed,
+    minCapacity: minCapacity ?? undefined,
+    maxCapacity: maxCapacity ?? undefined,
+  });
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -172,6 +285,156 @@ const ManagerTablesPage: React.FC = () => {
             </Button>
           </Box>
         </Box>
+        <Divider />
+        <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('managerTables.searchByName')}
+            size="small"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            sx={{ minWidth: 180, flex: '1 1 180px' }}
+          />
+          <Button
+            variant={smokingFilter !== 'all' ? 'contained' : 'outlined'}
+            color={smokingFilter !== 'all' ? 'primary' : 'inherit'}
+            onClick={handleOpenSmokingDialog}
+            startIcon={smokingFilter === 'nonSmoking' ? <SmokeFreeIcon /> : <SmokingRoomsIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {smokingFilterLabel}
+          </Button>
+          <Button
+            variant={minCapacity !== null || maxCapacity !== null ? 'contained' : 'outlined'}
+            color={minCapacity !== null || maxCapacity !== null ? 'primary' : 'inherit'}
+            onClick={() => setIsCapacityDialogOpen(true)}
+            startIcon={<FilterAltIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {capacityFieldValue === '' ? t('managerTables.capacityButton') : capacityFieldValue}
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setIsSortDialogOpen(true)}
+            startIcon={<SortIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {`${SORT_FIELDS.find((f) => f.value === sortField)?.label} · ${sortDirection === 'asc' ? t('common.ascending') : t('common.descending')}`}
+          </Button>
+          {hasActiveFilters && (
+            <Tooltip title={t('managerTables.clearFilters')} arrow>
+              <IconButton onClick={handleClearFilters} size="small" sx={{ alignSelf: 'center' }}>
+                <ClearIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+        <Dialog open={isSmokingDialogOpen} onClose={() => setIsSmokingDialogOpen(false)} fullWidth maxWidth="xs">
+          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+            {t('managerTables.smokingDialogTitle')}
+            <IconButton
+              onClick={() => setIsSmokingDialogOpen(false)}
+              size="small"
+              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {SMOKING_FILTER_OPTIONS.map((option) => {
+                const isSelected = draftSmokingFilter === option;
+                const label = option === 'all'
+                  ? t('managerTables.smokingFilterAll')
+                  : option === 'smoking'
+                    ? t('managerTables.smokingAllowed')
+                    : t('managerTables.nonSmoking');
+                return (
+                  <Chip
+                    key={option}
+                    label={label}
+                    onClick={() => setDraftSmokingFilter(option)}
+                    color={isSelected ? 'primary' : undefined}
+                    variant={isSelected ? 'filled' : 'outlined'}
+                    sx={{
+                      fontWeight: isSelected ? 'bold' : 'normal',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                      }
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
+            <Button
+              onClick={() => setDraftSmokingFilter('all')}
+              variant="contained"
+              color="error"
+              startIcon={<ClearIcon />}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
+            >
+              {t('common.clear')}
+            </Button>
+            <Button
+              onClick={handleApplySmokingDialog}
+              variant="contained"
+              color="primary"
+              startIcon={<CheckIcon />}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
+            >
+              {t('common.apply')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <NumberRangeDialog
+          open={isCapacityDialogOpen}
+          onClose={() => setIsCapacityDialogOpen(false)}
+          title={t('managerTables.capacityDialogTitle')}
+          fromLabel={t('common.fromCapacity')}
+          toLabel={t('common.toCapacity')}
+          fromValue={minCapacity}
+          toValue={maxCapacity}
+          onApply={handleApplyCapacityRange}
+          min={1}
+        />
+        <SortDialog
+          open={isSortDialogOpen}
+          onClose={() => setIsSortDialogOpen(false)}
+          title={t('managerTables.sortBy')}
+          fields={SORT_FIELDS}
+          field={sortField}
+          direction={sortDirection}
+          onFieldSelect={handleSortFieldSelect}
+          onDirectionSelect={handleSortDirectionSelect}
+        />
         <Divider />
 
         {isLoading ? (
