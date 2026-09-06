@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGetRestaurantBookingsQuery, useCancelBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Trans, useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
 import { addAlert } from '../features/alerts/alertsSlice';
 import {
   Table,
@@ -21,6 +22,7 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  TextField,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -43,7 +45,19 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import ClearIcon from '@mui/icons-material/Clear';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import SortIcon from '@mui/icons-material/Sort';
+import DateRangeIcon from '@mui/icons-material/DateRange';
 import { BookingStatus } from '../constants';
+import SortDialog, { SortDirection } from '../components/SortDialog';
+import DateRangeDialog from '../components/DateRangeDialog';
+import { getIntlLocale } from '../utils/dateLocale';
+
+const STATUS_OPTIONS = [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.ARRIVED, BookingStatus.COMPLETED, BookingStatus.CANCELED];
 
 const getStatusStyles = (status: string) => {
   switch (status?.toUpperCase()) {
@@ -93,7 +107,7 @@ const getStatusStyles = (status: string) => {
 };
 
 const EmployeeBookingsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -110,13 +124,119 @@ const EmployeeBookingsPage: React.FC = () => {
   const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
   const [bookingToComplete, setBookingToComplete] = useState<any>(null);
 
-  const { data, error, isLoading } = useGetRestaurantBookingsQuery({ page, size: rowsPerPage });
+  const [statuses, setStatuses] = useState<string[]>([]);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [draftStatuses, setDraftStatuses] = useState<string[]>([]);
+
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+  const [isDateRangeDialogOpen, setIsDateRangeDialogOpen] = useState(false);
+
+  const [sortField, setSortField] = useState('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const sort = `${sortField},${sortDirection}`;
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
+
+  const SORT_FIELDS = [
+    { value: 'id', label: t('common.id') },
+    { value: 'dateTime', label: t('employeeBookings.dateAndTime') },
+    { value: 'status.name', label: t('employeeBookings.status') },
+  ];
+
+  const [clientNameInput, setClientNameInput] = useState('');
+  const [clientName, setClientName] = useState('');
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setClientName(clientNameInput.trim());
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [clientNameInput]);
+
+  const { data, error, isLoading } = useGetRestaurantBookingsQuery({
+    page,
+    size: rowsPerPage,
+    sort,
+    statuses: statuses.length > 0 ? statuses : undefined,
+    clientName: clientName || undefined,
+    from: fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined,
+    to: toDate ? format(toDate, 'yyyy-MM-dd') : undefined,
+  });
   const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation();
   const [arrivedBooking, { isLoading: isMarkingArrived }] = useArrivedBookingMutation();
   const [completedBooking, { isLoading: isCompleting }] = useCompletedBookingMutation();
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleOpenStatusDialog = () => {
+    setDraftStatuses(statuses);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleCloseStatusDialog = () => {
+    setIsStatusDialogOpen(false);
+  };
+
+  const handleToggleDraftStatus = (status: string) => {
+    setDraftStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
+  };
+
+  const handleApplyStatusDialog = () => {
+    setStatuses(draftStatuses);
+    setPage(0);
+    setIsStatusDialogOpen(false);
+  };
+
+  const handleApplyDateRange = (from: Date | null, to: Date | null) => {
+    setFromDate(from);
+    setToDate(to);
+    setPage(0);
+  };
+
+  const handleSortFieldSelect = (value: string) => {
+    setSortField(value);
+    setPage(0);
+  };
+
+  const handleSortDirectionSelect = (value: SortDirection) => {
+    setSortDirection(value);
+    setPage(0);
+  };
+
+  const statusFieldValue = (() => {
+    if (statuses.length === 0) {
+      return '';
+    }
+    if (statuses.length === 1) {
+      return statuses[0];
+    }
+    return t('employeeBookings.statusesCount', { count: statuses.length });
+  })();
+
+  const dateRangeFieldValue = (() => {
+    if (!fromDate && !toDate) {
+      return '';
+    }
+    const fmt = (d: Date) => format(d, 'dd.MM.yyyy');
+    if (fromDate && toDate) {
+      return `${fmt(fromDate)} - ${fmt(toDate)}`;
+    }
+    return fromDate ? `${t('common.fromDate')}: ${fmt(fromDate)}` : `${t('common.toDate')}: ${fmt(toDate as Date)}`;
+  })();
+
+  const hasActiveFilters = statuses.length > 0 || clientNameInput !== '' || fromDate !== null || toDate !== null;
+
+  const handleClearFilters = () => {
+    setStatuses([]);
+    setClientNameInput('');
+    setFromDate(null);
+    setToDate(null);
+    setPage(0);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -274,6 +394,147 @@ const EmployeeBookingsPage: React.FC = () => {
         </Box>
 
         <Divider />
+        <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('employeeBookings.searchByClient')}
+            size="small"
+            value={clientNameInput}
+            onChange={(e) => setClientNameInput(e.target.value)}
+            sx={{ minWidth: 180, flex: '1 1 180px' }}
+          />
+          <Button
+            variant={fromDate || toDate ? 'contained' : 'outlined'}
+            color={fromDate || toDate ? 'primary' : 'inherit'}
+            onClick={() => setIsDateRangeDialogOpen(true)}
+            startIcon={<DateRangeIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {!fromDate && !toDate ? t('common.dateRange') : dateRangeFieldValue}
+          </Button>
+          <Button
+            variant={statuses.length > 0 ? 'contained' : 'outlined'}
+            color={statuses.length > 0 ? 'primary' : 'inherit'}
+            onClick={handleOpenStatusDialog}
+            startIcon={<FilterAltIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {statuses.length === 0 ? t('employeeBookings.statusButton') : statusFieldValue}
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setIsSortDialogOpen(true)}
+            startIcon={<SortIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {`${SORT_FIELDS.find((f) => f.value === sortField)?.label} · ${sortDirection === 'asc' ? t('common.ascending') : t('common.descending')}`}
+          </Button>
+          {hasActiveFilters && (
+            <Tooltip title={t('employeeBookings.clearFilters')} arrow>
+              <IconButton onClick={handleClearFilters} size="small" sx={{ alignSelf: 'center' }}>
+                <ClearIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+        <Dialog open={isStatusDialogOpen} onClose={handleCloseStatusDialog} fullWidth maxWidth="xs">
+          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+            {t('employeeBookings.statusDialogTitle')}
+            <IconButton
+              onClick={handleCloseStatusDialog}
+              size="small"
+              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {STATUS_OPTIONS.map((status) => {
+                const isSelected = draftStatuses.includes(status);
+                return (
+                  <Chip
+                    key={status}
+                    label={status}
+                    onClick={() => handleToggleDraftStatus(status)}
+                    variant="outlined"
+                    sx={{
+                      ...(isSelected ? getStatusStyles(status) : { borderColor: 'divider', color: 'text.secondary' }),
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                      }
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
+            <Button
+              onClick={() => setDraftStatuses([])}
+              variant="contained"
+              color="error"
+              startIcon={<ClearIcon />}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
+            >
+              {t('common.clear')}
+            </Button>
+            <Button
+              onClick={handleApplyStatusDialog}
+              variant="contained"
+              color="primary"
+              startIcon={<CheckIcon />}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
+            >
+              {t('common.apply')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <DateRangeDialog
+          open={isDateRangeDialogOpen}
+          onClose={() => setIsDateRangeDialogOpen(false)}
+          title={t('common.dateRange')}
+          fromDate={fromDate}
+          toDate={toDate}
+          onApply={handleApplyDateRange}
+        />
+        <SortDialog
+          open={isSortDialogOpen}
+          onClose={() => setIsSortDialogOpen(false)}
+          title={t('employeeBookings.sortBy')}
+          fields={SORT_FIELDS}
+          field={sortField}
+          direction={sortDirection}
+          onFieldSelect={handleSortFieldSelect}
+          onDirectionSelect={handleSortDirectionSelect}
+        />
+        <Divider />
 
         {isLoading ? (
           <TableContainer>
@@ -351,17 +612,18 @@ const EmployeeBookingsPage: React.FC = () => {
                         <TableCell>
                           <Box>
                             <Typography variant="body2" fontWeight="medium">
-                              {bookingDate.toLocaleDateString(undefined, {
+                              {bookingDate.toLocaleDateString(getIntlLocale(i18n.language), {
                                 weekday: 'long',
                                 year: 'numeric',
-                                month: 'long',
+                                month: 'numeric',
                                 day: 'numeric'
                               })}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" display="block">
-                              {bookingDate.toLocaleTimeString(undefined, {
+                              {bookingDate.toLocaleTimeString(getIntlLocale(i18n.language), {
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
+                                hour12: false
                               })}
                             </Typography>
                           </Box>
