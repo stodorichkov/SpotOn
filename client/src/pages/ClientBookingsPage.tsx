@@ -93,7 +93,7 @@ const ClientBookingsPage: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [activeBooking, setActiveBooking] = useState<any>(null);
