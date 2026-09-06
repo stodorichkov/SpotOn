@@ -39,11 +39,16 @@ public class EmployeeController {
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) List<RoleEnum> roles,
+            @RequestParam(required = false) String sort,
             @RequestBody List<Long> userIds
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.ADMIN);
         this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.RESTAURANT);
 
-        return this.employeeService.getEmployees(userIds);
+        return this.employeeService.getEmployees(userIds, email, name, phoneNumber, roles, sort);
     }
 }
