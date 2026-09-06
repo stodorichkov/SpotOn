@@ -9,6 +9,7 @@ import com.example.booking.mapper.BookingMapper;
 import com.example.booking.model.entity.Booking;
 import com.example.booking.model.enums.StatuEnum;
 import com.example.booking.model.enums.RoleEnum;
+import com.example.booking.model.payload.filter.BookingFilter;
 import com.example.booking.model.payload.request.BookingClientRequest;
 import com.example.booking.model.payload.request.BookingConfirmRequest;
 import com.example.booking.model.payload.request.RestaurantTableValidationRequest;
@@ -22,13 +23,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Function;
@@ -68,8 +66,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Page<BookingClientResponse> getClientBookings(Long clientId, List<StatuEnum> statuses, String restaurantName, LocalDate from, LocalDate to, Pageable pageable) {
-        var specification = buildSpecification(BookingSpecification.hasClientId(clientId), statuses, from, to);
+    public Page<BookingClientResponse> getClientBookings(Long clientId, BookingFilter filter, String restaurantName, Pageable pageable) {
+        var specification = BookingSpecification.fromFilter(BookingSpecification.hasClientId(clientId), filter);
 
         if (StringUtils.hasText(restaurantName)) {
             final var matchingRestaurantIds = this.restaurantBookingClient.searchRestaurantIds(restaurantName);
@@ -102,8 +100,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, List<StatuEnum> statuses, String clientName, LocalDate from, LocalDate to, Pageable pageable) {
-        var specification = buildSpecification(BookingSpecification.hasRestaurantId(restaurantId), statuses, from, to);
+    public Page<BookingEmployeeResponse> getRestaurantBookings(Long restaurantId, BookingFilter filter, String clientName, Pageable pageable) {
+        var specification = BookingSpecification.fromFilter(BookingSpecification.hasRestaurantId(restaurantId), filter);
 
         if (StringUtils.hasText(clientName)) {
             final var matchingClientIds = this.authBookingClient.searchClientIds(clientName);
@@ -246,25 +244,5 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(status);
 
         this.bookingRepository.save(booking);
-    }
-
-    private Specification<Booking> buildSpecification(Specification<Booking> base, List<StatuEnum> statuses, LocalDate from, LocalDate to) {
-        var specification = base;
-
-        if (statuses != null && !statuses.isEmpty()) {
-            specification = specification.and(BookingSpecification.hasStatuses(statuses));
-        }
-
-        if (from != null) {
-            final var fromInstant = from.atStartOfDay(ZoneId.systemDefault()).toInstant();
-            specification = specification.and(BookingSpecification.hasDateTimeFrom(fromInstant));
-        }
-
-        if (to != null) {
-            final var toInstant = to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-            specification = specification.and(BookingSpecification.hasDateTimeTo(toInstant));
-        }
-
-        return specification;
     }
 }
