@@ -22,7 +22,16 @@
     "lastName": "Фамилия",
     "error": "Грешка",
     "loading": "Зареждане...",
-    "generalCategory": "Общо"
+    "generalCategory": "Общо",
+    "sortByField": "Подреди по",
+    "sortDirection": "Посока",
+    "ascending": "Възходящо",
+    "descending": "Низходящо",
+    "dateRange": "Период от дати",
+    "fromDate": "От дата",
+    "toDate": "До дата",
+    "fromCapacity": "Мин. капацитет",
+    "toCapacity": "Макс. капацитет"
   },
   "appBar": {
     "brand": "SpotOn",
@@ -62,9 +71,7 @@
     "clearFilters": "Изчисти филтрите",
     "noResultsFound": "Няма заведения, отговарящи на филтрите.",
     "noResultsFoundBody": "Опитайте да промените търсенето или изчистете филтрите.",
-    "sortDialogTitle": "Сортирай по",
-    "sortNameAsc": "Име (А-Я)",
-    "sortNameDesc": "Име (Я-А)"
+    "sortDialogTitle": "Сортирай по"
   },
   "login": {
     "title": "Вход",
@@ -142,12 +149,6 @@
     "rolesCount": "{{count}} роли",
     "rolesDialogTitle": "Филтриране по роля",
     "sortBy": "Подреди по",
-    "sortIdAsc": "ID (най-стари първо)",
-    "sortIdDesc": "ID (най-нови първо)",
-    "sortEmailAsc": "Имейл (А-Я)",
-    "sortEmailDesc": "Имейл (Я-А)",
-    "sortRoleAsc": "Роля (А-Я)",
-    "sortRoleDesc": "Роля (Я-А)",
     "clearFilters": "Изчисти филтрите"
   },
   "userDetails": {
@@ -170,11 +171,6 @@
     "searchByAddress": "Търси по адрес",
     "categoriesButton": "Категории",
     "categoriesCount": "{{count}} категории",
-    "sortBy": "Подреди по",
-    "sortIdAsc": "ID (най-стари първо)",
-    "sortIdDesc": "ID (най-нови първо)",
-    "sortNameAsc": "Име (А-Я)",
-    "sortNameDesc": "Име (Я-А)",
     "clearFilters": "Изчисти филтрите",
     "id": "ID",
     "name": "Име",
@@ -219,7 +215,15 @@
     "errorLoading": "Грешка при зареждане на служителите.",
     "invalidId": "Невалиден ID на заведение.",
     "backToRestaurants": "Назад към заведенията",
-    "userDetailsTooltip": "Детайли за потребителя"
+    "userDetailsTooltip": "Детайли за потребителя",
+    "searchByEmail": "Търси по имейл",
+    "searchByName": "Търси по име",
+    "searchByPhoneNumber": "Търси по телефонен номер",
+    "rolesButton": "Роля",
+    "rolesCount": "{{count}} роли",
+    "rolesDialogTitle": "Филтриране по роля",
+    "sortBy": "Подреди по",
+    "clearFilters": "Изчисти филтрите"
   },
   "addManager": {
     "title": "Добавяне на нов мениджър",
@@ -265,7 +269,15 @@
     "deleteTitle": "Премахване на служител",
     "deleteBody": "Сигурни ли сте, че искате да премахнете служител <bold>{{name}}</bold>? Това действие напълно ще отнеме достъпа му и не може да бъде отменено.",
     "success": "Служителят беше премахнат успешно!",
-    "failure": "Неуспешно премахване на служителя. Моля, опитайте отново."
+    "failure": "Неуспешно премахване на служителя. Моля, опитайте отново.",
+    "searchByEmail": "Търси по имейл",
+    "searchByName": "Търси по име",
+    "searchByPhoneNumber": "Търси по телефонен номер",
+    "rolesButton": "Роля",
+    "rolesCount": "{{count}} роли",
+    "rolesDialogTitle": "Филтриране по роля",
+    "sortBy": "Подреди по",
+    "clearFilters": "Изчисти филтрите"
   },
   "managerRestaurant": {
     "editTitle": "Редакция на заведение",
@@ -303,7 +315,14 @@
     "deleteTitle": "Премахване на маса",
     "deleteBody": "Сигурни ли сте, че искате да премахнете маса <bold>{{name}}</bold>? Това действие напълно ще премахне масата от заведението и не може да бъде отменено.",
     "success": "Масата беше премахната успешно!",
-    "failure": "Неуспешно премахване на масата. Моля, опитайте отново."
+    "failure": "Неуспешно премахване на масата. Моля, опитайте отново.",
+    "searchByName": "Търси по име",
+    "smokingFilterAll": "Всички",
+    "smokingDialogTitle": "Филтриране по пушене",
+    "capacityButton": "Капацитет",
+    "capacityDialogTitle": "Филтриране по капацитет",
+    "sortBy": "Подреди по",
+    "clearFilters": "Изчисти филтрите"
   },
   "addTable": {
     "title": "Добавяне на нова маса",
@@ -349,6 +368,7 @@
     "reservationInformation": "Информация за резервацията",
     "bookingId": "ID на резервация",
     "dateAndTime": "Дата и час",
+    "dateTimeAt": "в",
     "guestsCount": "Брой гости",
     "guest_one": "{{count}} гост",
     "guest_other": "{{count}} гости",
@@ -366,9 +386,12 @@
     "clientName": "Име на клиента",
     "clientFallback": "Клиент",
     "assignTable": "Задай маса и потвърди резервацията",
-    "loadingTables": "Зареждане на наличните маси...",
-    "selectTable": "Избери маса",
-    "tableOption": "{{name}} (Капацитет: {{capacity}}) {{smoking}}",
+    "chooseTable": "Избери маса",
+    "changeTable": "Смени масата",
+    "selectedTableLabel": "Маса {{name}} (Капацитет: {{capacity}})",
+    "tableSelectionDialogTitle": "Избор на маса",
+    "selectTableAction": "Избери",
+    "noMatchingTables": "Няма маси, отговарящи на капацитета и политиката за пушене на тази резервация.",
     "confirmBooking": "Потвърди резервацията",
     "cancel": "Отказ",
     "processBooking": "Обработи резервацията",
@@ -388,8 +411,6 @@
     "completedDialogBody": "Сигурни ли сте, че искате да отбележите резервация <bold>{{id}}</bold> като ЗАВЪРШЕНА? Масата ще бъде освободена.",
     "completedDialogConfirm": "Завърши резервацията",
     "selectTableError": "Моля, изберете маса, за да потвърдите.",
-    "capacityTooSmall": "Капацитетът на масата е твърде малък ({{capacity}} места за {{guestCount}} гости).",
-    "smokingMismatch": "Несъответствие в политиката за пушене (масата е {{tableSmoking}}, но резервацията изисква {{bookingSmoking}}).",
     "cancelSuccess": "Резервацията беше отменена успешно!",
     "cancelFailure": "Неуспешна отмяна на резервацията. Моля, опитайте отново.",
     "arrivedSuccess": "Резервация №{{id}} беше отбелязана като пристигнала успешно!",
@@ -424,7 +445,13 @@
     "cancelDialogBody": "Сигурни ли сте, че искате да отмените резервация <bold>{{id}}</bold>? Това действие не може да бъде отменено.",
     "cancelDialogConfirm": "Отмени резервацията",
     "cancelSuccess": "Резервацията беше отменена успешно!",
-    "cancelFailure": "Неуспешна отмяна на резервацията. Моля, опитайте отново."
+    "cancelFailure": "Неуспешна отмяна на резервацията. Моля, опитайте отново.",
+    "searchByRestaurant": "Търси по име на заведение",
+    "statusButton": "Статус",
+    "statusesCount": "{{count}} статуса",
+    "statusDialogTitle": "Филтриране по статус",
+    "sortBy": "Подреди по",
+    "clearFilters": "Изчисти филтрите"
   },
   "employeeBookings": {
     "title": "Резервации на заведението",
@@ -465,7 +492,13 @@
     "arrivedSuccess": "Резервация №{{id}} беше отбелязана като пристигнала успешно!",
     "arrivedFailure": "Неуспешно отбелязване като пристигнал. Моля, опитайте отново.",
     "completedSuccess": "Резервация №{{id}} беше отбелязана като завършена успешно!",
-    "completedFailure": "Неуспешно отбелязване като завършена. Моля, опитайте отново."
+    "completedFailure": "Неуспешно отбелязване като завършена. Моля, опитайте отново.",
+    "searchByClient": "Търси по име на клиент",
+    "statusButton": "Статус",
+    "statusesCount": "{{count}} статуса",
+    "statusDialogTitle": "Филтриране по статус",
+    "sortBy": "Подреди по",
+    "clearFilters": "Изчисти филтрите"
   },
   "reservation": {
     "errorTitle": "Грешка при зареждане на формата за резервация",

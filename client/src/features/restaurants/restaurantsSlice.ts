@@ -222,8 +222,29 @@ export const restaurantsSlice = api.injectEndpoints({
       query: (id) => `restaurant/restaurants/${id}`,
       providesTags: (result, error, id) => [{ type: 'Restaurants', id }],
     }),
-    getEmployees: builder.query<PaginatedEmployeesResponse, { restaurantId: number; page: number; size: number }>({
-      query: ({ restaurantId, page, size }) => `restaurant/employees?restaurantId=${restaurantId}&page=${page}&size=${size}`,
+    getEmployees: builder.query<
+      PaginatedEmployeesResponse,
+      { restaurantId: number; page: number; size: number; sort?: string; email?: string; name?: string; phoneNumber?: string; roles?: string[] }
+    >({
+      query: ({ restaurantId, page, size, sort = 'id,asc', email, name, phoneNumber, roles }) => {
+        const params = new URLSearchParams();
+        params.set('restaurantId', String(restaurantId));
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (email) {
+          params.set('email', email);
+        }
+        if (name) {
+          params.set('name', name);
+        }
+        if (phoneNumber) {
+          params.set('phoneNumber', phoneNumber);
+        }
+        (roles || []).forEach((role) => params.append('roles', role));
+
+        return `restaurant/employees?${params.toString()}`;
+      },
       providesTags: ['Employees'],
     }),
     getRestaurantForm: builder.query<CategoryResponse[], void>({
@@ -252,8 +273,28 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Restaurants'],
     }),
-    getManagerEmployees: builder.query<PaginatedEmployeesResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `restaurant/employees?page=${page}&size=${size}&sort=id,asc`,
+    getManagerEmployees: builder.query<
+      PaginatedEmployeesResponse,
+      { page: number; size: number; sort?: string; email?: string; name?: string; phoneNumber?: string; roles?: string[] }
+    >({
+      query: ({ page, size, sort = 'id,asc', email, name, phoneNumber, roles }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (email) {
+          params.set('email', email);
+        }
+        if (name) {
+          params.set('name', name);
+        }
+        if (phoneNumber) {
+          params.set('phoneNumber', phoneNumber);
+        }
+        (roles || []).forEach((role) => params.append('roles', role));
+
+        return `restaurant/employees?${params.toString()}`;
+      },
       providesTags: ['Employees'],
     }),
     deleteEmployee: builder.mutation<void, number>({
@@ -263,8 +304,30 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Employees'],
     }),
-    getManagerTables: builder.query<PaginatedTablesResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `restaurant/tables?page=${page}&size=${size}&sort=id,asc`,
+    getManagerTables: builder.query<
+      PaginatedTablesResponse,
+      { page: number; size: number; sort?: string; name?: string; isSmokingAllowed?: boolean; minCapacity?: number; maxCapacity?: number }
+    >({
+      query: ({ page, size, sort = 'id,asc', name, isSmokingAllowed, minCapacity, maxCapacity }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (name) {
+          params.set('name', name);
+        }
+        if (isSmokingAllowed !== undefined) {
+          params.set('isSmokingAllowed', String(isSmokingAllowed));
+        }
+        if (minCapacity !== undefined) {
+          params.set('minCapacity', String(minCapacity));
+        }
+        if (maxCapacity !== undefined) {
+          params.set('maxCapacity', String(maxCapacity));
+        }
+
+        return `restaurant/tables?${params.toString()}`;
+      },
       providesTags: ['Tables'],
     }),
     createTable: builder.mutation<RestaurantTableResponse, RestaurantTableRequest>({
@@ -290,8 +353,28 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Tables'],
     }),
-    getClientBookings: builder.query<PaginatedBookingsResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `booking/bookings?page=${page}&size=${size}&sort=id,desc`,
+    getClientBookings: builder.query<
+      PaginatedBookingsResponse,
+      { page: number; size: number; sort?: string; statuses?: string[]; restaurantName?: string; from?: string; to?: string }
+    >({
+      query: ({ page, size, sort = 'id,desc', statuses, restaurantName, from, to }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        (statuses || []).forEach((status) => params.append('statuses', status));
+        if (restaurantName) {
+          params.set('restaurantName', restaurantName);
+        }
+        if (from) {
+          params.set('from', from);
+        }
+        if (to) {
+          params.set('to', to);
+        }
+
+        return `booking/bookings?${params.toString()}`;
+      },
       providesTags: ['Bookings'],
     }),
     createBooking: builder.mutation<BookingClientResponse, BookingClientRequest>({
@@ -309,8 +392,28 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Bookings'],
     }),
-    getRestaurantBookings: builder.query<PaginatedEmployeeBookingsResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `booking/bookings/restaurant?page=${page}&size=${size}&sort=id,desc`,
+    getRestaurantBookings: builder.query<
+      PaginatedEmployeeBookingsResponse,
+      { page: number; size: number; sort?: string; statuses?: string[]; clientName?: string; from?: string; to?: string }
+    >({
+      query: ({ page, size, sort = 'id,desc', statuses, clientName, from, to }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        (statuses || []).forEach((status) => params.append('statuses', status));
+        if (clientName) {
+          params.set('clientName', clientName);
+        }
+        if (from) {
+          params.set('from', from);
+        }
+        if (to) {
+          params.set('to', to);
+        }
+
+        return `booking/bookings/restaurant?${params.toString()}`;
+      },
       providesTags: ['Bookings'],
     }),
     confirmBooking: builder.mutation<any, { bookingId: number; body: BookingConfirmRequest }>({

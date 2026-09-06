@@ -22,7 +22,16 @@
     "lastName": "Last Name",
     "error": "Error",
     "loading": "Loading...",
-    "generalCategory": "General"
+    "generalCategory": "General",
+    "sortByField": "Sort by",
+    "sortDirection": "Direction",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "dateRange": "Date range",
+    "fromDate": "From date",
+    "toDate": "To date",
+    "fromCapacity": "Min capacity",
+    "toCapacity": "Max capacity"
   },
   "appBar": {
     "brand": "SpotOn",
@@ -62,9 +71,7 @@
     "clearFilters": "Clear filters",
     "noResultsFound": "No restaurants match your filters.",
     "noResultsFoundBody": "Try adjusting your search or clearing the filters.",
-    "sortDialogTitle": "Sort by",
-    "sortNameAsc": "Name (A-Z)",
-    "sortNameDesc": "Name (Z-A)"
+    "sortDialogTitle": "Sort by"
   },
   "login": {
     "title": "Login",
@@ -142,12 +149,6 @@
     "rolesCount": "{{count}} roles",
     "rolesDialogTitle": "Filter by role",
     "sortBy": "Sort by",
-    "sortIdAsc": "ID (oldest first)",
-    "sortIdDesc": "ID (newest first)",
-    "sortEmailAsc": "Email (A-Z)",
-    "sortEmailDesc": "Email (Z-A)",
-    "sortRoleAsc": "Role (A-Z)",
-    "sortRoleDesc": "Role (Z-A)",
     "clearFilters": "Clear filters"
   },
   "userDetails": {
@@ -170,11 +171,6 @@
     "searchByAddress": "Search by address",
     "categoriesButton": "Categories",
     "categoriesCount": "{{count}} categories",
-    "sortBy": "Sort by",
-    "sortIdAsc": "ID (oldest first)",
-    "sortIdDesc": "ID (newest first)",
-    "sortNameAsc": "Name (A-Z)",
-    "sortNameDesc": "Name (Z-A)",
     "clearFilters": "Clear filters",
     "id": "ID",
     "name": "Name",
@@ -219,7 +215,15 @@
     "errorLoading": "Error loading employees.",
     "invalidId": "Invalid Restaurant ID.",
     "backToRestaurants": "Back to Restaurants",
-    "userDetailsTooltip": "User Details"
+    "userDetailsTooltip": "User Details",
+    "searchByEmail": "Search by email",
+    "searchByName": "Search by name",
+    "searchByPhoneNumber": "Search by phone number",
+    "rolesButton": "Role",
+    "rolesCount": "{{count}} roles",
+    "rolesDialogTitle": "Filter by role",
+    "sortBy": "Sort by",
+    "clearFilters": "Clear filters"
   },
   "addManager": {
     "title": "Add New Manager",
@@ -265,7 +269,15 @@
     "deleteTitle": "Remove Employee",
     "deleteBody": "Are you sure you want to remove employee <bold>{{name}}</bold>? This action will completely revoke their access and cannot be undone.",
     "success": "Employee removed successfully!",
-    "failure": "Failed to remove employee. Please try again."
+    "failure": "Failed to remove employee. Please try again.",
+    "searchByEmail": "Search by email",
+    "searchByName": "Search by name",
+    "searchByPhoneNumber": "Search by phone number",
+    "rolesButton": "Role",
+    "rolesCount": "{{count}} roles",
+    "rolesDialogTitle": "Filter by role",
+    "sortBy": "Sort by",
+    "clearFilters": "Clear filters"
   },
   "managerRestaurant": {
     "editTitle": "Edit Restaurant",
@@ -303,7 +315,14 @@
     "deleteTitle": "Remove Table",
     "deleteBody": "Are you sure you want to remove table <bold>{{name}}</bold>? This action will completely remove the table from the restaurant and cannot be undone.",
     "success": "Table removed successfully!",
-    "failure": "Failed to remove table. Please try again."
+    "failure": "Failed to remove table. Please try again.",
+    "searchByName": "Search by name",
+    "smokingFilterAll": "All",
+    "smokingDialogTitle": "Filter by smoking policy",
+    "capacityButton": "Capacity",
+    "capacityDialogTitle": "Filter by capacity",
+    "sortBy": "Sort by",
+    "clearFilters": "Clear filters"
   },
   "addTable": {
     "title": "Add New Table",
@@ -349,6 +368,7 @@
     "reservationInformation": "Reservation Information",
     "bookingId": "Booking ID",
     "dateAndTime": "Date & Time",
+    "dateTimeAt": "at",
     "guestsCount": "Guests Count",
     "guest_one": "{{count}} guest",
     "guest_other": "{{count}} guests",
@@ -366,9 +386,12 @@
     "clientName": "Client Name",
     "clientFallback": "Client",
     "assignTable": "Assign Table & Confirm Reservation",
-    "loadingTables": "Loading available tables...",
-    "selectTable": "Select Table",
-    "tableOption": "{{name}} (Capacity: {{capacity}}) {{smoking}}",
+    "chooseTable": "Choose Table",
+    "changeTable": "Change Table",
+    "selectedTableLabel": "Table {{name}} (Capacity: {{capacity}})",
+    "tableSelectionDialogTitle": "Select a Table",
+    "selectTableAction": "Select",
+    "noMatchingTables": "No tables match this reservation's capacity and smoking policy.",
     "confirmBooking": "Confirm Booking",
     "cancel": "Cancel",
     "processBooking": "Process Booking",
@@ -388,8 +411,6 @@
     "completedDialogBody": "Are you sure you want to mark reservation <bold>{{id}}</bold> as COMPLETED? The table will be freed.",
     "completedDialogConfirm": "Complete Booking",
     "selectTableError": "Please select a table to confirm.",
-    "capacityTooSmall": "Table capacity is too small ({{capacity}} seats for {{guestCount}} guests).",
-    "smokingMismatch": "Smoking policy mismatch (Table is {{tableSmoking}}, but reservation requires {{bookingSmoking}}).",
     "cancelSuccess": "Reservation cancelled successfully!",
     "cancelFailure": "Failed to cancel reservation. Please try again.",
     "arrivedSuccess": "Booking #{{id}} marked as arrived successfully!",
@@ -424,7 +445,13 @@
     "cancelDialogBody": "Are you sure you want to cancel reservation <bold>{{id}}</bold>? This action cannot be undone.",
     "cancelDialogConfirm": "Cancel Booking",
     "cancelSuccess": "Reservation cancelled successfully!",
-    "cancelFailure": "Failed to cancel reservation. Please try again."
+    "cancelFailure": "Failed to cancel reservation. Please try again.",
+    "searchByRestaurant": "Search by restaurant name",
+    "statusButton": "Status",
+    "statusesCount": "{{count}} statuses",
+    "statusDialogTitle": "Filter by status",
+    "sortBy": "Sort by",
+    "clearFilters": "Clear filters"
   },
   "employeeBookings": {
     "title": "Restaurant Bookings",
@@ -465,7 +492,13 @@
     "arrivedSuccess": "Booking #{{id}} marked as arrived successfully!",
     "arrivedFailure": "Failed to mark as arrived. Please try again.",
     "completedSuccess": "Booking #{{id}} marked as completed successfully!",
-    "completedFailure": "Failed to mark as completed. Please try again."
+    "completedFailure": "Failed to mark as completed. Please try again.",
+    "searchByClient": "Search by client name",
+    "statusButton": "Status",
+    "statusesCount": "{{count}} statuses",
+    "statusDialogTitle": "Filter by status",
+    "sortBy": "Sort by",
+    "clearFilters": "Clear filters"
   },
   "reservation": {
     "errorTitle": "Error Loading Reservation Form",
