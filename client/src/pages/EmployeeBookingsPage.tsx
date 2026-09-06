@@ -38,6 +38,7 @@ import {
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 import PersonIcon from '@mui/icons-material/Person';
 import InfoIcon from '@mui/icons-material/Info';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -646,13 +647,19 @@ const EmployeeBookingsPage: React.FC = () => {
                         <TableCell>{t('employeeBookings.guest', { count: booking.guestCount })}</TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {booking.isSmoking ? (
+                            {booking.isSmoking === null ? (
+                              <AllInclusiveIcon color="action" fontSize="small" />
+                            ) : booking.isSmoking ? (
                               <SmokingRoomsIcon color="success" fontSize="small" />
                             ) : (
                               <SmokeFreeIcon color="action" fontSize="small" />
                             )}
                             <Typography variant="caption" color="text.secondary">
-                              {booking.isSmoking ? t('employeeBookings.smokingAllowed') : t('employeeBookings.nonSmoking')}
+                              {booking.isSmoking === null
+                                ? t('employeeBookings.smokingAny')
+                                : booking.isSmoking
+                                  ? t('employeeBookings.smokingAllowed')
+                                  : t('employeeBookings.nonSmoking')}
                             </Typography>
                           </Box>
                         </TableCell>

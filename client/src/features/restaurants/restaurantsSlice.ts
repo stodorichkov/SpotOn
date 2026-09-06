@@ -15,7 +15,7 @@ export interface RestaurantContactResponse {
 export interface BookingClientRequest {
   restaurantId: number;
   guestCount: number;
-  isSmoking: boolean;
+  isSmoking: boolean | null;
   dateTime: string;
 }
 
@@ -28,7 +28,7 @@ export interface BookingClientResponse {
   status: string;
   restaurant: RestaurantContactResponse;
   guestCount: number;
-  isSmoking: boolean;
+  isSmoking: boolean | null;
   dateTime: string;
 }
 
@@ -52,7 +52,7 @@ export interface BookingEmployeeResponse {
   status: string;
   client: ClientContactResponse;
   guestCount: number;
-  isSmoking: boolean;
+  isSmoking: boolean | null;
   dateTime: string;
 }
 
@@ -163,6 +163,7 @@ export interface RestaurantDetailsResponse {
   phoneNumber: string;
   isOpen: boolean;
   workingHours: WorkingHoursEntry[];
+  reservationDurationMinutes: number;
 }
 
 export interface RestaurantStatusRequest {
@@ -171,6 +172,10 @@ export interface RestaurantStatusRequest {
 
 export interface RestaurantWorkingHoursRequest {
   workingHours: WorkingHoursEntry[];
+}
+
+export interface RestaurantReservationDurationRequest {
+  reservationDurationMinutes: number;
 }
 
 export interface RestaurantTableResponse {
@@ -314,6 +319,14 @@ export const restaurantsSlice = api.injectEndpoints({
       query: (body) => ({
         url: 'restaurant/profile/working-hours',
         method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Restaurants'],
+    }),
+    updateReservationDuration: builder.mutation<RestaurantDetailsResponse, RestaurantReservationDurationRequest>({
+      query: (body) => ({
+        url: 'restaurant/profile/reservation-duration',
+        method: 'PATCH',
         body,
       }),
       invalidatesTags: ['Restaurants'],
@@ -498,4 +511,4 @@ export const restaurantsSlice = api.injectEndpoints({
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useUpdateReservationDurationMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;

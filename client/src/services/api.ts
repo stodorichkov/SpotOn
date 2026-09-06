@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { RootState } from '../store/store';
 import { logout } from '../features/auth/authSlice';
 import { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import i18n from '../i18n';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API_URL,
@@ -9,6 +10,9 @@ const baseQuery = fetchBaseQuery({
     const token = (getState() as RootState).auth.token;
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
+    }
+    if (i18n.language) {
+      headers.set('Accept-Language', i18n.language);
     }
     return headers;
   },

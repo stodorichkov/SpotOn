@@ -39,6 +39,7 @@ import TableBarIcon from '@mui/icons-material/TableBar';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 
 interface RestaurantContact {
   id: number;
@@ -60,7 +61,7 @@ interface Booking {
   restaurant?: RestaurantContact;
   client?: ClientContact;
   guestCount: number;
-  isSmoking: boolean;
+  isSmoking: boolean | null;
   dateTime: string;
 }
 
@@ -394,7 +395,9 @@ const BookingDetailPage: React.FC = () => {
             {/* Smoking Policy */}
             <Grid item xs={12} sm={6}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                {booking.isSmoking ? (
+                {booking.isSmoking === null ? (
+                  <AllInclusiveIcon color="action" sx={{ mt: 0.5, fontSize: 28 }} />
+                ) : booking.isSmoking ? (
                   <SmokingRoomsIcon color="success" sx={{ mt: 0.5, fontSize: 28 }} />
                 ) : (
                   <SmokeFreeIcon color="action" sx={{ mt: 0.5, fontSize: 28 }} />
@@ -404,7 +407,11 @@ const BookingDetailPage: React.FC = () => {
                     {t('bookingDetail.smokingPolicy')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {booking.isSmoking ? t('bookingDetail.smokingAllowed') : t('bookingDetail.nonSmoking')}
+                    {booking.isSmoking === null
+                      ? t('bookingDetail.smokingAny')
+                      : booking.isSmoking
+                        ? t('bookingDetail.smokingAllowed')
+                        : t('bookingDetail.nonSmoking')}
                   </Typography>
                 </Box>
               </Box>

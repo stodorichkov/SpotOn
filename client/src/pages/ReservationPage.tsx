@@ -13,10 +13,13 @@ import {
   Divider,
   Button,
   TextField,
-  Switch,
+  ToggleButtonGroup,
+  ToggleButton,
   CircularProgress,
-  IconButton
+  IconButton,
+  useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
@@ -31,6 +34,8 @@ import { format } from 'date-fns';
 
 const ReservationPage: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { id } = useParams<{ id: string }>();
   const restaurantId = Number(id);
   const navigate = useNavigate();
@@ -48,7 +53,7 @@ const ReservationPage: React.FC = () => {
 
   const [guests, setGuests] = useState<number | ''>(1);
   const [dateTime, setDateTime] = useState<Date | null>(new Date());
-  const [smoking, setSmoking] = useState(false);
+  const [smoking, setSmoking] = useState<boolean | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const handleGuestsChange = (val: string) => {
@@ -130,39 +135,7 @@ const ReservationPage: React.FC = () => {
     );
   }
 
-  const customSwitchIcon = (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 20,
-        height: 20,
-        borderRadius: '50%',
-        backgroundColor: '#ffffff',
-        boxShadow: 2,
-      }}
-    >
-      <SmokeFreeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-    </Box>
-  );
-
-  const customSwitchCheckedIcon = (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 20,
-        height: 20,
-        borderRadius: '50%',
-        backgroundColor: '#ffffff',
-        boxShadow: 2,
-      }}
-    >
-      <SmokingRoomsIcon sx={{ fontSize: 14, color: 'primary.main' }} />
-    </Box>
-  );
+  const smokingValue = smoking === null ? 'any' : smoking ? 'smoking' : 'nonSmoking';
 
   return (
     <Container maxWidth="md" sx={{ mt: { xs: 3, sm: 5 }, mb: 6, px: { xs: 1, sm: 2 } }}>
@@ -265,32 +238,34 @@ const ReservationPage: React.FC = () => {
                 />
               </Grid>
 
-              {/* Smoking Switch */}
+              {/* Smoking Preference */}
               <Grid item xs={12}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    px: 1,
-                    py: 1,
+                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1, color: 'text.secondary', ml: 0.5 }}>
+                  {t('reservation.smokingPreference')}
+                </Typography>
+                <ToggleButtonGroup
+                  value={smokingValue}
+                  exclusive
+                  fullWidth
+                  orientation={isMobile ? 'vertical' : 'horizontal'}
+                  onChange={(e, value) => {
+                    if (value !== null) {
+                      setSmoking(value === 'any' ? null : value === 'smoking');
+                    }
                   }}
                 >
-                  <Typography variant="body1" color="text.secondary">
-                    {t('reservation.smokingAllowed')}
-                  </Typography>
-                  <Switch
-                    checked={smoking}
-                    onChange={(e) => setSmoking(e.target.checked)}
-                    color="primary"
-                    icon={customSwitchIcon}
-                    checkedIcon={customSwitchCheckedIcon}
-                    sx={{
-                      transform: 'scale(1.4)',
-                      marginRight: 1,
-                    }}
-                  />
-                </Box>
+                  <ToggleButton value="any" sx={{ textTransform: 'none', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    {t('reservation.smokingAny')}
+                  </ToggleButton>
+                  <ToggleButton value="nonSmoking" sx={{ textTransform: 'none', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    <SmokeFreeIcon sx={{ mr: 1, fontSize: 20 }} />
+                    {t('reservation.smokingNonSmoking')}
+                  </ToggleButton>
+                  <ToggleButton value="smoking" sx={{ textTransform: 'none', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    <SmokingRoomsIcon sx={{ mr: 1, fontSize: 20 }} />
+                    {t('reservation.smokingSmoking')}
+                  </ToggleButton>
+                </ToggleButtonGroup>
               </Grid>
 
               {/* Combined Date & Time Input */}
@@ -325,7 +300,7 @@ const ReservationPage: React.FC = () => {
             </Grid>
 
             {/* Buttons Aligned Left */}
-            <Box sx={{ mt: 5, display: 'flex', gap: 2, justifyContent: 'flex-start' }}>
+            <Box sx={{ mt: 5, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'flex-start' }}>
               <Button
                 type="submit"
                 variant="contained"
@@ -337,7 +312,8 @@ const ReservationPage: React.FC = () => {
                   fontWeight: 'bold',
                   borderRadius: 2.5,
                   px: 4,
-                  py: 1
+                  py: 1,
+                  width: { xs: '100%', sm: 'auto' }
                 }}
               >
                 {t('reservation.confirmReservation')}
@@ -352,7 +328,8 @@ const ReservationPage: React.FC = () => {
                   fontWeight: 'bold',
                   borderRadius: 2.5,
                   px: 4,
-                  py: 1
+                  py: 1,
+                  width: { xs: '100%', sm: 'auto' }
                 }}
               >
                 {t('reservation.cancel')}

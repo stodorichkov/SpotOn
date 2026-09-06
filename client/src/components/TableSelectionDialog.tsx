@@ -29,7 +29,7 @@ interface TableSelectionDialogProps {
   onClose: () => void;
   title: string;
   minCapacity: number;
-  isSmokingAllowed: boolean;
+  isSmokingAllowed: boolean | null;
   onSelect: (table: RestaurantTableResponse) => void;
 }
 
@@ -47,7 +47,7 @@ const TableSelectionDialog: React.FC<TableSelectionDialogProps> = ({
   const [page, setPage] = useState(0);
 
   const { data, isFetching } = useGetManagerTablesQuery(
-    { page, size: ROWS_PER_PAGE, isSmokingAllowed, minCapacity },
+    { page, size: ROWS_PER_PAGE, isSmokingAllowed: isSmokingAllowed ?? undefined, minCapacity },
     { skip: !open }
   );
 

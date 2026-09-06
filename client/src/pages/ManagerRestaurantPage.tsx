@@ -5,6 +5,7 @@ import {
   useUpdateRestaurantProfileMutation,
   useUpdateRestaurantStatusMutation,
   useUpdateWorkingHoursMutation,
+  useUpdateReservationDurationMutation,
   DayOfWeek,
   WorkingHoursEntry
 } from '../features/restaurants/restaurantsSlice';
@@ -39,6 +40,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
@@ -94,6 +96,7 @@ const ManagerRestaurantPage: React.FC = () => {
   const [updateRestaurant, { isLoading: isSaving }] = useUpdateRestaurantProfileMutation();
   const [updateRestaurantStatus, { isLoading: isUpdatingStatus }] = useUpdateRestaurantStatusMutation();
   const [updateWorkingHours, { isLoading: isSavingHours }] = useUpdateWorkingHoursMutation();
+  const [updateReservationDuration, { isLoading: isSavingDuration }] = useUpdateReservationDurationMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
@@ -105,6 +108,10 @@ const ManagerRestaurantPage: React.FC = () => {
   const [isEditingHours, setIsEditingHours] = useState(false);
   const [workingHoursDraft, setWorkingHoursDraft] = useState<WorkingHoursDraftEntry[]>([]);
   const [hoursErrors, setHoursErrors] = useState<Record<string, string>>({});
+
+  const [isEditingDuration, setIsEditingDuration] = useState(false);
+  const [durationInput, setDurationInput] = useState('');
+  const [durationError, setDurationError] = useState('');
 
   const { data: availableCategories = [], isLoading: isLoadingCategories } = useGetRestaurantFormQuery(
     undefined,
@@ -258,6 +265,49 @@ const ManagerRestaurantPage: React.FC = () => {
         type: 'error'
       }));
     }
+  };
+
+  const handleStartEditDuration = () => {
+    setDurationInput(restaurant ? String(restaurant.reservationDurationMinutes) : '');
+    setDurationError('');
+    setIsEditingDuration(true);
+  };
+
+  const handleCancelEditDuration = () => {
+    setIsEditingDuration(false);
+    setDurationError('');
+  };
+
+  const handleSaveDuration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const minutes = Number(durationInput);
+
+    if (!durationInput.trim() || !Number.isInteger(minutes) || minutes < 1) {
+      setDurationError(t('managerRestaurant.invalidReservationDuration'));
+      return;
+    }
+
+    try {
+      await updateReservationDuration({ reservationDurationMinutes: minutes }).unwrap();
+      dispatch(addAlert({ message: t('managerRestaurant.reservationDurationSuccess'), type: 'success' }));
+      setIsEditingDuration(false);
+      refetch();
+    } catch (err: any) {
+      console.error('Failed to update reservation duration:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || t('managerRestaurant.reservationDurationFailure'),
+        type: 'error'
+      }));
+    }
+  };
+
+  const formatReservationDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const parts: string[] = [];
+    if (hours > 0) parts.push(`${hours}${t('managerRestaurant.hoursShort')}`);
+    if (mins > 0) parts.push(`${mins}${t('managerRestaurant.minutesShort')}`);
+    return parts.length > 0 ? parts.join(' ') : `0${t('managerRestaurant.minutesShort')}`;
   };
 
   const hasChanges = restaurant && (
@@ -753,6 +803,78 @@ const ManagerRestaurantPage: React.FC = () => {
                 );
               })}
             </Grid>
+          )}
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" fontWeight="bold" color="text.secondary">
+              {t('managerRestaurant.reservationDurationTitle')}
+            </Typography>
+            {!isEditingDuration && (
+              <IconButton onClick={handleStartEditDuration} color="primary">
+                <EditIcon />
+              </IconButton>
+            )}
+          </Box>
+
+          {isEditingDuration ? (
+            <Box component="form" onSubmit={handleSaveDuration} noValidate>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {t('managerRestaurant.reservationDurationHint')}
+              </Typography>
+              <TextField
+                required
+                fullWidth
+                type="number"
+                label={t('managerRestaurant.reservationDurationLabel')}
+                value={durationInput}
+                onChange={(e) => {
+                  setDurationInput(e.target.value);
+                  if (durationError) setDurationError('');
+                }}
+                error={!!durationError}
+                helperText={durationError}
+                inputProps={{ min: 1 }}
+                sx={{ maxWidth: 360, '& .MuiOutlinedInput-root': { borderRadius: 2.5 } }}
+              />
+              <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+                <Button
+                  type="submit"
+                  startIcon={isSavingDuration ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                  disabled={isSavingDuration}
+                  variant="contained"
+                  color="primary"
+                  sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                >
+                  {t('managerRestaurant.save')}
+                </Button>
+                <Button
+                  startIcon={<CancelIcon />}
+                  onClick={handleCancelEditDuration}
+                  variant="outlined"
+                  color="inherit"
+                  disabled={isSavingDuration}
+                  sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                >
+                  {t('managerRestaurant.cancel')}
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+              <HourglassBottomIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                  {t('managerRestaurant.reservationDurationLabel')}
+                </Typography>
+                <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                  {formatReservationDuration(restaurant.reservationDurationMinutes)}
+                </Typography>
+              </Box>
+            </Box>
           )}
         </Box>
       </Paper>
