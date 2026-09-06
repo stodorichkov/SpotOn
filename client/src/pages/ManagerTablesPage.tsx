@@ -66,6 +66,8 @@ const ManagerTablesPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tableToDelete, setTableToDelete] = useState<{ id: number; name: string } | null>(null);
 
+  const [idInput, setIdInput] = useState('');
+  const [id, setId] = useState<number | undefined>(undefined);
   const [nameInput, setNameInput] = useState('');
   const [name, setName] = useState('');
 
@@ -87,6 +89,15 @@ const ManagerTablesPage: React.FC = () => {
     { value: 'name', label: t('common.name') },
     { value: 'capacity', label: t('managerTables.capacity') },
   ];
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const trimmed = idInput.trim();
+      setId(trimmed === '' ? undefined : Number(trimmed));
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [idInput]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -146,9 +157,10 @@ const ManagerTablesPage: React.FC = () => {
     return minCapacity !== null ? `${t('common.fromCapacity')}: ${minCapacity}` : `${t('common.toCapacity')}: ${maxCapacity}`;
   })();
 
-  const hasActiveFilters = nameInput !== '' || smokingFilter !== 'all' || minCapacity !== null || maxCapacity !== null;
+  const hasActiveFilters = idInput !== '' || nameInput !== '' || smokingFilter !== 'all' || minCapacity !== null || maxCapacity !== null;
 
   const handleClearFilters = () => {
+    setIdInput('');
     setNameInput('');
     setSmokingFilter('all');
     setMinCapacity(null);
@@ -197,6 +209,7 @@ const ManagerTablesPage: React.FC = () => {
     page,
     size: rowsPerPage,
     sort,
+    id,
     name: name || undefined,
     isSmokingAllowed,
     minCapacity: minCapacity ?? undefined,
@@ -287,6 +300,14 @@ const ManagerTablesPage: React.FC = () => {
         </Box>
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('managerTables.searchById')}
+            size="small"
+            type="number"
+            value={idInput}
+            onChange={(e) => setIdInput(e.target.value)}
+            sx={{ minWidth: 100, flex: '0 1 100px' }}
+          />
           <TextField
             label={t('managerTables.searchByName')}
             size="small"

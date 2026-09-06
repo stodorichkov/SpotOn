@@ -36,7 +36,11 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import SortIcon from '@mui/icons-material/Sort';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortDialog, { SortDirection } from '../components/SortDialog';
+
+type StatusFilter = 'all' | 'open' | 'closed';
+const STATUS_FILTER_OPTIONS: StatusFilter[] = ['all', 'open', 'closed'];
 
 const RestaurantCardSkeleton: React.FC = () => (
   <Card sx={{ height: '100%', borderRadius: 3, display: 'flex', flexDirection: 'column' }}>
@@ -74,6 +78,9 @@ const HomePage: React.FC = () => {
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [draftCategoryIds, setDraftCategoryIds] = useState<number[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [draftStatusFilter, setDraftStatusFilter] = useState<StatusFilter>('all');
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const sort = `${sortField},${sortDirection}`;
@@ -102,7 +109,9 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     setPage(0);
     setItems([]);
-  }, [name, address, categoryIds, sort]);
+  }, [name, address, categoryIds, statusFilter, sort]);
+
+  const isOpen = statusFilter === 'all' ? undefined : statusFilter === 'open';
 
   const { data, isFetching, error } = useGetRestaurantsQuery({
     page,
@@ -111,6 +120,7 @@ const HomePage: React.FC = () => {
     name: name || undefined,
     address: address || undefined,
     categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
+    isOpen,
   });
 
   useEffect(() => {
@@ -194,7 +204,32 @@ const HomePage: React.FC = () => {
     return t('home.categoriesCount', { count: categoryIds.length });
   })();
 
-  const hasActiveFilters = nameInput !== '' || addressInput !== '' || categoryIds.length > 0;
+  const handleOpenStatusDialog = () => {
+    setDraftStatusFilter(statusFilter);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleCloseStatusDialog = () => {
+    setIsStatusDialogOpen(false);
+  };
+
+  const handleApplyStatusDialog = () => {
+    setStatusFilter(draftStatusFilter);
+    setIsStatusDialogOpen(false);
+  };
+
+  const statusFilterLabel = (() => {
+    switch (statusFilter) {
+      case 'open':
+        return t('home.statusOpen');
+      case 'closed':
+        return t('home.statusClosed');
+      default:
+        return t('home.statusFilterAll');
+    }
+  })();
+
+  const hasActiveFilters = nameInput !== '' || addressInput !== '' || categoryIds.length > 0 || statusFilter !== 'all';
 
   const handleClearFilters = () => {
     setNameInput('');
@@ -202,6 +237,7 @@ const HomePage: React.FC = () => {
     setName('');
     setAddress('');
     setCategoryIds([]);
+    setStatusFilter('all');
   };
 
   if (error) {
@@ -291,6 +327,23 @@ const HomePage: React.FC = () => {
             {categoryIds.length === 0 ? t('home.categoriesButton') : categoryFieldValue}
           </Button>
           <Button
+            variant={statusFilter !== 'all' ? 'contained' : 'outlined'}
+            color={statusFilter !== 'all' ? 'primary' : 'inherit'}
+            onClick={handleOpenStatusDialog}
+            startIcon={<FilterAltIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {statusFilterLabel}
+          </Button>
+          <Button
             variant="outlined"
             color="inherit"
             onClick={handleOpenSortDialog}
@@ -378,6 +431,68 @@ const HomePage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      <Dialog open={isStatusDialogOpen} onClose={handleCloseStatusDialog} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+          {t('home.statusDialogTitle')}
+          <IconButton
+            onClick={handleCloseStatusDialog}
+            size="small"
+            sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {STATUS_FILTER_OPTIONS.map((option) => {
+              const isSelected = draftStatusFilter === option;
+              const label = option === 'all'
+                ? t('home.statusFilterAll')
+                : option === 'open'
+                  ? t('home.statusOpen')
+                  : t('home.statusClosed');
+              return (
+                <Chip
+                  key={option}
+                  label={label}
+                  onClick={() => setDraftStatusFilter(option)}
+                  color={isSelected ? (option === 'closed' ? 'error' : option === 'open' ? 'success' : 'primary') : undefined}
+                  variant={isSelected ? 'filled' : 'outlined'}
+                  sx={{
+                    fontWeight: isSelected ? 'bold' : 'normal',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    }
+                  }}
+                />
+              );
+            })}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
+          <Button
+            onClick={() => setDraftStatusFilter('all')}
+            variant="contained"
+            color="error"
+            startIcon={<ClearIcon />}
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
+          >
+            {t('common.clear')}
+          </Button>
+          <Button
+            onClick={handleApplyStatusDialog}
+            variant="contained"
+            color="primary"
+            startIcon={<CheckIcon />}
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
+          >
+            {t('common.apply')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <SortDialog
         open={isSortDialogOpen}
         onClose={handleCloseSortDialog}
@@ -449,9 +564,17 @@ const HomePage: React.FC = () => {
 
                       {/* Card Content */}
                       <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                        <Typography variant="h5" component="h2" fontWeight="bold" gutterBottom>
-                          {restaurant.name}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+                          <Typography variant="h5" component="h2" fontWeight="bold" gutterBottom>
+                            {restaurant.name}
+                          </Typography>
+                          <Chip
+                            label={restaurant.isOpen ? t('home.statusOpen') : t('home.statusClosed')}
+                            color={restaurant.isOpen ? 'success' : 'error'}
+                            size="small"
+                            sx={{ fontWeight: 'bold', flexShrink: 0 }}
+                          />
+                        </Box>
 
                         {restaurant.address && (
                           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 0.5 }}>

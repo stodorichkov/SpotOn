@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useGetRestaurantProfileQuery, useGetRestaurantFormQuery, useUpdateRestaurantProfileMutation } from '../features/restaurants/restaurantsSlice';
+import {
+  useGetRestaurantProfileQuery,
+  useGetRestaurantFormQuery,
+  useUpdateRestaurantProfileMutation,
+  useUpdateRestaurantStatusMutation,
+  useUpdateWorkingHoursMutation,
+  DayOfWeek,
+  WorkingHoursEntry
+} from '../features/restaurants/restaurantsSlice';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { addAlert } from '../features/alerts/alertsSlice';
@@ -17,7 +25,11 @@ import {
   IconButton,
   TextField,
   Button,
-  CircularProgress
+  CircularProgress,
+  ToggleButtonGroup,
+  ToggleButton,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -26,12 +38,62 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { bg } from 'date-fns/locale/bg';
+import { enGB } from 'date-fns/locale/en-GB';
+import { format } from 'date-fns';
+import { DAYS_OF_WEEK, formatWorkingHoursTime } from '../utils/workingHours';
+
+interface WorkingHoursDraftEntry {
+  dayOfWeek: DayOfWeek;
+  closed: boolean;
+  openTime: Date | null;
+  closeTime: Date | null;
+}
+
+const timeStringToDate = (time: string | null | undefined): Date | null => {
+  if (!time) return null;
+  const [hours, minutes] = time.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+};
+
+const dateToTimeString = (date: Date | null): string | null => {
+  if (!date) return null;
+  return format(date, 'HH:mm');
+};
+
+const buildWorkingHoursDraft = (existing?: WorkingHoursEntry[]): WorkingHoursDraftEntry[] => {
+  return DAYS_OF_WEEK.map((day) => {
+    const found = existing?.find((entry) => entry.dayOfWeek === day);
+    if (found) {
+      return {
+        dayOfWeek: day,
+        closed: found.closed,
+        openTime: timeStringToDate(found.openTime),
+        closeTime: timeStringToDate(found.closeTime)
+      };
+    }
+    return {
+      dayOfWeek: day,
+      closed: false,
+      openTime: timeStringToDate('09:00'),
+      closeTime: timeStringToDate('18:00')
+    };
+  });
+};
 
 const ManagerRestaurantPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const { data: restaurant, isLoading, error, refetch } = useGetRestaurantProfileQuery();
   const [updateRestaurant, { isLoading: isSaving }] = useUpdateRestaurantProfileMutation();
+  const [updateRestaurantStatus, { isLoading: isUpdatingStatus }] = useUpdateRestaurantStatusMutation();
+  const [updateWorkingHours, { isLoading: isSavingHours }] = useUpdateWorkingHoursMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
@@ -39,6 +101,10 @@ const ManagerRestaurantPage: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [isEditingHours, setIsEditingHours] = useState(false);
+  const [workingHoursDraft, setWorkingHoursDraft] = useState<WorkingHoursDraftEntry[]>([]);
+  const [hoursErrors, setHoursErrors] = useState<Record<string, string>>({});
 
   const { data: availableCategories = [], isLoading: isLoadingCategories } = useGetRestaurantFormQuery(
     undefined,
@@ -106,6 +172,89 @@ const ManagerRestaurantPage: React.FC = () => {
       console.error('Failed to update restaurant:', err);
       dispatch(addAlert({
         message: err?.data?.message || t('managerRestaurant.failure'),
+        type: 'error'
+      }));
+    }
+  };
+
+  const handleToggleStatus = async (isOpen: boolean) => {
+    try {
+      await updateRestaurantStatus({ isOpen }).unwrap();
+      dispatch(addAlert({
+        message: isOpen ? t('managerRestaurant.statusOpenSuccess') : t('managerRestaurant.statusClosedSuccess'),
+        type: 'success'
+      }));
+      refetch();
+    } catch (err: any) {
+      console.error('Failed to update restaurant status:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || t('managerRestaurant.statusFailure'),
+        type: 'error'
+      }));
+    }
+  };
+
+  const handleStartEditHours = () => {
+    setWorkingHoursDraft(buildWorkingHoursDraft(restaurant?.workingHours));
+    setHoursErrors({});
+    setIsEditingHours(true);
+  };
+
+  const handleCancelEditHours = () => {
+    setIsEditingHours(false);
+    setHoursErrors({});
+  };
+
+  const handleDayClosedChange = (day: DayOfWeek, closed: boolean) => {
+    setWorkingHoursDraft((prev) => prev.map((entry) => (entry.dayOfWeek === day ? { ...entry, closed } : entry)));
+    if (hoursErrors[day]) {
+      setHoursErrors((prev) => ({ ...prev, [day]: '' }));
+    }
+  };
+
+  const handleDayTimeChange = (day: DayOfWeek, field: 'openTime' | 'closeTime', value: Date | null) => {
+    setWorkingHoursDraft((prev) => prev.map((entry) => (entry.dayOfWeek === day ? { ...entry, [field]: value } : entry)));
+    if (hoursErrors[day]) {
+      setHoursErrors((prev) => ({ ...prev, [day]: '' }));
+    }
+  };
+
+  const handleSaveWorkingHours = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+
+    workingHoursDraft.forEach((entry) => {
+      if (!entry.closed) {
+        if (!entry.openTime || !entry.closeTime) {
+          newErrors[entry.dayOfWeek] = t('validation.blankField');
+        } else if (entry.openTime.getTime() >= entry.closeTime.getTime()) {
+          newErrors[entry.dayOfWeek] = t('managerRestaurant.invalidWorkingHoursRange');
+        }
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setHoursErrors(newErrors);
+      return;
+    }
+
+    try {
+      await updateWorkingHours({
+        workingHours: workingHoursDraft.map((entry) => ({
+          dayOfWeek: entry.dayOfWeek,
+          closed: entry.closed,
+          openTime: entry.closed ? null : dateToTimeString(entry.openTime),
+          closeTime: entry.closed ? null : dateToTimeString(entry.closeTime)
+        }))
+      }).unwrap();
+
+      dispatch(addAlert({ message: t('managerRestaurant.workingHoursSuccess'), type: 'success' }));
+      setIsEditingHours(false);
+      refetch();
+    } catch (err: any) {
+      console.error('Failed to update working hours:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || err?.data || t('managerRestaurant.workingHoursFailure'),
         type: 'error'
       }));
     }
@@ -191,8 +340,8 @@ const ManagerRestaurantPage: React.FC = () => {
               <RestaurantIcon sx={{ fontSize: { xs: 28, sm: 32 } }} />
             </Box>
             <Box>
-              <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                {isEditing ? t('managerRestaurant.editTitle') : restaurant.name}
+              <Typography variant="h5" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
+                {restaurant.name}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                 {t('managerRestaurant.subtitle')}
@@ -200,15 +349,40 @@ const ManagerRestaurantPage: React.FC = () => {
             </Box>
           </Box>
 
-          {!isEditing && (
-            <IconButton
-              onClick={() => setIsEditing(true)}
-              color="primary"
-              sx={{ alignSelf: { xs: 'flex-end', sm: 'auto' } }}
+          <ToggleButtonGroup
+            value={restaurant.isOpen ? 'open' : 'closed'}
+            exclusive
+            onChange={(e, value) => {
+              if (value !== null) {
+                handleToggleStatus(value === 'open');
+              }
+            }}
+            disabled={isUpdatingStatus}
+            size="small"
+          >
+            <ToggleButton
+              value="open"
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 2,
+                '&.Mui-selected': { backgroundColor: 'success.main', color: 'success.contrastText', '&:hover': { backgroundColor: 'success.dark' } }
+              }}
             >
-              <EditIcon />
-            </IconButton>
-          )}
+              {t('managerRestaurant.statusOpen')}
+            </ToggleButton>
+            <ToggleButton
+              value="closed"
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 2,
+                '&.Mui-selected': { backgroundColor: 'error.main', color: 'error.contrastText', '&:hover': { backgroundColor: 'error.dark' } }
+              }}
+            >
+              {t('managerRestaurant.statusClosed')}
+            </ToggleButton>
+          </ToggleButtonGroup>
         </Box>
 
         <Divider sx={{ mb: 3 }} />
@@ -374,7 +548,33 @@ const ManagerRestaurantPage: React.FC = () => {
             </Box>
           </Box>
         ) : (
-          <Grid container spacing={2}>
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" fontWeight="bold" color="text.secondary">
+                {t('managerRestaurant.detailsTitle')}
+              </Typography>
+              <IconButton
+                onClick={() => setIsEditing(true)}
+                color="primary"
+              >
+                <EditIcon />
+              </IconButton>
+            </Box>
+            <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                <RestaurantIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                    {t('managerRestaurant.name')}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                    {restaurant.name}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                 <LocationOnIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
@@ -428,8 +628,133 @@ const ManagerRestaurantPage: React.FC = () => {
                 </Box>
               </Box>
             </Grid>
-          </Grid>
+            </Grid>
+          </Box>
         )}
+
+        <Divider sx={{ my: 3 }} />
+
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" fontWeight="bold" color="text.secondary">
+              {t('managerRestaurant.workingHoursTitle')}
+            </Typography>
+            {!isEditingHours && (
+              <IconButton onClick={handleStartEditHours} color="primary">
+                <EditIcon />
+              </IconButton>
+            )}
+          </Box>
+
+          {isEditingHours ? (
+            <Box component="form" onSubmit={handleSaveWorkingHours} noValidate>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={i18n.language === 'bg' ? bg : enGB}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {workingHoursDraft.map((entry) => (
+                    <Box
+                      key={entry.dayOfWeek}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'stretch', sm: 'center' },
+                        gap: { xs: 1, sm: 2 },
+                        p: 1.5,
+                        borderRadius: 2.5,
+                        backgroundColor: 'action.hover'
+                      }}
+                    >
+                      <Typography sx={{ width: { sm: 130 }, fontWeight: 'bold', flexShrink: 0 }}>
+                        {t(`managerRestaurant.days.${entry.dayOfWeek.toLowerCase()}`)}
+                      </Typography>
+
+                      <FormControlLabel
+                        sx={{ ml: 0, flexShrink: 0 }}
+                        control={
+                          <Switch
+                            checked={!entry.closed}
+                            onChange={(e) => handleDayClosedChange(entry.dayOfWeek, !e.target.checked)}
+                            color="success"
+                          />
+                        }
+                        label={entry.closed ? t('managerRestaurant.statusClosed') : t('managerRestaurant.statusOpen')}
+                      />
+
+                      {!entry.closed && (
+                        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                          <TimePicker
+                            label={t('managerRestaurant.openTimeLabel')}
+                            value={entry.openTime}
+                            onChange={(value) => handleDayTimeChange(entry.dayOfWeek, 'openTime', value)}
+                            ampm={false}
+                            slotProps={{ textField: { size: 'small', sx: { width: 130 } } }}
+                          />
+                          <TimePicker
+                            label={t('managerRestaurant.closeTimeLabel')}
+                            value={entry.closeTime}
+                            onChange={(value) => handleDayTimeChange(entry.dayOfWeek, 'closeTime', value)}
+                            ampm={false}
+                            slotProps={{ textField: { size: 'small', sx: { width: 130 } } }}
+                          />
+                        </Box>
+                      )}
+
+                      {hoursErrors[entry.dayOfWeek] && (
+                        <Typography variant="caption" color="error">
+                          {hoursErrors[entry.dayOfWeek]}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </LocalizationProvider>
+
+              <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
+                <Button
+                  type="submit"
+                  startIcon={isSavingHours ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                  disabled={isSavingHours}
+                  variant="contained"
+                  color="primary"
+                  sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                >
+                  {t('managerRestaurant.save')}
+                </Button>
+                <Button
+                  startIcon={<CancelIcon />}
+                  onClick={handleCancelEditHours}
+                  variant="outlined"
+                  color="inherit"
+                  disabled={isSavingHours}
+                  sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+                >
+                  {t('managerRestaurant.cancel')}
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Grid container spacing={1.5}>
+              {DAYS_OF_WEEK.map((day) => {
+                const entry = restaurant.workingHours?.find((item) => item.dayOfWeek === day);
+                const isClosed = !entry || entry.closed;
+                return (
+                  <Grid item xs={12} sm={6} key={day}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <AccessTimeIcon color="primary" sx={{ fontSize: 22 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                        <Typography variant="body2" fontWeight="bold">
+                          {t(`managerRestaurant.days.${day.toLowerCase()}`)}
+                        </Typography>
+                        <Typography variant="body2" color={isClosed ? 'error.main' : 'text.secondary'}>
+                          {isClosed ? t('managerRestaurant.statusClosed') : `${formatWorkingHoursTime(entry!.openTime)} - ${formatWorkingHoursTime(entry!.closeTime)}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          )}
+        </Box>
       </Paper>
     </Container>
   );

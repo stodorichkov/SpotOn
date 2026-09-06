@@ -62,6 +62,10 @@
     "noRestaurantsBody": "Проверете отново по-късно, докато разширяваме каталога си!",
     "categories": "Категории",
     "bookTable": "Резервирай маса",
+    "statusOpen": "Отворено",
+    "statusClosed": "Затворено",
+    "statusFilterAll": "Всички",
+    "statusDialogTitle": "Филтриране по статус",
     "searchByName": "Търси по име",
     "searchByAddress": "Търси по адрес",
     "categoriesButton": "Категории",
@@ -144,6 +148,7 @@
     "errorLoading": "Грешка при зареждане на потребителите.",
     "userDetailsTooltip": "Детайли за потребителя",
     "info": "Инфо",
+    "searchById": "ID",
     "searchByEmail": "Търси по имейл",
     "rolesButton": "Роля",
     "rolesCount": "{{count}} роли",
@@ -167,6 +172,7 @@
     "title": "Заведения",
     "subtitle": "Управление на списъка с активни заведения",
     "addRestaurant": "Добави заведение",
+    "searchById": "ID",
     "searchByName": "Търси по име",
     "searchByAddress": "Търси по адрес",
     "categoriesButton": "Категории",
@@ -183,7 +189,12 @@
     "viewEmployeesTooltip": "Преглед на служителите",
     "categoryDialogTitle": "Филтриране по категории",
     "noCategoriesAvailable": "Няма налични категории.",
-    "sortDialogTitle": "Подреди по"
+    "sortDialogTitle": "Подреди по",
+    "statusColumn": "Статус",
+    "statusOpen": "Отворено",
+    "statusClosed": "Затворено",
+    "statusFilterAll": "Всички",
+    "statusDialogTitle": "Филтриране по статус"
   },
   "addRestaurant": {
     "title": "Добавяне на ново заведение",
@@ -216,6 +227,7 @@
     "invalidId": "Невалиден ID на заведение.",
     "backToRestaurants": "Назад към заведенията",
     "userDetailsTooltip": "Детайли за потребителя",
+    "searchById": "ID",
     "searchByEmail": "Търси по имейл",
     "searchByName": "Търси по име",
     "searchByPhoneNumber": "Търси по телефонен номер",
@@ -270,6 +282,7 @@
     "deleteBody": "Сигурни ли сте, че искате да премахнете служител <bold>{{name}}</bold>? Това действие напълно ще отнеме достъпа му и не може да бъде отменено.",
     "success": "Служителят беше премахнат успешно!",
     "failure": "Неуспешно премахване на служителя. Моля, опитайте отново.",
+    "searchById": "ID",
     "searchByEmail": "Търси по имейл",
     "searchByName": "Търси по име",
     "searchByPhoneNumber": "Търси по телефонен номер",
@@ -282,6 +295,7 @@
   "managerRestaurant": {
     "editTitle": "Редакция на заведение",
     "subtitle": "Профил и детайли на заведението",
+    "detailsTitle": "Детайли на заведението",
     "name": "Име на заведението",
     "address": "Адрес",
     "phoneNumber": "Телефонен номер",
@@ -294,7 +308,27 @@
     "cancel": "Отказ",
     "errorLoading": "Неуспешно зареждане на профила на заведението. Моля, уверете се, че сте влезли като мениджър.",
     "success": "Профилът на заведението беше обновен успешно!",
-    "failure": "Неуспешно обновяване на данните на заведението."
+    "failure": "Неуспешно обновяване на данните на заведението.",
+    "statusOpen": "Отворено",
+    "statusClosed": "Затворено",
+    "statusOpenSuccess": "Заведението беше отбелязано като отворено!",
+    "statusClosedSuccess": "Заведението беше отбелязано като затворено!",
+    "statusFailure": "Неуспешно обновяване на статуса на заведението.",
+    "workingHoursTitle": "Работно време",
+    "workingHoursSuccess": "Работното време беше обновено успешно!",
+    "workingHoursFailure": "Неуспешно обновяване на работното време.",
+    "invalidWorkingHoursRange": "Часът на отваряне трябва да е преди часа на затваряне.",
+    "openTimeLabel": "Отваря",
+    "closeTimeLabel": "Затваря",
+    "days": {
+      "monday": "Понеделник",
+      "tuesday": "Вторник",
+      "wednesday": "Сряда",
+      "thursday": "Четвъртък",
+      "friday": "Петък",
+      "saturday": "Събота",
+      "sunday": "Неделя"
+    }
   },
   "managerTables": {
     "title": "Маси",
@@ -316,6 +350,7 @@
     "deleteBody": "Сигурни ли сте, че искате да премахнете маса <bold>{{name}}</bold>? Това действие напълно ще премахне масата от заведението и не може да бъде отменено.",
     "success": "Масата беше премахната успешно!",
     "failure": "Неуспешно премахване на масата. Моля, опитайте отново.",
+    "searchById": "ID",
     "searchByName": "Търси по име",
     "smokingFilterAll": "Всички",
     "smokingDialogTitle": "Филтриране по пушене",
@@ -446,6 +481,7 @@
     "cancelDialogConfirm": "Отмени резервацията",
     "cancelSuccess": "Резервацията беше отменена успешно!",
     "cancelFailure": "Неуспешна отмяна на резервацията. Моля, опитайте отново.",
+    "searchById": "ID",
     "searchByRestaurant": "Търси по име на заведение",
     "statusButton": "Статус",
     "statusesCount": "{{count}} статуса",
@@ -493,6 +529,7 @@
     "arrivedFailure": "Неуспешно отбелязване като пристигнал. Моля, опитайте отново.",
     "completedSuccess": "Резервация №{{id}} беше отбелязана като завършена успешно!",
     "completedFailure": "Неуспешно отбелязване като завършена. Моля, опитайте отново.",
+    "searchById": "ID",
     "searchByClient": "Търси по име на клиент",
     "statusButton": "Статус",
     "statusesCount": "{{count}} статуса",
@@ -520,6 +557,8 @@
     "failure": "Неуспешна обработка на резервацията. Моля, опитайте отново."
   },
   "restaurantDetail": {
+    "statusOpen": "Отворено",
+    "statusClosed": "Затворено",
     "errorTitle": "Детайлите за заведението не са налични",
     "errorBody": "Детайлите за заведението не можаха да бъдат заредени. Възможно е да не съществува или да има мрежов проблем.",
     "backHome": "Към началната страница",
@@ -532,6 +571,16 @@
     "categories": "Категории",
     "addressNotListed": "Няма посочен адрес",
     "phoneNotListed": "Няма посочен телефон",
+    "workingHoursTitle": "Работно време",
+    "days": {
+      "monday": "Понеделник",
+      "tuesday": "Вторник",
+      "wednesday": "Сряда",
+      "thursday": "Четвъртък",
+      "friday": "Петък",
+      "saturday": "Събота",
+      "sunday": "Неделя"
+    },
     "bookTable": "Резервирай маса"
   },
   "validation": {

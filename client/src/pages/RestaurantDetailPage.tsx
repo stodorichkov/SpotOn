@@ -23,6 +23,8 @@ import CategoryIcon from '@mui/icons-material/Category';
 import BadgeIcon from '@mui/icons-material/Badge';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PhoneIcon from '@mui/icons-material/Phone';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { DAYS_OF_WEEK, formatWorkingHoursTime } from '../utils/workingHours';
 
 const RestaurantDetailPage: React.FC = () => {
   const { t } = useTranslation();
@@ -136,6 +138,12 @@ const RestaurantDetailPage: React.FC = () => {
                   </Typography>
                 </Box>
               </Box>
+
+              <Chip
+                label={restaurant.isOpen ? t('restaurantDetail.statusOpen') : t('restaurantDetail.statusClosed')}
+                color={restaurant.isOpen ? 'success' : 'error'}
+                sx={{ fontWeight: 'bold' }}
+              />
             </Box>
 
             <Divider sx={{ mb: 4 }} />
@@ -245,6 +253,38 @@ const RestaurantDetailPage: React.FC = () => {
                           />
                         )}
                       </Box>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                {/* Working Hours */}
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <AccessTimeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                    <Box sx={{ width: '100%' }}>
+                      <Typography variant="subtitle2" color="text.secondary" fontWeight="bold" sx={{ mb: 1.5 }}>
+                        {t('restaurantDetail.workingHoursTitle')}
+                      </Typography>
+                      <Grid container spacing={1}>
+                        {DAYS_OF_WEEK.map((day) => {
+                          const entry = restaurant.workingHours?.find((item) => item.dayOfWeek === day);
+                          const isClosed = !entry || entry.closed;
+                          return (
+                            <Grid item xs={12} sm={6} key={day}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" fontWeight="bold">
+                                  {t(`restaurantDetail.days.${day.toLowerCase()}`)}
+                                </Typography>
+                                <Typography variant="body2" color={isClosed ? 'error.main' : 'text.secondary'}>
+                                  {isClosed
+                                    ? t('restaurantDetail.statusClosed')
+                                    : `${formatWorkingHoursTime(entry!.openTime)} - ${formatWorkingHoursTime(entry!.closeTime)}`}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
                     </Box>
                   </Box>
                 </Grid>

@@ -123,6 +123,9 @@ const ClientBookingsPage: React.FC = () => {
   const [toDate, setToDate] = useState<Date | null>(null);
   const [isDateRangeDialogOpen, setIsDateRangeDialogOpen] = useState(false);
 
+  const [idInput, setIdInput] = useState('');
+  const [id, setId] = useState<number | undefined>(undefined);
+
   const [restaurantNameInput, setRestaurantNameInput] = useState('');
   const [restaurantName, setRestaurantName] = useState('');
 
@@ -139,16 +142,19 @@ const ClientBookingsPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const trimmed = idInput.trim();
+      setId(trimmed === '' ? undefined : Number(trimmed));
       setRestaurantName(restaurantNameInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [restaurantNameInput]);
+  }, [idInput, restaurantNameInput]);
 
   const { data, error, isLoading } = useGetClientBookingsQuery({
     page,
     size: rowsPerPage,
     sort,
+    id,
     statuses: statuses.length > 0 ? statuses : undefined,
     restaurantName: restaurantName || undefined,
     from: fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined,
@@ -223,9 +229,10 @@ const ClientBookingsPage: React.FC = () => {
     return fromDate ? `${t('common.fromDate')}: ${fmt(fromDate)}` : `${t('common.toDate')}: ${fmt(toDate as Date)}`;
   })();
 
-  const hasActiveFilters = statuses.length > 0 || restaurantNameInput !== '' || fromDate !== null || toDate !== null;
+  const hasActiveFilters = idInput !== '' || statuses.length > 0 || restaurantNameInput !== '' || fromDate !== null || toDate !== null;
 
   const handleClearFilters = () => {
+    setIdInput('');
     setStatuses([]);
     setRestaurantNameInput('');
     setFromDate(null);
@@ -330,6 +337,14 @@ const ClientBookingsPage: React.FC = () => {
 
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('clientBookings.searchById')}
+            size="small"
+            type="number"
+            value={idInput}
+            onChange={(e) => setIdInput(e.target.value)}
+            sx={{ minWidth: 100, flex: '0 1 100px' }}
+          />
           <TextField
             label={t('clientBookings.searchByRestaurant')}
             size="small"

@@ -83,6 +83,8 @@ const ManagerEmployeesPage: React.FC = () => {
     { value: 'role.name', label: t('common.role') },
   ];
 
+  const [idInput, setIdInput] = useState('');
+  const [id, setId] = useState<number | undefined>(undefined);
   const [emailInput, setEmailInput] = useState('');
   const [email, setEmail] = useState('');
   const [nameInput, setNameInput] = useState('');
@@ -96,19 +98,22 @@ const ManagerEmployeesPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const trimmed = idInput.trim();
+      setId(trimmed === '' ? undefined : Number(trimmed));
       setEmail(emailInput.trim());
       setName(nameInput.trim());
       setPhoneNumber(phoneNumberInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [emailInput, nameInput, phoneNumberInput]);
+  }, [idInput, emailInput, nameInput, phoneNumberInput]);
 
   const currentUserId = useSelector((state: RootState) => state.auth.id);
   const { data, error, isLoading } = useGetManagerEmployeesQuery({
     page,
     size: rowsPerPage,
     sort,
+    id,
     email: email || undefined,
     name: name || undefined,
     phoneNumber: phoneNumber || undefined,
@@ -190,9 +195,10 @@ const ManagerEmployeesPage: React.FC = () => {
     return t('managerEmployees.rolesCount', { count: roles.length });
   })();
 
-  const hasActiveFilters = emailInput !== '' || nameInput !== '' || phoneNumberInput !== '' || roles.length > 0;
+  const hasActiveFilters = idInput !== '' || emailInput !== '' || nameInput !== '' || phoneNumberInput !== '' || roles.length > 0;
 
   const handleClearFilters = () => {
+    setIdInput('');
     setEmailInput('');
     setNameInput('');
     setPhoneNumberInput('');
@@ -302,6 +308,14 @@ const ManagerEmployeesPage: React.FC = () => {
         </Box>
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('managerEmployees.searchById')}
+            size="small"
+            type="number"
+            value={idInput}
+            onChange={(e) => setIdInput(e.target.value)}
+            sx={{ minWidth: 100, flex: '0 1 100px' }}
+          />
           <TextField
             label={t('managerEmployees.searchByEmail')}
             size="small"

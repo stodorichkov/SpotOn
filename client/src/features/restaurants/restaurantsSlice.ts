@@ -69,6 +69,7 @@ export interface RestaurantResponse {
   name: string;
   categories: CategoryResponse[];
   address: string;
+  isOpen: boolean;
 }
 
 export interface PaginatedRestaurantsResponse {
@@ -145,12 +146,31 @@ export interface RestaurantRequest {
   categories: number[];
 }
 
+export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+export interface WorkingHoursEntry {
+  dayOfWeek: DayOfWeek;
+  closed: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+}
+
 export interface RestaurantDetailsResponse {
   id: number;
   name: string;
   categories: CategoryResponse[];
   address: string;
   phoneNumber: string;
+  isOpen: boolean;
+  workingHours: WorkingHoursEntry[];
+}
+
+export interface RestaurantStatusRequest {
+  isOpen: boolean;
+}
+
+export interface RestaurantWorkingHoursRequest {
+  workingHours: WorkingHoursEntry[];
 }
 
 export interface RestaurantTableResponse {
@@ -199,20 +219,26 @@ export const restaurantsSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getRestaurants: builder.query<
       PaginatedRestaurantsResponse,
-      { page: number; size: number; sort?: string; name?: string; address?: string; categoryIds?: number[] }
+      { page: number; size: number; sort?: string; id?: number; name?: string; address?: string; categoryIds?: number[]; isOpen?: boolean }
     >({
-      query: ({ page, size, sort = 'id,asc', name, address, categoryIds }) => {
+      query: ({ page, size, sort = 'id,asc', id, name, address, categoryIds, isOpen }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
         if (name) {
           params.set('name', name);
         }
         if (address) {
           params.set('address', address);
         }
-        (categoryIds || []).forEach((id) => params.append('categoryIds', String(id)));
+        if (isOpen !== undefined) {
+          params.set('isOpen', String(isOpen));
+        }
+        (categoryIds || []).forEach((catId) => params.append('categoryIds', String(catId)));
 
         return `restaurant/restaurants?${params.toString()}`;
       },
@@ -224,14 +250,17 @@ export const restaurantsSlice = api.injectEndpoints({
     }),
     getEmployees: builder.query<
       PaginatedEmployeesResponse,
-      { restaurantId: number; page: number; size: number; sort?: string; email?: string; name?: string; phoneNumber?: string; roles?: string[] }
+      { restaurantId: number; page: number; size: number; sort?: string; id?: number; email?: string; name?: string; phoneNumber?: string; roles?: string[] }
     >({
-      query: ({ restaurantId, page, size, sort = 'id,asc', email, name, phoneNumber, roles }) => {
+      query: ({ restaurantId, page, size, sort = 'id,asc', id, email, name, phoneNumber, roles }) => {
         const params = new URLSearchParams();
         params.set('restaurantId', String(restaurantId));
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
         if (email) {
           params.set('email', email);
         }
@@ -273,15 +302,34 @@ export const restaurantsSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Restaurants'],
     }),
+    updateRestaurantStatus: builder.mutation<RestaurantDetailsResponse, RestaurantStatusRequest>({
+      query: (body) => ({
+        url: 'restaurant/profile/status',
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Restaurants'],
+    }),
+    updateWorkingHours: builder.mutation<RestaurantDetailsResponse, RestaurantWorkingHoursRequest>({
+      query: (body) => ({
+        url: 'restaurant/profile/working-hours',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Restaurants'],
+    }),
     getManagerEmployees: builder.query<
       PaginatedEmployeesResponse,
-      { page: number; size: number; sort?: string; email?: string; name?: string; phoneNumber?: string; roles?: string[] }
+      { page: number; size: number; sort?: string; id?: number; email?: string; name?: string; phoneNumber?: string; roles?: string[] }
     >({
-      query: ({ page, size, sort = 'id,asc', email, name, phoneNumber, roles }) => {
+      query: ({ page, size, sort = 'id,asc', id, email, name, phoneNumber, roles }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
         if (email) {
           params.set('email', email);
         }
@@ -306,13 +354,16 @@ export const restaurantsSlice = api.injectEndpoints({
     }),
     getManagerTables: builder.query<
       PaginatedTablesResponse,
-      { page: number; size: number; sort?: string; name?: string; isSmokingAllowed?: boolean; minCapacity?: number; maxCapacity?: number }
+      { page: number; size: number; sort?: string; id?: number; name?: string; isSmokingAllowed?: boolean; minCapacity?: number; maxCapacity?: number }
     >({
-      query: ({ page, size, sort = 'id,asc', name, isSmokingAllowed, minCapacity, maxCapacity }) => {
+      query: ({ page, size, sort = 'id,asc', id, name, isSmokingAllowed, minCapacity, maxCapacity }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
         if (name) {
           params.set('name', name);
         }
@@ -355,13 +406,16 @@ export const restaurantsSlice = api.injectEndpoints({
     }),
     getClientBookings: builder.query<
       PaginatedBookingsResponse,
-      { page: number; size: number; sort?: string; statuses?: string[]; restaurantName?: string; from?: string; to?: string }
+      { page: number; size: number; sort?: string; id?: number; statuses?: string[]; restaurantName?: string; from?: string; to?: string }
     >({
-      query: ({ page, size, sort = 'id,desc', statuses, restaurantName, from, to }) => {
+      query: ({ page, size, sort = 'id,desc', id, statuses, restaurantName, from, to }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
         (statuses || []).forEach((status) => params.append('statuses', status));
         if (restaurantName) {
           params.set('restaurantName', restaurantName);
@@ -394,13 +448,16 @@ export const restaurantsSlice = api.injectEndpoints({
     }),
     getRestaurantBookings: builder.query<
       PaginatedEmployeeBookingsResponse,
-      { page: number; size: number; sort?: string; statuses?: string[]; clientName?: string; from?: string; to?: string }
+      { page: number; size: number; sort?: string; id?: number; statuses?: string[]; clientName?: string; from?: string; to?: string }
     >({
-      query: ({ page, size, sort = 'id,desc', statuses, clientName, from, to }) => {
+      query: ({ page, size, sort = 'id,desc', id, statuses, clientName, from, to }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
         (statuses || []).forEach((status) => params.append('statuses', status));
         if (clientName) {
           params.set('clientName', clientName);
@@ -441,4 +498,4 @@ export const restaurantsSlice = api.injectEndpoints({
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;

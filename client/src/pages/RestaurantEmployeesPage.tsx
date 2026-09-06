@@ -78,6 +78,8 @@ const RestaurantEmployeesPage: React.FC = () => {
     { value: 'role.name', label: t('common.role') },
   ];
 
+  const [employeeIdInput, setEmployeeIdInput] = useState('');
+  const [employeeId, setEmployeeId] = useState<number | undefined>(undefined);
   const [emailInput, setEmailInput] = useState('');
   const [email, setEmail] = useState('');
   const [nameInput, setNameInput] = useState('');
@@ -91,13 +93,15 @@ const RestaurantEmployeesPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const trimmed = employeeIdInput.trim();
+      setEmployeeId(trimmed === '' ? undefined : Number(trimmed));
       setEmail(emailInput.trim());
       setName(nameInput.trim());
       setPhoneNumber(phoneNumberInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [emailInput, nameInput, phoneNumberInput]);
+  }, [employeeIdInput, emailInput, nameInput, phoneNumberInput]);
 
   const { data, error, isLoading } = useGetEmployeesQuery(
     {
@@ -105,6 +109,7 @@ const RestaurantEmployeesPage: React.FC = () => {
       page,
       size: rowsPerPage,
       sort,
+      id: employeeId,
       email: email || undefined,
       name: name || undefined,
       phoneNumber: phoneNumber || undefined,
@@ -171,9 +176,10 @@ const RestaurantEmployeesPage: React.FC = () => {
     return t('restaurantEmployees.rolesCount', { count: roles.length });
   })();
 
-  const hasActiveFilters = emailInput !== '' || nameInput !== '' || phoneNumberInput !== '' || roles.length > 0;
+  const hasActiveFilters = employeeIdInput !== '' || emailInput !== '' || nameInput !== '' || phoneNumberInput !== '' || roles.length > 0;
 
   const handleClearFilters = () => {
+    setEmployeeIdInput('');
     setEmailInput('');
     setNameInput('');
     setPhoneNumberInput('');
@@ -259,6 +265,14 @@ const RestaurantEmployeesPage: React.FC = () => {
         </Box>
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('restaurantEmployees.searchById')}
+            size="small"
+            type="number"
+            value={employeeIdInput}
+            onChange={(e) => setEmployeeIdInput(e.target.value)}
+            sx={{ minWidth: 100, flex: '0 1 100px' }}
+          />
           <TextField
             label={t('restaurantEmployees.searchByEmail')}
             size="small"

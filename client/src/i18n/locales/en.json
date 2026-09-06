@@ -62,6 +62,10 @@
     "noRestaurantsBody": "Please check back later as we expand our dining catalog!",
     "categories": "Categories",
     "bookTable": "Book Table",
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
+    "statusFilterAll": "All",
+    "statusDialogTitle": "Filter by status",
     "searchByName": "Search by name",
     "searchByAddress": "Search by address",
     "categoriesButton": "Categories",
@@ -144,6 +148,7 @@
     "errorLoading": "Error loading users.",
     "userDetailsTooltip": "User Details",
     "info": "Info",
+    "searchById": "ID",
     "searchByEmail": "Search by email",
     "rolesButton": "Role",
     "rolesCount": "{{count}} roles",
@@ -167,6 +172,7 @@
     "title": "Restaurants",
     "subtitle": "Manage list of active restaurants",
     "addRestaurant": "Add Restaurant",
+    "searchById": "ID",
     "searchByName": "Search by name",
     "searchByAddress": "Search by address",
     "categoriesButton": "Categories",
@@ -183,7 +189,12 @@
     "viewEmployeesTooltip": "View Employees",
     "categoryDialogTitle": "Filter by categories",
     "noCategoriesAvailable": "No categories available.",
-    "sortDialogTitle": "Sort by"
+    "sortDialogTitle": "Sort by",
+    "statusColumn": "Status",
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
+    "statusFilterAll": "All",
+    "statusDialogTitle": "Filter by status"
   },
   "addRestaurant": {
     "title": "Add New Restaurant",
@@ -216,6 +227,7 @@
     "invalidId": "Invalid Restaurant ID.",
     "backToRestaurants": "Back to Restaurants",
     "userDetailsTooltip": "User Details",
+    "searchById": "ID",
     "searchByEmail": "Search by email",
     "searchByName": "Search by name",
     "searchByPhoneNumber": "Search by phone number",
@@ -270,6 +282,7 @@
     "deleteBody": "Are you sure you want to remove employee <bold>{{name}}</bold>? This action will completely revoke their access and cannot be undone.",
     "success": "Employee removed successfully!",
     "failure": "Failed to remove employee. Please try again.",
+    "searchById": "ID",
     "searchByEmail": "Search by email",
     "searchByName": "Search by name",
     "searchByPhoneNumber": "Search by phone number",
@@ -282,6 +295,7 @@
   "managerRestaurant": {
     "editTitle": "Edit Restaurant",
     "subtitle": "Restaurant Profile & Details",
+    "detailsTitle": "Restaurant Details",
     "name": "Restaurant Name",
     "address": "Address",
     "phoneNumber": "Phone Number",
@@ -294,7 +308,27 @@
     "cancel": "Cancel",
     "errorLoading": "Failed to load restaurant profile. Please make sure you are logged in as a manager.",
     "success": "Restaurant profile updated successfully!",
-    "failure": "Failed to update restaurant details."
+    "failure": "Failed to update restaurant details.",
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
+    "statusOpenSuccess": "Restaurant marked as open!",
+    "statusClosedSuccess": "Restaurant marked as closed!",
+    "statusFailure": "Failed to update restaurant status.",
+    "workingHoursTitle": "Working Hours",
+    "workingHoursSuccess": "Working hours updated successfully!",
+    "workingHoursFailure": "Failed to update working hours.",
+    "invalidWorkingHoursRange": "Opening time must be before closing time.",
+    "openTimeLabel": "Opens",
+    "closeTimeLabel": "Closes",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
   },
   "managerTables": {
     "title": "Tables",
@@ -316,6 +350,7 @@
     "deleteBody": "Are you sure you want to remove table <bold>{{name}}</bold>? This action will completely remove the table from the restaurant and cannot be undone.",
     "success": "Table removed successfully!",
     "failure": "Failed to remove table. Please try again.",
+    "searchById": "ID",
     "searchByName": "Search by name",
     "smokingFilterAll": "All",
     "smokingDialogTitle": "Filter by smoking policy",
@@ -446,6 +481,7 @@
     "cancelDialogConfirm": "Cancel Booking",
     "cancelSuccess": "Reservation cancelled successfully!",
     "cancelFailure": "Failed to cancel reservation. Please try again.",
+    "searchById": "ID",
     "searchByRestaurant": "Search by restaurant name",
     "statusButton": "Status",
     "statusesCount": "{{count}} statuses",
@@ -493,6 +529,7 @@
     "arrivedFailure": "Failed to mark as arrived. Please try again.",
     "completedSuccess": "Booking #{{id}} marked as completed successfully!",
     "completedFailure": "Failed to mark as completed. Please try again.",
+    "searchById": "ID",
     "searchByClient": "Search by client name",
     "statusButton": "Status",
     "statusesCount": "{{count}} statuses",
@@ -520,6 +557,8 @@
     "failure": "Failed to process reservation. Please try again."
   },
   "restaurantDetail": {
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
     "errorTitle": "Restaurant Details Unavailable",
     "errorBody": "The restaurant details could not be loaded. It may not exist or there might be a network issue.",
     "backHome": "Go to Home Page",
@@ -532,6 +571,16 @@
     "categories": "Categories",
     "addressNotListed": "Address not listed",
     "phoneNotListed": "Phone not listed",
+    "workingHoursTitle": "Working Hours",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
     "bookTable": "Book Table"
   },
   "validation": {

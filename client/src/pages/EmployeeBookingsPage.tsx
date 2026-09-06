@@ -143,21 +143,27 @@ const EmployeeBookingsPage: React.FC = () => {
     { value: 'status.name', label: t('employeeBookings.status') },
   ];
 
+  const [idInput, setIdInput] = useState('');
+  const [id, setId] = useState<number | undefined>(undefined);
+
   const [clientNameInput, setClientNameInput] = useState('');
   const [clientName, setClientName] = useState('');
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const trimmed = idInput.trim();
+      setId(trimmed === '' ? undefined : Number(trimmed));
       setClientName(clientNameInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [clientNameInput]);
+  }, [idInput, clientNameInput]);
 
   const { data, error, isLoading } = useGetRestaurantBookingsQuery({
     page,
     size: rowsPerPage,
     sort,
+    id,
     statuses: statuses.length > 0 ? statuses : undefined,
     clientName: clientName || undefined,
     from: fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined,
@@ -229,9 +235,10 @@ const EmployeeBookingsPage: React.FC = () => {
     return fromDate ? `${t('common.fromDate')}: ${fmt(fromDate)}` : `${t('common.toDate')}: ${fmt(toDate as Date)}`;
   })();
 
-  const hasActiveFilters = statuses.length > 0 || clientNameInput !== '' || fromDate !== null || toDate !== null;
+  const hasActiveFilters = idInput !== '' || statuses.length > 0 || clientNameInput !== '' || fromDate !== null || toDate !== null;
 
   const handleClearFilters = () => {
+    setIdInput('');
     setStatuses([]);
     setClientNameInput('');
     setFromDate(null);
@@ -395,6 +402,14 @@ const EmployeeBookingsPage: React.FC = () => {
 
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('employeeBookings.searchById')}
+            size="small"
+            type="number"
+            value={idInput}
+            onChange={(e) => setIdInput(e.target.value)}
+            sx={{ minWidth: 100, flex: '0 1 100px' }}
+          />
           <TextField
             label={t('employeeBookings.searchByClient')}
             size="small"

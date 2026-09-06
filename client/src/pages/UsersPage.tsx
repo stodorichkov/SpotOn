@@ -70,6 +70,8 @@ const UsersPage: React.FC = () => {
     { value: 'role.name', label: t('common.role') },
   ];
 
+  const [idInput, setIdInput] = useState('');
+  const [id, setId] = useState<number | undefined>(undefined);
   const [emailInput, setEmailInput] = useState('');
   const [email, setEmail] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
@@ -79,16 +81,19 @@ const UsersPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const trimmed = idInput.trim();
+      setId(trimmed === '' ? undefined : Number(trimmed));
       setEmail(emailInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [emailInput]);
+  }, [idInput, emailInput]);
 
   const { data, error, isFetching } = useGetUsersQuery({
     page,
     size: rowsPerPage,
     sort,
+    id,
     email: email || undefined,
     roles: roles.length > 0 ? roles : undefined,
   });
@@ -151,9 +156,10 @@ const UsersPage: React.FC = () => {
     return t('users.rolesCount', { count: roles.length });
   })();
 
-  const hasActiveFilters = emailInput !== '' || roles.length > 0;
+  const hasActiveFilters = idInput !== '' || emailInput !== '' || roles.length > 0;
 
   const handleClearFilters = () => {
+    setIdInput('');
     setEmailInput('');
     setRoles([]);
     setPage(0);
@@ -194,6 +200,14 @@ const UsersPage: React.FC = () => {
         </Box>
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
+          <TextField
+            label={t('users.searchById')}
+            size="small"
+            type="number"
+            value={idInput}
+            onChange={(e) => setIdInput(e.target.value)}
+            sx={{ minWidth: 100, flex: '0 1 100px' }}
+          />
           <TextField
             label={t('users.searchByEmail')}
             size="small"
