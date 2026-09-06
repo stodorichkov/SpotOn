@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RootState } from '../store/store';
-import { useGetRestaurantsQuery, useGetCategoriesQuery } from '../features/restaurants/restaurantsSlice';
+import { useGetRestaurantsQuery, useGetCategoriesQuery, RestaurantResponse } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
 import { Role } from '../constants';
 import {
@@ -18,7 +18,6 @@ import {
   Box,
   Paper,
   Skeleton,
-  Pagination,
   Divider,
   TextField,
   IconButton,
@@ -26,7 +25,11 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -36,6 +39,33 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import SortIcon from '@mui/icons-material/Sort';
+
+const RestaurantCardSkeleton: React.FC = () => (
+  <Card sx={{ height: '100%', borderRadius: 3, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: 140, backgroundColor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Skeleton variant="circular" width={60} height={60} />
+    </Box>
+    <CardContent sx={{ flexGrow: 1 }}>
+      <Skeleton width="60%" height={32} sx={{ mb: 1 }} />
+      <Skeleton width="40%" height={20} sx={{ mb: 2 }} />
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Skeleton width={60} height={28} />
+        <Skeleton width={80} height={28} />
+      </Box>
+    </CardContent>
+    <CardActions sx={{ p: 2, pt: 0 }}>
+      <Skeleton width="100%" height={36} />
+    </CardActions>
+  </Card>
+);
+
+const SORT_VALUES = ['name,asc', 'name,desc'] as const;
+
+const SORT_LABEL_KEYS: Record<(typeof SORT_VALUES)[number], string> = {
+  'name,asc': 'home.sortNameAsc',
+  'name,desc': 'home.sortNameDesc',
+};
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
@@ -43,6 +73,8 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [page, setPage] = useState(0);
+  const [items, setItems] = useState<RestaurantResponse[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
   const size = 9;
 
   const [nameInput, setNameInput] = useState('');
@@ -52,13 +84,14 @@ const HomePage: React.FC = () => {
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [draftCategoryIds, setDraftCategoryIds] = useState<number[]>([]);
+  const [sort, setSort] = useState('name,asc');
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
 
   const { data: availableCategories = [] } = useGetCategoriesQuery();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       setName(nameInput.trim());
-      setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
   }, [nameInput]);
@@ -66,22 +99,48 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setAddress(addressInput.trim());
-      setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
   }, [addressInput]);
 
+  useEffect(() => {
+    setPage(0);
+    setItems([]);
+  }, [name, address, categoryIds, sort]);
+
   const { data, isFetching, error } = useGetRestaurantsQuery({
     page,
     size,
+    sort,
     name: name || undefined,
     address: address || undefined,
     categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
   });
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value - 1);
-  };
+  useEffect(() => {
+    if (!data) return;
+    setItems((prev) => (data.number === 0 ? data.content : [...prev, ...data.content]));
+    setTotalPages(data.totalPages);
+  }, [data]);
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const hasMore = page + 1 < totalPages;
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetching && hasMore) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { rootMargin: '300px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isFetching, hasMore]);
 
   const handleReserveClick = (restaurantId: number, restaurantName: string) => {
     if (!token) {
@@ -110,8 +169,20 @@ const HomePage: React.FC = () => {
 
   const handleApplyCategoryDialog = () => {
     setCategoryIds(draftCategoryIds);
-    setPage(0);
     setIsCategoryDialogOpen(false);
+  };
+
+  const handleOpenSortDialog = () => {
+    setIsSortDialogOpen(true);
+  };
+
+  const handleCloseSortDialog = () => {
+    setIsSortDialogOpen(false);
+  };
+
+  const handleSortSelect = (value: string) => {
+    setSort(value);
+    setIsSortDialogOpen(false);
   };
 
   const categoryFieldValue = (() => {
@@ -129,8 +200,9 @@ const HomePage: React.FC = () => {
   const handleClearFilters = () => {
     setNameInput('');
     setAddressInput('');
+    setName('');
+    setAddress('');
     setCategoryIds([]);
-    setPage(0);
   };
 
   if (error) {
@@ -214,9 +286,27 @@ const HomePage: React.FC = () => {
               borderRadius: 5,
               px: 2,
               borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             {categoryIds.length === 0 ? t('home.categoriesButton') : categoryFieldValue}
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={handleOpenSortDialog}
+            startIcon={<SortIcon />}
+            endIcon={<ArrowDropDownIcon />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              borderRadius: 5,
+              px: 2,
+              borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
+            {t(SORT_LABEL_KEYS[sort as (typeof SORT_VALUES)[number]])}
           </Button>
           {hasActiveFilters && (
             <Tooltip title={t('home.clearFilters')} arrow>
@@ -229,7 +319,16 @@ const HomePage: React.FC = () => {
       </Paper>
 
       <Dialog open={isCategoryDialogOpen} onClose={handleCloseCategoryDialog} fullWidth maxWidth="xs">
-        <DialogTitle>{t('home.categoryDialogTitle')}</DialogTitle>
+        <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+          {t('home.categoryDialogTitle')}
+          <IconButton
+            onClick={handleCloseCategoryDialog}
+            size="small"
+            sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
         <DialogContent dividers>
           {availableCategories.length === 0 ? (
             <Typography variant="body2" color="text.secondary">{t('home.noCategoriesAvailable')}</Typography>
@@ -258,69 +357,76 @@ const HomePage: React.FC = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
           <Button
             onClick={() => setDraftCategoryIds([])}
             variant="contained"
             color="error"
             startIcon={<ClearIcon />}
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, mr: 'auto' }}
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
           >
             {t('common.clear')}
-          </Button>
-          <Button
-            onClick={handleCloseCategoryDialog}
-            variant="contained"
-            startIcon={<CloseIcon />}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 'bold',
-              borderRadius: 2,
-              backgroundColor: 'grey.200',
-              color: 'text.primary',
-              '&:hover': { backgroundColor: 'grey.300' },
-            }}
-          >
-            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleApplyCategoryDialog}
             variant="contained"
             color="primary"
             startIcon={<CheckIcon />}
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
           >
             {t('common.apply')}
           </Button>
         </DialogActions>
       </Dialog>
 
+      <Dialog open={isSortDialogOpen} onClose={handleCloseSortDialog} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+          {t('home.sortDialogTitle')}
+          <IconButton
+            onClick={handleCloseSortDialog}
+            size="small"
+            sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0 }}>
+          <List disablePadding>
+            {SORT_VALUES.map((value) => {
+              const isSelected = value === sort;
+              return (
+                <ListItemButton
+                  key={value}
+                  selected={isSelected}
+                  onClick={() => handleSortSelect(value)}
+                >
+                  <ListItemText
+                    primary={t(SORT_LABEL_KEYS[value])}
+                    primaryTypographyProps={{ fontWeight: isSelected ? 'bold' : 'normal' }}
+                  />
+                  {isSelected && (
+                    <ListItemIcon sx={{ minWidth: 'auto', color: 'primary.main' }}>
+                      <CheckIcon />
+                    </ListItemIcon>
+                  )}
+                </ListItemButton>
+              );
+            })}
+          </List>
+        </DialogContent>
+      </Dialog>
+
       {/* Main Grid Section */}
       <Box sx={{ minHeight: '400px' }}>
-        {isFetching ? (
+        {isFetching && items.length === 0 ? (
           <Grid container spacing={3}>
-            {[...Array(6)].map((_, index) => (
+            {[...Array(size)].map((_, index) => (
               <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
-                <Card sx={{ height: '100%', borderRadius: 3, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ height: 140, backgroundColor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Skeleton variant="circular" width={60} height={60} />
-                  </Box>
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Skeleton width="60%" height={32} sx={{ mb: 1 }} />
-                    <Skeleton width="40%" height={20} sx={{ mb: 2 }} />
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Skeleton width={60} height={28} />
-                      <Skeleton width={80} height={28} />
-                    </Box>
-                  </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0 }}>
-                    <Skeleton width="100%" height={36} />
-                  </CardActions>
-                </Card>
+                <RestaurantCardSkeleton />
               </Grid>
             ))}
           </Grid>
-        ) : !data || data.content.length === 0 ? (
+        ) : items.length === 0 ? (
           <Paper elevation={2} sx={{ p: 6, textAlign: 'center', borderRadius: 3 }}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
               {hasActiveFilters ? t('home.noResultsFound') : t('home.noRestaurants')}
@@ -332,7 +438,7 @@ const HomePage: React.FC = () => {
         ) : (
           <>
             <Grid container spacing={3.5}>
-              {data.content.map((restaurant) => {
+              {items.map((restaurant) => {
                 if (!restaurant) return null;
                 return (
                   <Grid item xs={12} sm={6} md={4} key={restaurant.id}>
@@ -452,25 +558,19 @@ const HomePage: React.FC = () => {
                   </Grid>
                 );
               })}
+              {isFetching && (
+                <>
+                  {[...Array(size)].map((_, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={`skeleton-more-${index}`}>
+                      <RestaurantCardSkeleton />
+                    </Grid>
+                  ))}
+                </>
+              )}
             </Grid>
 
-            {/* Pagination Controls */}
-            {data.totalPages > 1 && (
-              <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
-                <Pagination
-                  count={data.totalPages}
-                  page={page + 1}
-                  onChange={handlePageChange}
-                  color="primary"
-                  size="large"
-                  sx={{
-                    '& .MuiPaginationItem-root': {
-                      borderRadius: 2
-                    }
-                  }}
-                />
-              </Box>
-            )}
+            {/* Infinite scroll trigger */}
+            <Box ref={sentinelRef} sx={{ height: 1 }} />
           </>
         )}
       </Box>

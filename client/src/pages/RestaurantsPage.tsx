@@ -53,7 +53,7 @@ const SORT_LABEL_KEYS: Record<(typeof SORT_VALUES)[number], string> = {
 const RestaurantsPage: React.FC = () => {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sort, setSort] = useState('id,asc');
 
   const [nameInput, setNameInput] = useState('');
@@ -241,6 +241,7 @@ const RestaurantsPage: React.FC = () => {
               borderRadius: 5,
               px: 2,
               borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             {categoryIds.length === 0 ? t('restaurants.categoriesButton') : categoryFieldValue}
@@ -257,6 +258,7 @@ const RestaurantsPage: React.FC = () => {
               borderRadius: 5,
               px: 2,
               borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             {t(SORT_LABEL_KEYS[sort as (typeof SORT_VALUES)[number]])}
@@ -270,7 +272,16 @@ const RestaurantsPage: React.FC = () => {
           )}
         </Box>
         <Dialog open={isCategoryDialogOpen} onClose={handleCloseCategoryDialog} fullWidth maxWidth="xs">
-          <DialogTitle>{t('restaurants.categoryDialogTitle')}</DialogTitle>
+          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+            {t('restaurants.categoryDialogTitle')}
+            <IconButton
+              onClick={handleCloseCategoryDialog}
+              size="small"
+              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
           <DialogContent dividers>
             {availableCategories.length === 0 ? (
               <Typography variant="body2" color="text.secondary">{t('restaurants.noCategoriesAvailable')}</Typography>
@@ -299,44 +310,38 @@ const RestaurantsPage: React.FC = () => {
               </Box>
             )}
           </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
+          <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
             <Button
               onClick={() => setDraftCategoryIds([])}
               variant="contained"
               color="error"
               startIcon={<ClearIcon />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, mr: 'auto' }}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
             >
               {t('common.clear')}
-            </Button>
-            <Button
-              onClick={handleCloseCategoryDialog}
-              variant="contained"
-              startIcon={<CloseIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                backgroundColor: 'grey.200',
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'grey.300' },
-              }}
-            >
-              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleApplyCategoryDialog}
               variant="contained"
               color="primary"
               startIcon={<CheckIcon />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
             >
               {t('common.apply')}
             </Button>
           </DialogActions>
         </Dialog>
         <Dialog open={isSortDialogOpen} onClose={handleCloseSortDialog} fullWidth maxWidth="xs">
-          <DialogTitle>{t('restaurants.sortDialogTitle')}</DialogTitle>
+          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+            {t('restaurants.sortDialogTitle')}
+            <IconButton
+              onClick={handleCloseSortDialog}
+              size="small"
+              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
           <DialogContent dividers sx={{ p: 0 }}>
             <List disablePadding>
               {SORT_VALUES.map((value) => {
@@ -361,23 +366,6 @@ const RestaurantsPage: React.FC = () => {
               })}
             </List>
           </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button
-              onClick={handleCloseSortDialog}
-              variant="contained"
-              startIcon={<CloseIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                backgroundColor: 'grey.200',
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'grey.300' },
-              }}
-            >
-              {t('common.close')}
-            </Button>
-          </DialogActions>
         </Dialog>
         <Divider />
         {error ? (
