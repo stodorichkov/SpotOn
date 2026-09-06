@@ -7,19 +7,20 @@ import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.EmployeeMapper;
 import com.example.restaurant.model.enity.Employee;
 import com.example.restaurant.model.enity.Restaurant;
+import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
 import com.example.restaurant.model.payload.response.UserDetailsResponse;
 import com.example.restaurant.repository.EmployeeRepository;
 import com.example.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -81,11 +82,25 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public Page<UserDetailsResponse> getEmployees(Long restaurantId, Pageable pageable) {
-        final var employeeIds = this.employeeRepository.findAllByRestaurantId(restaurantId, pageable)
-                .map(Employee::getUserId);
+    public Page<UserDetailsResponse> getEmployees(Long restaurantId, String email, String name, String phoneNumber, List<RoleEnum> roles, Pageable pageable) {
+        final var employeeIds = this.employeeRepository.findUserIdsByRestaurantId(restaurantId);
 
-        return getUserDetailsResponses(pageable, employeeIds);
+        if (employeeIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        final var sort = pageable.getSort().stream()
+                .findFirst()
+                .map(order -> order.getProperty() + "," + order.getDirection().name().toLowerCase())
+                .orElse(null);
+
+        final var matchingEmployees = this.authEmployeeClient.getEmployees(email, name, phoneNumber, roles, sort, employeeIds);
+
+        final var total = matchingEmployees.size();
+        final var start = Math.min((int) pageable.getOffset(), total);
+        final var end = Math.min(start + pageable.getPageSize(), total);
+
+        return new PageImpl<>(matchingEmployees.subList(start, end), pageable, total);
     }
 
     @Override
@@ -105,17 +120,5 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (!employee.getRestaurant().getId().equals(restaurantId)) {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
-    }
-
-    private Page<UserDetailsResponse> getUserDetailsResponses(Pageable pageable, Page<Long> employeeIds) {
-        if (employeeIds.isEmpty()) {
-            return Page.empty(pageable);
-        }
-
-        final var usersDetails = this.authEmployeeClient.getEmployees(employeeIds.getContent());
-        final var detailsMap = usersDetails.stream()
-                .collect(Collectors.toMap(UserDetailsResponse::id, dto -> dto));
-
-        return employeeIds.map(detailsMap::get);
     }
 }
