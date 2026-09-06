@@ -8,7 +8,6 @@ import loginFormReducer from '../features/auth/loginSlice';
 import authReducer from '../features/auth/authSlice';
 import alertsReducer from '../features/alerts/alertsSlice';
 import changePasswordFormReducer from '../features/auth/changePasswordSlice';
-import { rtkQueryErrorLogger } from './middleware';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -35,7 +34,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(api.middleware, rtkQueryErrorLogger),
+    }).concat(api.middleware),
 });
 
 export const persistor = persistStore(store);
