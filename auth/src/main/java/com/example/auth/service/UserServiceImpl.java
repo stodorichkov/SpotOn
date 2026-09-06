@@ -54,4 +54,19 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::mapToBookingClientResponse)
                 .toList();
     }
+
+    @Override
+    public List<Long> searchClientIds(String name) {
+        if (!StringUtils.hasText(name)) {
+            return List.of();
+        }
+
+        final var specification = UserSpecification.hasRoles(List.of(RoleEnum.CLIENT))
+                .and(UserSpecification.hasNameContaining(name));
+
+        return this.userRepository.findAll(specification)
+                .stream()
+                .map(User::getId)
+                .toList();
+    }
 }

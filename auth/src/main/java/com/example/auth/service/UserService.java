@@ -13,4 +13,5 @@ public interface UserService {
     Page<UserResponse> getUsers(String email, List<RoleEnum> roles, Pageable pageable);
     UserDetailsResponse getUser(Long id);
     List<ClientContactResponse> getClientContacts(List<Long> userIds);
+    List<Long> searchClientIds(String name);
 }

@@ -30,4 +30,17 @@ public class BookingController {
 
         return userService.getClientContacts(userIds);
     }
+
+    @GetMapping("/users/search")
+    public List<Long> searchClientIds(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
+            @RequestParam String name
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+        this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.BOOKING);
+
+        return userService.searchClientIds(name);
+    }
 }
