@@ -26,13 +26,10 @@ const RegisterPage = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const validationSchema = useMemo(() => yup.object({
-        username: yup
+        email: yup
             .string()
             .required(t('validation.blankField'))
-            .test('username-format', t('validation.invalidUsername'), (value) => {
-                if (!value) return true;
-                return RegexConstants.USERNAME_REGEX.test(value);
-            }),
+            .email(t('validation.invalidEmail')),
         firstName: yup
             .string()
             .required(t('validation.blankField'))
@@ -108,7 +105,12 @@ const RegisterPage = () => {
             await registerClient(formState as ClientRegistrationRequest).unwrap();
             dispatch(addAlert({ message: t('register.success'), type: 'success' }));
             navigate('/login');
-        } catch (err) {}
+        } catch (err: any) {
+            dispatch(addAlert({
+                message: err?.data?.message || t('register.failure'),
+                type: 'error'
+            }));
+        }
     };
 
     const handleClickShowPassword = () => {
@@ -152,13 +154,14 @@ const RegisterPage = () => {
                                 <TextField
                                     required
                                     fullWidth
-                                    id="username"
-                                    label={t('register.username')}
-                                    name="username"
-                                    value={formState.username || ''}
+                                    id="email"
+                                    label={t('register.email')}
+                                    name="email"
+                                    type="email"
+                                    value={formState.email || ''}
                                     onChange={handleChange}
-                                    error={!!errors.username}
-                                    helperText={errors.username}
+                                    error={!!errors.email}
+                                    helperText={errors.email}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2.5,

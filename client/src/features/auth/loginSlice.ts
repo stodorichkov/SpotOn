@@ -4,7 +4,7 @@ import { ClientLoginRequest } from "./authApi";
 type LoginFormState = ClientLoginRequest;
 
 const initialState: LoginFormState = {
-  username: '',
+  email: '',
   password: '',
 };
 

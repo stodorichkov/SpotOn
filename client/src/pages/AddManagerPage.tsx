@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import * as yup from 'yup';
 import { useRegisterManagerMutation } from '../features/auth/authApi';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { RegexConstants } from '../constants';
@@ -17,7 +18,6 @@ import {
   Avatar
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const AddManagerPage: React.FC = () => {
@@ -29,48 +29,66 @@ const AddManagerPage: React.FC = () => {
 
   const [registerManager, { isLoading: registering }] = useRegisterManagerMutation();
 
+  const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [errors, setErrors] = useState<{ firstName?: string; lastName?: string; phoneNumber?: string }>({});
-  const [successData, setSuccessData] = useState<{ username: string; password: string } | null>(null);
+  const [errors, setErrors] = useState<{ email?: string; firstName?: string; lastName?: string; phoneNumber?: string }>({});
 
-  const handleCopyBoth = (username: string, password: string) => {
-    const textToCopy = `username: ${username}\npassword: ${password}`;
-    navigator.clipboard.writeText(textToCopy);
-    dispatch(addAlert({ message: t('addManager.credentialsCopied'), type: 'info' }));
-  };
+  const validationSchema = useMemo(() => yup.object({
+    email: yup
+      .string()
+      .required(t('validation.blankField'))
+      .email(t('validation.invalidEmail')),
+    firstName: yup
+      .string()
+      .required(t('validation.blankField'))
+      .test('firstName-format', t('validation.invalidName'), (value) => {
+        if (!value) return true;
+        return RegexConstants.NAME_REGEX.test(value);
+      }),
+    lastName: yup
+      .string()
+      .required(t('validation.blankField'))
+      .test('lastName-format', t('validation.invalidName'), (value) => {
+        if (!value) return true;
+        return RegexConstants.NAME_REGEX.test(value);
+      }),
+    phoneNumber: yup
+      .string()
+      .required(t('validation.blankField'))
+      .test('phoneNumber-format', t('validation.invalidPhoneNumber'), (value) => {
+        if (!value) return true;
+        return RegexConstants.PHONE_NUMBER_REGEX.test(value);
+      }),
+  }), [t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: typeof errors = {};
+    const formState = { email, firstName, lastName, phoneNumber };
 
-    if (!firstName.trim()) {
-      newErrors.firstName = t('validation.blankField');
-    } else if (!RegexConstants.NAME_REGEX.test(firstName.trim())) {
-      newErrors.firstName = t('validation.invalidName');
-    }
-
-    if (!lastName.trim()) {
-      newErrors.lastName = t('validation.blankField');
-    } else if (!RegexConstants.NAME_REGEX.test(lastName.trim())) {
-      newErrors.lastName = t('validation.invalidName');
-    }
-
-    if (!phoneNumber.trim()) {
-      newErrors.phoneNumber = t('validation.blankField');
-    } else if (!RegexConstants.PHONE_NUMBER_REGEX.test(phoneNumber.trim())) {
-      newErrors.phoneNumber = t('validation.invalidPhoneNumber');
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    try {
+      await validationSchema.validate(formState, { abortEarly: false });
+      setErrors({});
+    } catch (err) {
+      const validationError = err as yup.ValidationError;
+      if (validationError.inner) {
+        const formattedErrors: typeof errors = {};
+        validationError.inner.forEach((error) => {
+          if (error.path) {
+            formattedErrors[error.path as keyof typeof errors] = error.message;
+          }
+        });
+        setErrors(formattedErrors);
+      }
       return;
     }
 
     try {
-      const response = await registerManager({
+      const trimmedEmail = email.trim();
+      await registerManager({
         employeeData: {
+          email: trimmedEmail,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           phoneNumber: phoneNumber.trim(),
@@ -78,11 +96,8 @@ const AddManagerPage: React.FC = () => {
         restaurantId,
       }).unwrap();
 
-      setSuccessData({
-        username: response.username,
-        password: response.password,
-      });
       dispatch(addAlert({ message: t('addManager.success'), type: 'success' }));
+      navigate(`/admin/restaurants/${restaurantId}/employees`);
     } catch (err: any) {
       console.error('Failed to register manager:', err);
       dispatch(addAlert({
@@ -90,10 +105,6 @@ const AddManagerPage: React.FC = () => {
         type: 'error'
       }));
     }
-  };
-
-  const handleBack = () => {
-    navigate(`/admin/restaurants/${restaurantId}/employees`);
   };
 
   if (isNaN(restaurantId)) {
@@ -117,65 +128,6 @@ const AddManagerPage: React.FC = () => {
   return (
     <Container maxWidth="xs" sx={{ mt: { xs: 4, sm: 8 }, mb: 4, px: { xs: 2, sm: 0 } }}>
       <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
-        {successData ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="h5" component="h1" fontWeight="bold" color="success.main" align="center">
-                {t('addManager.credentialsTitle')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 0.5 }}>
-                {t('addManager.credentialsSubtitle')}
-              </Typography>
-            </Box>
-
-            <TextField
-              label={t('addManager.username')}
-              value={successData.username}
-              InputProps={{
-                readOnly: true,
-              }}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  backgroundColor: 'action.hover'
-                }
-              }}
-            />
-            <TextField
-              label={t('addManager.password')}
-              value={successData.password}
-              InputProps={{
-                readOnly: true,
-              }}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2.5,
-                  backgroundColor: 'action.hover'
-                }
-              }}
-            />
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<ContentCopyIcon />}
-              onClick={() => handleCopyBoth(successData.username, successData.password)}
-              sx={{ textTransform: 'none', fontWeight: 'bold', py: 1.2, borderRadius: 2 }}
-            >
-              {t('addManager.copyCredentials')}
-            </Button>
-            <Button
-              onClick={handleBack}
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ textTransform: 'none', fontWeight: 'bold', py: 1.5, borderRadius: 2 }}
-            >
-              {t('addManager.done')}
-            </Button>
-          </Box>
-        ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Avatar
               sx={{
@@ -198,6 +150,30 @@ const AddManagerPage: React.FC = () => {
 
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
               <Grid container spacing={1.5}>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="email"
+                    label={t('addManager.email')}
+                    variant="outlined"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2.5,
+                        transition: 'all 0.2s',
+                      }
+                    }}
+                  />
+                </Grid>
+
                 <Grid item xs={12}>
                   <TextField
                     required
@@ -289,7 +265,6 @@ const AddManagerPage: React.FC = () => {
               </Grid>
             </Box>
           </Box>
-        )}
       </Paper>
     </Container>
   );

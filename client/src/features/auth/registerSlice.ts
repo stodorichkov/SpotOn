@@ -4,7 +4,7 @@ import {ClientRegistrationRequest} from "./authApi";
 type RegisterFormState = ClientRegistrationRequest;
 
 const initialState: RegisterFormState = {
-  username: '',
+  email: '',
   firstName: '',
   lastName: '',
   phoneNumber: '',

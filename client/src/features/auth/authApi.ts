@@ -2,7 +2,7 @@ import { api } from '../../services/api';
 import { setCredentials } from './authSlice';
 
 export interface ClientRegistrationRequest {
-    username: string;
+    email: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
@@ -11,20 +11,20 @@ export interface ClientRegistrationRequest {
 }
 
 export interface ClientLoginRequest {
-    username: string;
+    email: string;
     password: string;
 }
 
 export interface ProfileResponse {
-    username: string;
+    email: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
     role: string;
 }
 
-export interface ChangeUsernameRequest {
-    newUsername: string;
+export interface ChangeEmailRequest {
+    newEmail: string;
 }
 
 export interface ChangePasswordRequest {
@@ -40,25 +40,17 @@ export interface EditProfileRequest {
 }
 
 export interface EmployeeData {
+    email: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
 }
 
 export interface EmployeeRegistrationRequest {
+    email: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
-}
-
-export interface EmployeeRegistrationResponse {
-    id: number;
-    username: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    role: string;
-    password: string;
 }
 
 export interface RegisterManagerRequest {
@@ -66,14 +58,8 @@ export interface RegisterManagerRequest {
     restaurantId: number;
 }
 
-export interface RegisterManagerResponse {
-    id: number;
-    username: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    role: string;
-    password: string;
+export interface PasswordResetRequest {
+    email: string;
 }
 
 const AUTH_API_PATH = '/auth';
@@ -84,9 +70,9 @@ export const authApi = api.injectEndpoints({
             query: () => `${AUTH_API_PATH}/profile`,
             providesTags: ['Profile'],
         }),
-        changeUsername: builder.mutation<void, ChangeUsernameRequest>({
+        changeEmail: builder.mutation<void, ChangeEmailRequest>({
             query: (body) => ({
-                url: `${AUTH_API_PATH}/profile/username`,
+                url: `${AUTH_API_PATH}/profile/email`,
                 method: 'PATCH',
                 body,
             }),
@@ -112,7 +98,7 @@ export const authApi = api.injectEndpoints({
                 body,
             }),
         }),
-        registerManager: builder.mutation<RegisterManagerResponse, RegisterManagerRequest>({
+        registerManager: builder.mutation<void, RegisterManagerRequest>({
             query: (body) => ({
                 url: `${AUTH_API_PATH}/register/manager`,
                 method: 'POST',
@@ -120,7 +106,7 @@ export const authApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Employees'],
         }),
-        registerEmployee: builder.mutation<EmployeeRegistrationResponse, EmployeeRegistrationRequest>({
+        registerEmployee: builder.mutation<void, EmployeeRegistrationRequest>({
             query: (body) => ({
                 url: `${AUTH_API_PATH}/register/employee`,
                 method: 'POST',
@@ -133,7 +119,16 @@ export const authApi = api.injectEndpoints({
                 url: `${AUTH_API_PATH}/login`,
                 method: 'POST',
                 body,
-                responseHandler: (response) => response.text(),
+                responseHandler: async (response) => {
+                    if (response.ok) {
+                        return response.text();
+                    }
+                    try {
+                        return await response.json();
+                    } catch {
+                        return await response.text();
+                    }
+                },
             }),
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
@@ -157,6 +152,13 @@ export const authApi = api.injectEndpoints({
                 }
             },
         }),
+        resetPassword: builder.mutation<void, PasswordResetRequest>({
+            query: (body) => ({
+                url: `${AUTH_API_PATH}/password-reset`,
+                method: 'POST',
+                body,
+            }),
+        }),
         logout: builder.mutation<void, void>({
             query: () => ({
                 url: `${AUTH_API_PATH}/logout`,
@@ -178,4 +180,4 @@ export const authApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, useRegisterClientMutation, useRegisterManagerMutation, useRegisterEmployeeMutation, useLoginMutation, useLogoutMutation } = authApi;
+export const { useGetProfileQuery, useChangeEmailMutation, useChangePasswordMutation, useEditProfileMutation, useRegisterClientMutation, useRegisterManagerMutation, useRegisterEmployeeMutation, useLoginMutation, useLogoutMutation, useResetPasswordMutation } = authApi;

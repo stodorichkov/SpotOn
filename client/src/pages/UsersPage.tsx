@@ -42,13 +42,13 @@ import { Role } from '../constants';
 
 const ROLE_OPTIONS = [Role.ADMIN, Role.MANAGER, Role.EMPLOYEE, Role.CLIENT];
 
-const SORT_VALUES = ['id,asc', 'id,desc', 'username,asc', 'username,desc', 'role.name,asc', 'role.name,desc'] as const;
+const SORT_VALUES = ['id,asc', 'id,desc', 'email,asc', 'email,desc', 'role.name,asc', 'role.name,desc'] as const;
 
 const SORT_LABEL_KEYS: Record<(typeof SORT_VALUES)[number], string> = {
   'id,asc': 'users.sortIdAsc',
   'id,desc': 'users.sortIdDesc',
-  'username,asc': 'users.sortUsernameAsc',
-  'username,desc': 'users.sortUsernameDesc',
+  'email,asc': 'users.sortEmailAsc',
+  'email,desc': 'users.sortEmailDesc',
   'role.name,asc': 'users.sortRoleAsc',
   'role.name,desc': 'users.sortRoleDesc',
 };
@@ -73,11 +73,11 @@ const getRoleChipColor = (role: string) => {
 const UsersPage: React.FC = () => {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sort, setSort] = useState('id,asc');
 
-  const [usernameInput, setUsernameInput] = useState('');
-  const [username, setUsername] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [email, setEmail] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
   const [isRolesDialogOpen, setIsRolesDialogOpen] = useState(false);
   const [draftRoles, setDraftRoles] = useState<string[]>([]);
@@ -85,17 +85,17 @@ const UsersPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setUsername(usernameInput.trim());
+      setEmail(emailInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [usernameInput]);
+  }, [emailInput]);
 
   const { data, error, isFetching } = useGetUsersQuery({
     page,
     size: rowsPerPage,
     sort,
-    username: username || undefined,
+    email: email || undefined,
     roles: roles.length > 0 ? roles : undefined,
   });
 
@@ -153,10 +153,10 @@ const UsersPage: React.FC = () => {
     return t('users.rolesCount', { count: roles.length });
   })();
 
-  const hasActiveFilters = usernameInput !== '' || roles.length > 0;
+  const hasActiveFilters = emailInput !== '' || roles.length > 0;
 
   const handleClearFilters = () => {
-    setUsernameInput('');
+    setEmailInput('');
     setRoles([]);
     setPage(0);
   };
@@ -197,10 +197,10 @@ const UsersPage: React.FC = () => {
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
           <TextField
-            label={t('users.searchByUsername')}
+            label={t('users.searchByEmail')}
             size="small"
-            value={usernameInput}
-            onChange={(e) => setUsernameInput(e.target.value)}
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
             sx={{ minWidth: 180, flex: '1 1 180px' }}
           />
           <Button
@@ -215,6 +215,7 @@ const UsersPage: React.FC = () => {
               borderRadius: 5,
               px: 2,
               borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             {roles.length === 0 ? t('users.rolesButton') : rolesFieldValue}
@@ -231,6 +232,7 @@ const UsersPage: React.FC = () => {
               borderRadius: 5,
               px: 2,
               borderColor: 'divider',
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             {t(SORT_LABEL_KEYS[sort as (typeof SORT_VALUES)[number]])}
@@ -244,7 +246,16 @@ const UsersPage: React.FC = () => {
           )}
         </Box>
         <Dialog open={isRolesDialogOpen} onClose={handleCloseRolesDialog} fullWidth maxWidth="xs">
-          <DialogTitle>{t('users.rolesDialogTitle')}</DialogTitle>
+          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+            {t('users.rolesDialogTitle')}
+            <IconButton
+              onClick={handleCloseRolesDialog}
+              size="small"
+              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
           <DialogContent dividers>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {ROLE_OPTIONS.map((role) => {
@@ -269,44 +280,38 @@ const UsersPage: React.FC = () => {
               })}
             </Box>
           </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
+          <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
             <Button
               onClick={() => setDraftRoles([])}
               variant="contained"
               color="error"
               startIcon={<ClearIcon />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, mr: 'auto' }}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
             >
               {t('common.clear')}
-            </Button>
-            <Button
-              onClick={handleCloseRolesDialog}
-              variant="contained"
-              startIcon={<CloseIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                backgroundColor: 'grey.200',
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'grey.300' },
-              }}
-            >
-              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleApplyRolesDialog}
               variant="contained"
               color="primary"
               startIcon={<CheckIcon />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, flex: 1 }}
             >
               {t('common.apply')}
             </Button>
           </DialogActions>
         </Dialog>
         <Dialog open={isSortDialogOpen} onClose={handleCloseSortDialog} fullWidth maxWidth="xs">
-          <DialogTitle>{t('users.sortBy')}</DialogTitle>
+          <DialogTitle sx={{ pr: 6, position: 'relative' }}>
+            {t('users.sortBy')}
+            <IconButton
+              onClick={handleCloseSortDialog}
+              size="small"
+              sx={{ position: 'absolute', right: 12, top: 12, color: 'text.secondary' }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </DialogTitle>
           <DialogContent dividers sx={{ p: 0 }}>
             <List disablePadding>
               {SORT_VALUES.map((value) => {
@@ -331,23 +336,6 @@ const UsersPage: React.FC = () => {
               })}
             </List>
           </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button
-              onClick={handleCloseSortDialog}
-              variant="contained"
-              startIcon={<CloseIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                backgroundColor: 'grey.200',
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'grey.300' },
-              }}
-            >
-              {t('common.close')}
-            </Button>
-          </DialogActions>
         </Dialog>
         <Divider />
         {error ? (
@@ -362,7 +350,7 @@ const UsersPage: React.FC = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>{t('users.id')}</TableCell>
-                  <TableCell>{t('users.username')}</TableCell>
+                  <TableCell>{t('users.email')}</TableCell>
                   <TableCell>{t('users.role')}</TableCell>
                   <TableCell align="right">{t('users.actions')}</TableCell>
                 </TableRow>
@@ -392,7 +380,7 @@ const UsersPage: React.FC = () => {
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('users.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>{t('users.username')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '50%' }}>{t('users.email')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('users.role')}</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('users.actions')}</TableCell>
                   </TableRow>
@@ -401,7 +389,7 @@ const UsersPage: React.FC = () => {
                   {data?.content.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>{user.id}</TableCell>
-                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.email}</TableCell>
                       <TableCell>
                         {user.role ? (
                           <Chip

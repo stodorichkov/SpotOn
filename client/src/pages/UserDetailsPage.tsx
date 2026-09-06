@@ -130,7 +130,7 @@ const UserDetailsPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
+                {user.firstName ? `${user.firstName} ${user.lastName}` : user.email}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                 {t('userDetails.subtitle')}
@@ -179,10 +179,10 @@ const UserDetailsPage: React.FC = () => {
                 <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    {t('userDetails.username')}
+                    {t('userDetails.email')}
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {user.username}
+                    {user.email}
                   </Typography>
                 </Box>
               </Box>

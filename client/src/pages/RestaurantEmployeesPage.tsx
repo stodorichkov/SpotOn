@@ -52,7 +52,7 @@ const RestaurantEmployeesPage: React.FC = () => {
   const restaurantName = location.state?.restaurantName || `Restaurant #${restaurantId}`;
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const { data, error, isLoading } = useGetEmployeesQuery(
     { restaurantId, page, size: rowsPerPage },
@@ -151,7 +151,7 @@ const RestaurantEmployeesPage: React.FC = () => {
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('restaurantEmployees.id')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.username')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.email')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('restaurantEmployees.name')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurantEmployees.phoneNumber')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.role')}</TableCell>
@@ -191,7 +191,7 @@ const RestaurantEmployeesPage: React.FC = () => {
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('restaurantEmployees.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.username')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.email')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('restaurantEmployees.name')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurantEmployees.phoneNumber')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurantEmployees.role')}</TableCell>
@@ -204,7 +204,7 @@ const RestaurantEmployeesPage: React.FC = () => {
                     return (
                       <TableRow key={employee.id} style={{ height: rowHeight }}>
                         <TableCell>{employee.id}</TableCell>
-                        <TableCell>{employee.username || ''}</TableCell>
+                        <TableCell>{employee.email || ''}</TableCell>
                         <TableCell>{`${employee.firstName || ''} ${employee.lastName || ''}`}</TableCell>
                         <TableCell>{employee.phoneNumber || '-'}</TableCell>
                         <TableCell>

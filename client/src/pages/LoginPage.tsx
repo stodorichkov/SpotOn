@@ -24,7 +24,7 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const validationSchema = useMemo(() => yup.object({
-        username: yup
+        email: yup
             .string()
             .required(t('validation.blankField')),
         password: yup
@@ -73,7 +73,11 @@ const LoginPage = () => {
             await login(formState).unwrap();
             dispatch(addAlert({ message: t('login.success'), type: 'success' }));
             navigate('/');
-        } catch (err) {
+        } catch (err: any) {
+            dispatch(addAlert({
+                message: err?.data?.message || t('login.failure'),
+                type: 'error'
+            }));
         }
     };
 
@@ -114,13 +118,14 @@ const LoginPage = () => {
                                 <TextField
                                     required
                                     fullWidth
-                                    id="username"
-                                    label={t('login.username')}
-                                    name="username"
-                                    value={formState.username || ''}
+                                    id="email"
+                                    label={t('login.email')}
+                                    name="email"
+                                    type="email"
+                                    value={formState.email || ''}
                                     onChange={handleChange}
-                                    error={!!errors.username}
-                                    helperText={errors.username}
+                                    error={!!errors.email}
+                                    helperText={errors.email}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2.5,
@@ -164,13 +169,20 @@ const LoginPage = () => {
                                 />
                             </Grid>
                         </Grid>
+
+                        <Box sx={{ mt: 1, textAlign: 'right' }}>
+                            <Link to="/forgot-password" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                                {t('login.forgotPasswordLink')}
+                            </Link>
+                        </Box>
+
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
                             color="primary"
                             sx={{
-                                mt: 3,
+                                mt: 2,
                                 py: 1.2,
                                 fontWeight: 'bold',
                                 textTransform: 'none',

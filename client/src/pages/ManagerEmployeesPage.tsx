@@ -60,7 +60,7 @@ const ManagerEmployeesPage: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const currentUserId = useSelector((state: RootState) => state.auth.id);
   const { data, error, isLoading } = useGetManagerEmployeesQuery({ page, size: rowsPerPage });
@@ -199,7 +199,7 @@ const ManagerEmployeesPage: React.FC = () => {
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerEmployees.id')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.username')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.email')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.name')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.role')}</TableCell>
@@ -233,7 +233,7 @@ const ManagerEmployeesPage: React.FC = () => {
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerEmployees.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.username')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.email')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.name')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.role')}</TableCell>
@@ -248,7 +248,7 @@ const ManagerEmployeesPage: React.FC = () => {
                     return (
                       <TableRow key={employee.id} style={{ height: rowHeight }}>
                         <TableCell>{employee.id}</TableCell>
-                        <TableCell>{employee.username || ''}</TableCell>
+                        <TableCell>{employee.email || ''}</TableCell>
                         <TableCell>{`${employee.firstName || ''} ${employee.lastName || ''}`}</TableCell>
                         <TableCell>{employee.phoneNumber || '-'}</TableCell>
                         <TableCell>

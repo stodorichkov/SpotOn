@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Typography, Paper, Grid, TextField, Button, Skeleton, Box, IconButton, InputAdornment, Divider, Chip } from '@mui/material';
-import { useGetProfileQuery, useChangeUsernameMutation, useChangePasswordMutation, useEditProfileMutation, ChangePasswordRequest, EditProfileRequest } from '../features/auth/authApi';
+import { useGetProfileQuery, useChangeEmailMutation, useChangePasswordMutation, useEditProfileMutation, ChangePasswordRequest, EditProfileRequest } from '../features/auth/authApi';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -41,16 +41,16 @@ const getRoleChipColor = (role?: string) => {
 const ProfilePage = () => {
     const { t } = useTranslation();
     const { data: user, isLoading, refetch } = useGetProfileQuery();
-    const [changeUsername, { isLoading: isChangingUsername }] = useChangeUsernameMutation();
+    const [changeEmail, { isLoading: isChangingEmail }] = useChangeEmailMutation();
     const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
     const [editProfile, { isLoading: isUpdatingProfile }] = useEditProfileMutation();
     const dispatch: AppDispatch = useDispatch();
     const passwordFormState = useSelector((state: RootState) => state.changePasswordForm as ChangePasswordFormState);
 
-    const [isEditingUsername, setIsEditingUsername] = useState(false);
-    const [newUsername, setNewUsername] = useState('');
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const [newEmail, setNewEmail] = useState('');
     const [passwordErrors, setPasswordErrors] = useState<PasswordValidationErrors>({});
-    const [usernameError, setUsernameError] = useState<string | undefined>(undefined);
+    const [emailError, setEmailError] = useState<string | undefined>(undefined);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -80,14 +80,11 @@ const ProfilePage = () => {
             .required(t('validation.blankField')),
     }), [t]);
 
-    const usernameValidationSchema = useMemo(() => yup.object({
-        username: yup
+    const emailValidationSchema = useMemo(() => yup.object({
+        email: yup
             .string()
             .required(t('validation.blankField'))
-            .test('username-format', t('validation.invalidUsername'), (value) => {
-                if (!value) return true;
-                return RegexConstants.USERNAME_REGEX.test(value);
-            }),
+            .email(t('validation.invalidEmail')),
     }), [t]);
 
     const profileValidationSchema = useMemo(() => yup.object({
@@ -122,7 +119,7 @@ const ProfilePage = () => {
 
     useEffect(() => {
         if (user) {
-            setNewUsername(user.username);
+            setNewEmail(user.email);
             setProfileFormState({
                 firstName: user.firstName,
                 lastName: user.lastName,
@@ -137,25 +134,29 @@ const ProfilePage = () => {
         };
     }, [dispatch]);
 
-    const handleUsernameChange = async () => {
+    const handleEmailChange = async () => {
         try {
-            await usernameValidationSchema.validate({ username: newUsername });
-            setUsernameError(undefined);
+            await emailValidationSchema.validate({ email: newEmail });
+            setEmailError(undefined);
         } catch (err) {
             const validationError = err as yup.ValidationError;
-            setUsernameError(validationError.message);
+            setEmailError(validationError.message);
             return;
         }
 
-        if (user && newUsername !== user.username) {
-            changeUsername({ newUsername })
+        if (user && newEmail !== user.email) {
+            changeEmail({ newEmail })
                 .unwrap()
                 .then(() => {
-                    setIsEditingUsername(false);
-                    dispatch(addAlert({ message: t('profile.usernameChanged'), type: 'success' }));
+                    setIsEditingEmail(false);
+                    dispatch(addAlert({ message: t('profile.emailChanged'), type: 'success' }));
                     refetch();
                 })
-                .catch(() => {
+                .catch((err: any) => {
+                    dispatch(addAlert({
+                        message: err?.data?.message || t('profile.emailChangeFailure'),
+                        type: 'error'
+                    }));
                 });
         }
     };
@@ -184,7 +185,11 @@ const ProfilePage = () => {
             await changePassword(passwordFormState).unwrap();
             dispatch(addAlert({ message: t('profile.passwordChanged'), type: 'success' }));
             dispatch(clearChangePasswordForm());
-        } catch (err) {
+        } catch (err: any) {
+            dispatch(addAlert({
+                message: err?.data?.message || t('profile.passwordChangeFailure'),
+                type: 'error'
+            }));
         }
     };
 
@@ -211,7 +216,11 @@ const ProfilePage = () => {
             setIsEditingContact(false);
             dispatch(addAlert({ message: t('profile.profileUpdated'), type: 'success' }));
             refetch();
-        } catch (err) {
+        } catch (err: any) {
+            dispatch(addAlert({
+                message: err?.data?.message || t('profile.profileUpdateFailure'),
+                type: 'error'
+            }));
         }
     };
 
@@ -271,7 +280,6 @@ const ProfilePage = () => {
         );
     }
 
-    const isClient = user.role === Role.CLIENT;
     const canEditContact = user.role === Role.CLIENT || user.role === Role.MANAGER || user.role === Role.EMPLOYEE;
 
     return (
@@ -305,7 +313,7 @@ const ProfilePage = () => {
                         </Box>
                         <Box>
                             <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                                {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
+                                {user.firstName ? `${user.firstName} ${user.lastName}` : user.email}
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                                 {t('profile.subtitle')}
@@ -330,34 +338,34 @@ const ProfilePage = () => {
 
                 <Divider sx={{ mb: 2 }} />
 
-                {/* Username Section */}
+                {/* Email Section */}
                 <Box sx={{ mb: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                         <Typography variant="h6" fontWeight="bold" color="text.secondary">
                             {t('profile.accountDetails')}
                         </Typography>
-                        {isClient && !isEditingUsername && (
-                            <IconButton onClick={() => setIsEditingUsername(true)} color="primary">
+                        {!isEditingEmail && (
+                            <IconButton onClick={() => setIsEditingEmail(true)} color="primary">
                                 <EditIcon />
                             </IconButton>
                         )}
                     </Box>
-                    {isEditingUsername ? (
+                    {isEditingEmail ? (
                         <Grid container spacing={1.5}>
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
-                                    label={t('profile.username')}
-                                    value={newUsername}
+                                    label={t('profile.email')}
+                                    value={newEmail}
                                     onChange={(e) => {
-                                        setNewUsername(e.target.value);
-                                        if (usernameError) {
-                                            setUsernameError(undefined);
+                                        setNewEmail(e.target.value);
+                                        if (emailError) {
+                                            setEmailError(undefined);
                                         }
                                     }}
                                     variant="outlined"
-                                    error={!!usernameError}
-                                    helperText={usernameError}
+                                    error={!!emailError}
+                                    helperText={emailError}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2.5,
@@ -374,22 +382,22 @@ const ProfilePage = () => {
                                     <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                                     <Box>
                                         <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                                            {t('profile.username')}
+                                            {t('profile.email')}
                                         </Typography>
                                         <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                                            {user.username}
+                                            {user.email}
                                         </Typography>
                                     </Box>
                                 </Box>
                             </Grid>
                         </Grid>
                     )}
-                    {isEditingUsername && (
+                    {isEditingEmail && (
                         <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                             <Button
                                 startIcon={<SaveIcon />}
-                                onClick={handleUsernameChange}
-                                disabled={isChangingUsername || newUsername === user.username}
+                                onClick={handleEmailChange}
+                                disabled={isChangingEmail || newEmail === user.email}
                                 variant="contained"
                                 color="primary"
                                 sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
@@ -399,9 +407,9 @@ const ProfilePage = () => {
                             <Button
                                 startIcon={<CancelIcon />}
                                 onClick={() => {
-                                    setIsEditingUsername(false);
-                                    setNewUsername(user.username);
-                                    setUsernameError(undefined);
+                                    setIsEditingEmail(false);
+                                    setNewEmail(user.email);
+                                    setEmailError(undefined);
                                 }}
                                 variant="outlined"
                                 color="inherit"

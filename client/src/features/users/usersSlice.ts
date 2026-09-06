@@ -2,13 +2,13 @@ import { api } from '../../services/api';
 
 export interface User {
   id: number;
-  username: string;
+  email: string;
   role: string;
 }
 
 export interface UserDetailsResponse {
     id: number;
-    username: string;
+    email: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
@@ -49,15 +49,15 @@ export const usersSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query<
       PaginatedUsersResponse,
-      { page: number; size: number; sort?: string; username?: string; roles?: string[] }
+      { page: number; size: number; sort?: string; email?: string; roles?: string[] }
     >({
-      query: ({ page, size, sort = 'id,asc', username, roles }) => {
+      query: ({ page, size, sort = 'id,asc', email, roles }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
-        if (username) {
-          params.set('username', username);
+        if (email) {
+          params.set('email', email);
         }
         (roles || []).forEach((role) => params.append('roles', role));
 

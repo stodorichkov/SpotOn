@@ -102,7 +102,7 @@ export interface PaginatedRestaurantsResponse {
 
 export interface EmployeeResponse {
   id: number;
-  username: string;
+  email: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
