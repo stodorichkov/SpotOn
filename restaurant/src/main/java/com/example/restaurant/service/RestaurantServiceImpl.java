@@ -1,24 +1,33 @@
 package com.example.restaurant.service;
 
 import com.example.restaurant.constants.MessageConstants;
+import com.example.restaurant.exception.BadRequestException;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.enity.Restaurant;
+import com.example.restaurant.model.enity.RestaurantWorkingHours;
+import com.example.restaurant.model.payload.filter.RestaurantFilter;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.request.RestaurantStatusRequest;
+import com.example.restaurant.model.payload.request.RestaurantWorkingHoursRequest;
+import com.example.restaurant.model.payload.request.WorkingHoursEntryRequest;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
 import com.example.restaurant.repository.RestaurantRepository;
+import com.example.restaurant.repository.RestaurantWorkingHoursRepository;
 import com.example.restaurant.specification.RestaurantSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.DayOfWeek;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +36,7 @@ import java.util.stream.Collectors;
 public class RestaurantServiceImpl implements RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final CategoryRepository categoryRepository;
+    private final RestaurantWorkingHoursRepository restaurantWorkingHoursRepository;
     private final RestaurantMapper restaurantMapper;
 
     @Override
@@ -49,20 +59,8 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public Page<RestaurantResponse> getRestaurants(String name, String address, List<Long> categoryIds, Pageable pageable) {
-        Specification<Restaurant> specification = Specification.unrestricted();
-
-        if (StringUtils.hasText(name)) {
-            specification = specification.and(RestaurantSpecification.hasNameContaining(name));
-        }
-
-        if (StringUtils.hasText(address)) {
-            specification = specification.and(RestaurantSpecification.hasAddressContaining(address));
-        }
-
-        if (categoryIds != null && !categoryIds.isEmpty()) {
-            specification = specification.and(RestaurantSpecification.hasCategoryIds(categoryIds));
-        }
+    public Page<RestaurantResponse> getRestaurants(RestaurantFilter filter, Pageable pageable) {
+        final var specification = RestaurantSpecification.fromFilter(filter);
 
         return this.restaurantRepository.findAll(specification, pageable)
                 .map(this.restaurantMapper::mapToRestaurantResponse);
@@ -70,9 +68,10 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public RestaurantDetailsResponse getRestaurant(Long id) {
-        return this.restaurantRepository.findById(id)
-                .map(this.restaurantMapper::mapToRestaurantDetailsResponse)
+        final var restaurant = this.restaurantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        return this.buildRestaurantDetailsResponse(restaurant);
     }
 
     @Override
@@ -94,7 +93,75 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         this.restaurantRepository.save(restaurant);
 
-        return this.restaurantMapper.mapToRestaurantDetailsResponse(restaurant);
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse updateRestaurantStatus(Long id, RestaurantStatusRequest request) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        restaurant.setIsOpen(request.isOpen());
+        this.restaurantRepository.save(restaurant);
+
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse updateWorkingHours(Long id, RestaurantWorkingHoursRequest request) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        final var entries = request.workingHours();
+
+        final var distinctDays = entries.stream()
+                .map(WorkingHoursEntryRequest::dayOfWeek)
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(DayOfWeek.class)));
+
+        if (entries.size() != 7 || distinctDays.size() != 7) {
+            throw new BadRequestException(MessageConstants.INVALID_WORKING_HOURS_DAYS);
+        }
+
+        for (final var entry : entries) {
+            if (!entry.closed()) {
+                if (entry.openTime() == null || entry.closeTime() == null) {
+                    throw new BadRequestException(MessageConstants.WORKING_HOURS_TIME_REQUIRED);
+                }
+                if (!entry.openTime().isBefore(entry.closeTime())) {
+                    throw new BadRequestException(MessageConstants.INVALID_WORKING_HOURS_RANGE);
+                }
+            }
+        }
+
+        this.restaurantWorkingHoursRepository.deleteByRestaurantId(id);
+        this.restaurantWorkingHoursRepository.flush();
+
+        final var workingHours = entries.stream()
+                .map(entry -> {
+                    final var workingHoursEntry = new RestaurantWorkingHours();
+                    workingHoursEntry.setRestaurant(restaurant);
+                    workingHoursEntry.setDayOfWeek(entry.dayOfWeek());
+                    workingHoursEntry.setClosed(entry.closed());
+                    workingHoursEntry.setOpenTime(entry.closed() ? null : entry.openTime());
+                    workingHoursEntry.setCloseTime(entry.closed() ? null : entry.closeTime());
+                    return workingHoursEntry;
+                })
+                .toList();
+
+        this.restaurantWorkingHoursRepository.saveAll(workingHours);
+
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
+    private RestaurantDetailsResponse buildRestaurantDetailsResponse(Restaurant restaurant) {
+        final var workingHours = this.restaurantWorkingHoursRepository.findByRestaurantId(restaurant.getId())
+                .stream()
+                .sorted(Comparator.comparing(RestaurantWorkingHours::getDayOfWeek))
+                .toList();
+
+        return this.restaurantMapper.mapToRestaurantDetailsResponse(restaurant, workingHours);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.restaurant.model.payload.response;
 
+import java.util.List;
 import java.util.Set;
 
 public record RestaurantDetailsResponse(
@@ -7,6 +8,8 @@ public record RestaurantDetailsResponse(
         String name,
         Set<CategoryResponse> categories,
         String address,
-        String phoneNumber
+        String phoneNumber,
+        Boolean isOpen,
+        List<WorkingHoursEntryResponse> workingHours
 ) {
 }

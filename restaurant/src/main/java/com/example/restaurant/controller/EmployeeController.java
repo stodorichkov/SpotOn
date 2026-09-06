@@ -3,6 +3,7 @@ package com.example.restaurant.controller;
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.enums.ServiceEnum;
+import com.example.restaurant.model.payload.filter.EmployeeFilter;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
 import com.example.restaurant.model.payload.response.UserDetailsResponse;
@@ -15,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -75,10 +75,7 @@ public class EmployeeController {
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
             @RequestParam(required = false) Long restaurantId,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String phoneNumber,
-            @RequestParam(required = false) List<RoleEnum> roles,
+            EmployeeFilter filter,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER);
@@ -86,10 +83,10 @@ public class EmployeeController {
         if (userRoleHeader == RoleEnum.MANAGER) {
             this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
-            return this.employeeService.getEmployees(restaurantIdHeader, email, name, phoneNumber, roles, pageable);
+            return this.employeeService.getEmployees(restaurantIdHeader, filter, pageable);
         } else {
             return Optional.ofNullable(restaurantId)
-                    .map(id -> this.employeeService.getEmployees(id, email, name, phoneNumber, roles, pageable))
+                    .map(rid -> this.employeeService.getEmployees(rid, filter, pageable))
                     .orElseGet(() -> Page.empty(pageable));
         }
     }

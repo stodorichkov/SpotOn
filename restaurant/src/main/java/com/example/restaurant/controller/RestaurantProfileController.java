@@ -3,6 +3,8 @@ package com.example.restaurant.controller;
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.request.RestaurantStatusRequest;
+import com.example.restaurant.model.payload.request.RestaurantWorkingHoursRequest;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.service.AuthorizationService;
 import com.example.restaurant.service.EmployeeService;
@@ -47,4 +49,31 @@ public class RestaurantProfileController {
         return this.restaurantService.editRestaurant(restaurantIdHeader, request);
     }
 
+    @PatchMapping("/status")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantDetailsResponse updateStatus(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @Valid @RequestBody RestaurantStatusRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+
+        return this.restaurantService.updateRestaurantStatus(restaurantIdHeader, request);
+    }
+
+    @PutMapping("/working-hours")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantDetailsResponse updateWorkingHours(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @Valid @RequestBody RestaurantWorkingHoursRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+
+        return this.restaurantService.updateWorkingHours(restaurantIdHeader, request);
+    }
 }

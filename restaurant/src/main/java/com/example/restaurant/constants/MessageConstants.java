@@ -24,4 +24,8 @@ public class MessageConstants {
 
     public static final String TABLE_NOT_FOUND = "Table not found";
     public static final String TABLE_NOT_MATCH_REQUIREMENTS = "Selected table does not match the guest's requirements.";
+
+    public static final String INVALID_WORKING_HOURS_DAYS = "Working hours must be provided for all 7 days of the week, with no duplicates.";
+    public static final String INVALID_WORKING_HOURS_RANGE = "Opening time must be before closing time.";
+    public static final String WORKING_HOURS_TIME_REQUIRED = "Opening and closing time are required for a day the restaurant is open.";
 }

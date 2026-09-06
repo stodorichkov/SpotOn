@@ -1,6 +1,9 @@
 package com.example.restaurant.service;
 
+import com.example.restaurant.model.payload.filter.RestaurantFilter;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
+import com.example.restaurant.model.payload.request.RestaurantStatusRequest;
+import com.example.restaurant.model.payload.request.RestaurantWorkingHoursRequest;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
@@ -11,9 +14,11 @@ import java.util.List;
 
 public interface RestaurantService {
     RestaurantResponse addRestaurant(RestaurantRequest request);
-    Page<RestaurantResponse> getRestaurants(String name, String address, List<Long> categoryIds, Pageable pageable);
+    Page<RestaurantResponse> getRestaurants(RestaurantFilter filter, Pageable pageable);
     RestaurantDetailsResponse getRestaurant(Long id);
     RestaurantDetailsResponse editRestaurant(Long id, RestaurantRequest request);
+    RestaurantDetailsResponse updateRestaurantStatus(Long id, RestaurantStatusRequest request);
+    RestaurantDetailsResponse updateWorkingHours(Long id, RestaurantWorkingHoursRequest request);
 
     List<RestaurantContactResponse> getRestaurantsContact(List<Long> restaurantIds);
     void restaurantExists(Long id);

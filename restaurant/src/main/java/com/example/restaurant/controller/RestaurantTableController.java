@@ -2,6 +2,7 @@ package com.example.restaurant.controller;
 
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
+import com.example.restaurant.model.payload.filter.TableFilter;
 import com.example.restaurant.model.payload.request.RestaurantTableRequest;
 import com.example.restaurant.model.payload.response.RestaurantTableResponse;
 import com.example.restaurant.service.AuthorizationService;
@@ -42,16 +43,13 @@ public class RestaurantTableController {
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
             @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Boolean isSmokingAllowed,
-            @RequestParam(required = false) Integer minCapacity,
-            @RequestParam(required = false) Integer maxCapacity,
+            TableFilter filter,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.EMPLOYEE);
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
-        return this.restaurantTableService.getTables(restaurantIdHeader, name, isSmokingAllowed, minCapacity, maxCapacity, pageable);
+        return this.restaurantTableService.getTables(restaurantIdHeader, filter, pageable);
     }
 
     @PutMapping("/{id}")

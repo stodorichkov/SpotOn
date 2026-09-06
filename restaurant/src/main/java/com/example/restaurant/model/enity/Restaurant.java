@@ -30,4 +30,7 @@ public class Restaurant {
 
     @Column(nullable = false)
     private String phoneNumber;
+
+    @Column(nullable = false)
+    private Boolean isOpen = false;
 }

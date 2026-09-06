@@ -7,7 +7,7 @@ import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.EmployeeMapper;
 import com.example.restaurant.model.enity.Employee;
 import com.example.restaurant.model.enity.Restaurant;
-import com.example.restaurant.model.enums.RoleEnum;
+import com.example.restaurant.model.payload.filter.EmployeeFilter;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
 import com.example.restaurant.model.payload.response.UserDetailsResponse;
@@ -19,8 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -82,8 +80,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public Page<UserDetailsResponse> getEmployees(Long restaurantId, String email, String name, String phoneNumber, List<RoleEnum> roles, Pageable pageable) {
-        final var employeeIds = this.employeeRepository.findUserIdsByRestaurantId(restaurantId);
+    public Page<UserDetailsResponse> getEmployees(Long restaurantId, EmployeeFilter filter, Pageable pageable) {
+        var employeeIds = this.employeeRepository.findUserIdsByRestaurantId(restaurantId);
+
+        if (filter.id() != null) {
+            employeeIds = employeeIds.stream().filter(filter.id()::equals).toList();
+        }
 
         if (employeeIds.isEmpty()) {
             return Page.empty(pageable);
@@ -94,7 +96,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .map(order -> order.getProperty() + "," + order.getDirection().name().toLowerCase())
                 .orElse(null);
 
-        final var matchingEmployees = this.authEmployeeClient.getEmployees(email, name, phoneNumber, roles, sort, employeeIds);
+        final var matchingEmployees = this.authEmployeeClient.getEmployees(filter.email(), filter.name(), filter.phoneNumber(), filter.roles(), sort, employeeIds);
 
         final var total = matchingEmployees.size();
         final var start = Math.min((int) pageable.getOffset(), total);

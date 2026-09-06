@@ -2,6 +2,7 @@ package com.example.restaurant.controller;
 
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
+import com.example.restaurant.model.payload.filter.RestaurantFilter;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.CategoryResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
@@ -50,13 +51,8 @@ public class RestaurantController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<RestaurantResponse> getRestaurants(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String address,
-            @RequestParam(required = false) List<Long> categoryIds,
-            Pageable pageable
-    ) {
-        return this.restaurantService.getRestaurants(name, address, categoryIds, pageable);
+    public Page<RestaurantResponse> getRestaurants(RestaurantFilter filter, Pageable pageable) {
+        return this.restaurantService.getRestaurants(filter, pageable);
     }
 
     @GetMapping("/{id}")

@@ -1,20 +1,18 @@
 package com.example.restaurant.service;
 
-import com.example.restaurant.model.enums.RoleEnum;
+import com.example.restaurant.model.payload.filter.EmployeeFilter;
 import com.example.restaurant.model.payload.request.AddEmployeeRequest;
 import com.example.restaurant.model.payload.request.AddManagerRequest;
 import com.example.restaurant.model.payload.response.UserDetailsResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface EmployeeService {
     void addManager(AddManagerRequest request);
     void addEmployee(AddEmployeeRequest request, Long restaurantId);
     void removeEmployee(Long restaurantId, Long employeeId);
     void removeEmployee(Long employeeId);
-    Page<UserDetailsResponse> getEmployees(Long restaurantId, String email, String name, String phoneNumber, List<RoleEnum> roles, Pageable pageable);
+    Page<UserDetailsResponse> getEmployees(Long restaurantId, EmployeeFilter filter, Pageable pageable);
 
     Long getRestaurantId(Long userId);
 
