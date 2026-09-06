@@ -22,19 +22,15 @@ import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-
-const getLocalDateTimeString = (date: Date) => {
-  const pad = (num: number) => String(num).padStart(2, '0');
-  const yyyy = date.getFullYear();
-  const MM = pad(date.getMonth() + 1);
-  const dd = pad(date.getDate());
-  const hh = pad(date.getHours());
-  const mm = pad(date.getMinutes());
-  return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
-};
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { bg } from 'date-fns/locale/bg';
+import { enGB } from 'date-fns/locale/en-GB';
+import { format } from 'date-fns';
 
 const ReservationPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const restaurantId = Number(id);
   const navigate = useNavigate();
@@ -51,11 +47,9 @@ const ReservationPage: React.FC = () => {
   const [createBooking, { isLoading: isSubmitting }] = useCreateBookingMutation();
 
   const [guests, setGuests] = useState<number | ''>(1);
-  const [dateTime, setDateTime] = useState(() => getLocalDateTimeString(new Date()));
+  const [dateTime, setDateTime] = useState<Date | null>(new Date());
   const [smoking, setSmoking] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  const minDateTime = getLocalDateTimeString(new Date());
 
   const handleGuestsChange = (val: string) => {
     const num = val === '' ? '' : Number(val);
@@ -73,9 +67,9 @@ const ReservationPage: React.FC = () => {
       newErrors.guests = t('reservation.guestsRequired');
     }
 
-    if (!dateTime) {
+    if (!dateTime || isNaN(dateTime.getTime())) {
       newErrors.dateTime = t('reservation.dateTimeRequired');
-    } else if (new Date(dateTime) <= new Date()) {
+    } else if (dateTime <= new Date()) {
       newErrors.dateTime = t('reservation.dateTimeFuture');
     }
 
@@ -89,7 +83,7 @@ const ReservationPage: React.FC = () => {
         restaurantId: Number(restaurantId),
         guestCount: Number(guests),
         isSmoking: smoking,
-        dateTime: new Date(dateTime).toISOString()
+        dateTime: (dateTime as Date).toISOString()
       };
 
       await createBooking(bookingPayload).unwrap();
@@ -97,7 +91,7 @@ const ReservationPage: React.FC = () => {
       dispatch(addAlert({
         message: t('reservation.success', {
           restaurant: restaurant?.name || t('reservation.restaurantFallback'),
-          dateTime: dateTime.replace('T', ' '),
+          dateTime: format(dateTime as Date, 'yyyy-MM-dd HH:mm'),
         }),
         type: 'success'
       }));
@@ -301,27 +295,32 @@ const ReservationPage: React.FC = () => {
 
               {/* Combined Date & Time Input */}
               <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="dateTime"
-                  label={t('reservation.dateTimeLabel')}
-                  type="datetime-local"
-                  value={dateTime}
-                  onChange={(e) => {
-                    setDateTime(e.target.value);
-                    if (errors.dateTime) setErrors({ ...errors, dateTime: '' });
-                  }}
-                  error={!!errors.dateTime}
-                  helperText={errors.dateTime}
-                  inputProps={{ min: minDateTime }}
-                  InputLabelProps={{ shrink: true }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2.5,
-                    }
-                  }}
-                />
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={i18n.language === 'bg' ? bg : enGB}>
+                  <DateTimePicker
+                    label={t('reservation.dateTimeLabel')}
+                    value={dateTime}
+                    onChange={(newValue) => {
+                      setDateTime(newValue);
+                      if (errors.dateTime) setErrors({ ...errors, dateTime: '' });
+                    }}
+                    ampm={false}
+                    minDateTime={new Date()}
+                    slotProps={{
+                      textField: {
+                        required: true,
+                        fullWidth: true,
+                        id: 'dateTime',
+                        error: !!errors.dateTime,
+                        helperText: errors.dateTime,
+                        sx: {
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2.5,
+                          }
+                        }
+                      }
+                    }}
+                  />
+                </LocalizationProvider>
               </Grid>
             </Grid>
 
