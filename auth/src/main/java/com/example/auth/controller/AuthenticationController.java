@@ -2,6 +2,7 @@ package com.example.auth.controller;
 
 import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.payload.request.LoginRequest;
+import com.example.auth.model.payload.request.PasswordResetRequest;
 import com.example.auth.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,11 @@ public class AuthenticationController {
             @RequestHeader(HeaderConstants.USER_EXPIRATION) Long expirationMs
     ) {
         this.authenticationService.logout(jti, expirationMs);
+    }
+
+    @PostMapping("/password-reset")
+    @ResponseStatus(HttpStatus.OK)
+    public void resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+        this.authenticationService.resetPassword(request);
     }
 }

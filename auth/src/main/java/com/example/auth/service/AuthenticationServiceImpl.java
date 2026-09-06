@@ -4,10 +4,12 @@ import com.example.auth.client.RestaurantEmployeeClient;
 import com.example.auth.constants.JwtConstants;
 import com.example.auth.constants.MessageConstants;
 import com.example.auth.constants.RedisConstants;
+import com.example.auth.exception.NotFoundException;
 import com.example.auth.exception.UnauthorizedException;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.request.LoginRequest;
+import com.example.auth.model.payload.request.PasswordResetRequest;
 import com.example.auth.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final RestaurantEmployeeClient restaurantEmployeeClient;
+    private final EmailService emailService;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -40,11 +44,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     @Transactional
     public String login(LoginRequest request) {
-        final var user = this.userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_USERNAME_PASSWORD));
+        final var user = this.userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_EMAIL_PASSWORD));
 
         if (!this.passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new UnauthorizedException(MessageConstants.INVALID_USERNAME_PASSWORD);
+            throw new UnauthorizedException(MessageConstants.INVALID_EMAIL_PASSWORD);
         }
 
         return this.generateJWT(user);
@@ -64,6 +68,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     TimeUnit.MILLISECONDS
             );
         }
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(PasswordResetRequest request) {
+        final var user = this.userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
+
+        final var newPassword = this.generatePassword();
+
+        user.setPassword(this.passwordEncoder.encode(newPassword));
+        this.userRepository.save(user);
+
+        this.emailService.sendPasswordResetEmail(user.getEmail(), newPassword);
+    }
+
+    private String generatePassword() {
+        final var generator = KeyGenerators.string();
+
+        return generator.generateKey().substring(0, 8);
     }
 
     private String generateJWT(User user) {

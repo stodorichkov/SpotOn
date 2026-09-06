@@ -26,11 +26,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public Page<UserResponse> getUsers(String username, List<RoleEnum> roles, Pageable pageable) {
+    public Page<UserResponse> getUsers(String email, List<RoleEnum> roles, Pageable pageable) {
         Specification<User> specification = Specification.unrestricted();
 
-        if (StringUtils.hasText(username)) {
-            specification = specification.and(UserSpecification.hasUsernameContaining(username));
+        if (StringUtils.hasText(email)) {
+            specification = specification.and(UserSpecification.hasEmailContaining(email));
         }
 
         if (roles != null && !roles.isEmpty()) {

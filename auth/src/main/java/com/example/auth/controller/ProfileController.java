@@ -3,7 +3,7 @@ package com.example.auth.controller;
 import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.request.ChangePasswordRequest;
-import com.example.auth.model.payload.request.ChangeUsernameRequest;
+import com.example.auth.model.payload.request.ChangeEmailRequest;
 import com.example.auth.model.payload.request.EditProfileRequest;
 import com.example.auth.model.payload.response.ProfileResponse;
 import com.example.auth.service.AuthorizationService;
@@ -48,16 +48,16 @@ public class ProfileController {
         this.profileService.editProfile(userIdHeader, request);
     }
 
-    @PatchMapping("/username")
+    @PatchMapping("/email")
     @ResponseStatus(HttpStatus.OK)
-    public void changeUsername(
+    public void changeEmail(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
-            @Valid @RequestBody ChangeUsernameRequest request
+            @Valid @RequestBody ChangeEmailRequest request
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.values());
 
-        this.profileService.changeUsername(userIdHeader, request.newUsername());
+        this.profileService.changeEmail(userIdHeader, request.newEmail());
     }
 
     @PatchMapping("/password")

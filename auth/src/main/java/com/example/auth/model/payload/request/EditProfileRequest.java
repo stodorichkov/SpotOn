@@ -8,7 +8,7 @@ public record EditProfileRequest(
         @Pattern(regexp = RegexConstants.NAME_REGEX, message = MessageConstants.INVALID_NAME)
         String firstName,
 
-        @Pattern(regexp = RegexConstants.USERNAME_REGEX, message = MessageConstants.INVALID_NAME)
+        @Pattern(regexp = RegexConstants.NAME_REGEX, message = MessageConstants.INVALID_NAME)
         String lastName,
 
         @Pattern(regexp = RegexConstants.PHONE_NUMBER_REGEX, message = MessageConstants.INVALID_PHONE_NUMBER)

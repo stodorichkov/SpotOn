@@ -11,9 +11,9 @@ public class UserSpecification {
     private UserSpecification() {
     }
 
-    public static Specification<User> hasUsernameContaining(String username) {
+    public static Specification<User> hasEmailContaining(String email) {
         return (root, query, cb) ->
-                cb.like(cb.lower(root.get("username")), "%" + username.toLowerCase() + "%");
+                cb.like(cb.lower(root.get("email")), "%" + email.toLowerCase() + "%");
     }
 
     public static Specification<User> hasRoles(List<RoleEnum> roles) {

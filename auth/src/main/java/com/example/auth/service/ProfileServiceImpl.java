@@ -40,15 +40,15 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    public void changeUsername(Long id, String newUsername) {
-        if (this.userRepository.findByUsername(newUsername).isPresent()) {
+    public void changeEmail(Long id, String newEmail) {
+        if (this.userRepository.findByEmail(newEmail).isPresent()) {
             throw new BadRequestException(MessageConstants.USER_EXISTS);
         }
 
         final var user = this.userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
 
-        user.setUsername(newUsername);
+        user.setEmail(newEmail);
         this.userRepository.save(user);
     }
 

@@ -4,7 +4,7 @@ import com.example.auth.model.enums.RoleEnum;
 
 public record UserDetailsResponse(
         Long id,
-        String username,
+        String email,
         String firstName,
         String lastName,
         String phoneNumber,

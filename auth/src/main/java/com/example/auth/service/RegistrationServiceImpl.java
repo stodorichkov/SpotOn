@@ -2,7 +2,6 @@ package com.example.auth.service;
 
 import com.example.auth.client.RestaurantEmployeeClient;
 import com.example.auth.constants.MessageConstants;
-import com.example.auth.constants.RegistrationConstants;
 import com.example.auth.exception.BadRequestException;
 
 import com.example.auth.exception.NotFoundException;
@@ -11,7 +10,6 @@ import com.example.auth.model.entity.Role;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.request.*;
-import com.example.auth.model.payload.response.EmployeeRegistrationResponse;
 import com.example.auth.repository.RoleRepository;
 import com.example.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +19,6 @@ import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 @Service
 @RequiredArgsConstructor
 public class RegistrationServiceImpl implements RegistrationService {
@@ -31,16 +27,17 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final RestaurantEmployeeClient restaurantEmployeeClient;
+    private final EmailService emailService;
 
-    @Value("${admin.username}")
-    private String adminUsername;
+    @Value("${admin.email}")
+    private String adminEmail;
     @Value("${admin.password}")
     private String adminPassword;
 
     @Override
     @Transactional
     public void registerClient(ClientRegistrationRequest request) {
-        if (this.userRepository.findByUsername(request.username()).isPresent()) {
+        if (this.userRepository.findByEmail(request.email()).isPresent()) {
             throw new BadRequestException(MessageConstants.USER_EXISTS);
         }
 
@@ -53,13 +50,15 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public EmployeeRegistrationResponse registerEmployee(EmployeeRegistrationRequest request, Long restaurantId) {
+    public void registerEmployee(EmployeeRegistrationRequest request, Long restaurantId) {
+        if (this.userRepository.findByEmail(request.email()).isPresent()) {
+            throw new BadRequestException(MessageConstants.USER_EXISTS);
+        }
+
         final var role = this.getRole(RoleEnum.EMPLOYEE);
-        final var username = this.generateUsername(RoleEnum.EMPLOYEE);
         final var password = this.generatePassword();
 
         final var user = this.userMapper.mapFromEmployeeRegistrationRequest(request);
-        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         this.userRepository.save(user);
@@ -67,18 +66,20 @@ public class RegistrationServiceImpl implements RegistrationService {
         final var clientRequest = new AddEmployeeRequest(user.getId());
         this.restaurantEmployeeClient.addEmployee(clientRequest);
 
-        return this.userMapper.mapToEmployeeRegistrationResponse(user, password);
+        this.emailService.sendCredentialsEmail(user.getEmail(), password);
     }
 
     @Override
     @Transactional
-    public EmployeeRegistrationResponse registerManager(ManagerRegistrationRequest request) {
+    public void registerManager(ManagerRegistrationRequest request) {
+        if (this.userRepository.findByEmail(request.employeeData().email()).isPresent()) {
+            throw new BadRequestException(MessageConstants.USER_EXISTS);
+        }
+
         final var role = this.getRole(RoleEnum.MANAGER);
-        final var username = this.generateUsername(RoleEnum.MANAGER);
         final var password = this.generatePassword();
 
         final var user = this.userMapper.mapFromEmployeeRegistrationRequest(request.employeeData());
-        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         this.userRepository.save(user);
@@ -86,20 +87,20 @@ public class RegistrationServiceImpl implements RegistrationService {
         final var clientRequest = new AddManagerRequest(user.getId(), request.restaurantId());
         this.restaurantEmployeeClient.addManager(clientRequest);
 
-        return this.userMapper.mapToEmployeeRegistrationResponse(user, password);
+        this.emailService.sendCredentialsEmail(user.getEmail(), password);
     }
 
     @Override
     @Transactional
     public void registerAdmin() {
-        if (this.userRepository.findByUsername(this.adminUsername).isPresent()) {
+        if (this.userRepository.findByEmail(this.adminEmail).isPresent()) {
             return;
         }
 
         final var role = this.getRole(RoleEnum.ADMIN);
 
         final var user = new User();
-        user.setUsername(this.adminUsername);
+        user.setEmail(this.adminEmail);
         user.setPassword(passwordEncoder.encode(adminPassword));
         user.setRole(role);
         this.userRepository.saveAndFlush(user);
@@ -110,18 +111,6 @@ public class RegistrationServiceImpl implements RegistrationService {
     private Role getRole(RoleEnum roleName) {
         return roleRepository.findByName(roleName)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.ROLE_NOT_FOUND));
-    }
-
-    private String generateUsername(RoleEnum roleName) {
-        var prefix = RegistrationConstants.USERNAME_PREFIX_EMPLOYEE;
-        if (roleName == RoleEnum.MANAGER) {
-            prefix = RegistrationConstants.USERNAME_PREFIX_MANAGER;
-        }
-
-        final var timestamp = System.currentTimeMillis();
-        final var randomNumber = ThreadLocalRandom.current().nextInt(10, 100);
-
-        return String.format("%s%d%d", prefix, timestamp, randomNumber);
     }
 
     private String generatePassword() {

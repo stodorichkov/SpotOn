@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface UserService {
-    Page<UserResponse> getUsers(String username, List<RoleEnum> roles, Pageable pageable);
+    Page<UserResponse> getUsers(String email, List<RoleEnum> roles, Pageable pageable);
     UserDetailsResponse getUser(Long id);
     List<ClientContactResponse> getClientContacts(List<Long> userIds);
 }

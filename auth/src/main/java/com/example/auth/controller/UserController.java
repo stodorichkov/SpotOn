@@ -25,13 +25,13 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public Page<UserResponse> getUsers(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
-            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
             @RequestParam(required = false) List<RoleEnum> roles,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
 
-        return this.userService.getUsers(username, roles, pageable);
+        return this.userService.getUsers(email, roles, pageable);
     }
 
     @GetMapping("/{id}")
