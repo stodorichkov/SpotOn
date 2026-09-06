@@ -2,13 +2,60 @@ package com.example.auth.specification;
 
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
+import com.example.auth.model.payload.filter.EmployeeSearchFilter;
+import com.example.auth.model.payload.filter.UserFilter;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 public class UserSpecification {
 
     private UserSpecification() {
+    }
+
+    public static Specification<User> fromFilter(UserFilter filter) {
+        Specification<User> specification = Specification.unrestricted();
+
+        if (filter.id() != null) {
+            specification = specification.and(hasId(filter.id()));
+        }
+
+        if (StringUtils.hasText(filter.email())) {
+            specification = specification.and(hasEmailContaining(filter.email()));
+        }
+
+        if (filter.roles() != null && !filter.roles().isEmpty()) {
+            specification = specification.and(hasRoles(filter.roles()));
+        }
+
+        return specification;
+    }
+
+    public static Specification<User> fromFilter(Specification<User> base, EmployeeSearchFilter filter) {
+        var specification = base;
+
+        if (StringUtils.hasText(filter.email())) {
+            specification = specification.and(hasEmailContaining(filter.email()));
+        }
+
+        if (StringUtils.hasText(filter.name())) {
+            specification = specification.and(hasNameContaining(filter.name()));
+        }
+
+        if (StringUtils.hasText(filter.phoneNumber())) {
+            specification = specification.and(hasPhoneNumberContaining(filter.phoneNumber()));
+        }
+
+        if (filter.roles() != null && !filter.roles().isEmpty()) {
+            specification = specification.and(hasRoles(filter.roles()));
+        }
+
+        return specification;
+    }
+
+    public static Specification<User> hasId(Long id) {
+        return (root, query, cb) -> cb.equal(root.get("id"), id);
     }
 
     public static Specification<User> hasEmailContaining(String email) {

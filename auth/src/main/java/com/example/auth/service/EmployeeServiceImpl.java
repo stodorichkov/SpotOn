@@ -8,13 +8,13 @@ import com.example.auth.exception.NotFoundException;
 import com.example.auth.mapper.UserMapper;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
+import com.example.auth.model.payload.filter.EmployeeSearchFilter;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.repository.UserRepository;
 import com.example.auth.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,28 +35,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public List<UserDetailsResponse> getEmployees(List<Long> userIds, String email, String name, String phoneNumber, List<RoleEnum> roles, String sort) {
+    public List<UserDetailsResponse> getEmployees(List<Long> userIds, EmployeeSearchFilter filter, String sort) {
         if (userIds == null || userIds.isEmpty()) {
             throw  new BadRequestException();
         }
 
-        Specification<User> specification = UserSpecification.hasIdIn(userIds);
-
-        if (StringUtils.hasText(email)) {
-            specification = specification.and(UserSpecification.hasEmailContaining(email));
-        }
-
-        if (StringUtils.hasText(name)) {
-            specification = specification.and(UserSpecification.hasNameContaining(name));
-        }
-
-        if (StringUtils.hasText(phoneNumber)) {
-            specification = specification.and(UserSpecification.hasPhoneNumberContaining(phoneNumber));
-        }
-
-        if (roles != null && !roles.isEmpty()) {
-            specification = specification.and(UserSpecification.hasRoles(roles));
-        }
+        final var specification = UserSpecification.fromFilter(UserSpecification.hasIdIn(userIds), filter);
 
         return this.userRepository.findAll(specification, parseSort(sort))
                 .stream()

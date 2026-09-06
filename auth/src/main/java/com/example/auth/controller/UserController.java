@@ -2,6 +2,7 @@ package com.example.auth.controller;
 
 import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.RoleEnum;
+import com.example.auth.model.payload.filter.UserFilter;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;
 import com.example.auth.service.AuthorizationService;
@@ -11,8 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -25,13 +24,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public Page<UserResponse> getUsers(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) List<RoleEnum> roles,
+            UserFilter filter,
             Pageable pageable
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
 
-        return this.userService.getUsers(email, roles, pageable);
+        return this.userService.getUsers(filter, pageable);
     }
 
     @GetMapping("/{id}")

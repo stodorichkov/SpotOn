@@ -3,6 +3,7 @@ package com.example.auth.controller;
 import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.ServiceEnum;
 import com.example.auth.model.enums.RoleEnum;
+import com.example.auth.model.payload.filter.EmployeeSearchFilter;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.service.AuthorizationService;
 import com.example.auth.service.EmployeeService;
@@ -39,16 +40,13 @@ public class EmployeeController {
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String phoneNumber,
-            @RequestParam(required = false) List<RoleEnum> roles,
+            EmployeeSearchFilter filter,
             @RequestParam(required = false) String sort,
             @RequestBody List<Long> userIds
     ) {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.ADMIN);
         this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.RESTAURANT);
 
-        return this.employeeService.getEmployees(userIds, email, name, phoneNumber, roles, sort);
+        return this.employeeService.getEmployees(userIds, filter, sort);
     }
 }
