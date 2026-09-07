@@ -121,7 +121,7 @@ function App() {
               </Route>
               <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
               <Route path="/admin/restaurants/:restaurantId/employees/:id" element={<UserDetailsPage />} />
-              <Route path="/admin/bookings/:id" element={<RestaurantBookingDetailPage />} />
+              <Route path="/admin/restaurants/:restaurantId/bookings/:id" element={<RestaurantBookingDetailPage />} />
             </Route>
             <Route element={<ManagerRoute />}>
               <Route path="/manager/restaurant" element={<ManagerRestaurantPage />} />

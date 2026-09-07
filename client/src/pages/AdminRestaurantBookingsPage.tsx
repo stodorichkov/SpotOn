@@ -438,7 +438,7 @@ const AdminRestaurantBookingsPage: React.FC = () => {
                           <Tooltip title={t('employeeBookings.bookingDetailsTooltip')} arrow>
                             <IconButton
                               component={Link}
-                              to={`/admin/bookings/${booking.id}`}
+                              to={`/admin/restaurants/${restaurantId}/bookings/${booking.id}`}
                               state={{ booking }}
                               color="primary"
                               size="small"
