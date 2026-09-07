@@ -150,6 +150,8 @@ const AppTopBar = () => {
     ? '/manager/employees'
     : location.pathname.startsWith('/manager/tables')
     ? '/manager/tables'
+    : location.pathname.startsWith('/manager/bookings')
+    ? '/manager/bookings'
     : location.pathname.startsWith('/bookings')
     ? '/bookings'
     : location.pathname.startsWith('/employee/bookings')
@@ -167,7 +169,8 @@ const AppTopBar = () => {
     menuItems.push(
       { label: t('appBar.restaurant'), path: '/manager/restaurant', icon: <RestaurantIcon /> },
       { label: t('appBar.employees'), path: '/manager/employees', icon: <GroupIcon /> },
-      { label: t('appBar.tables'), path: '/manager/tables', icon: <TableBarIcon /> }
+      { label: t('appBar.tables'), path: '/manager/tables', icon: <TableBarIcon /> },
+      { label: t('appBar.bookings'), path: '/manager/bookings', icon: <CalendarMonthIcon /> }
     );
   }
 
@@ -277,6 +280,14 @@ const AppTopBar = () => {
                   iconPosition="start"
                   component={Link}
                   to="/manager/tables"
+                />
+                <Tab
+                  label={t('appBar.bookings')}
+                  value="/manager/bookings"
+                  icon={<CalendarMonthIcon />}
+                  iconPosition="start"
+                  component={Link}
+                  to="/manager/bookings"
                 />
               </Tabs>
             )}

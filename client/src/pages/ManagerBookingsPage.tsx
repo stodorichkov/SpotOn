@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { useGetBookingsForManageQuery } from '../features/restaurants/restaurantsSlice';
+import { useGetRestaurantBookingsQuery } from '../features/restaurants/restaurantsSlice';
 import {
   Table,
   TableBody,
@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogContent,
 } from '@mui/material';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PersonIcon from '@mui/icons-material/Person';
 import InfoIcon from '@mui/icons-material/Info';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
@@ -62,10 +63,8 @@ const getStatusStyles = (status: string) => {
   }
 };
 
-const AdminRestaurantBookingsPage: React.FC = () => {
+const ManagerBookingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { id } = useParams<{ id: string }>();
-  const restaurantId = Number(id);
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -90,34 +89,30 @@ const AdminRestaurantBookingsPage: React.FC = () => {
   ];
 
   const [idInput, setIdInput] = useState('');
-  const [id2, setId2] = useState<number | undefined>(undefined);
+  const [id, setId] = useState<number | undefined>(undefined);
   const [clientNameInput, setClientNameInput] = useState('');
   const [clientName, setClientName] = useState('');
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       const trimmed = idInput.trim();
-      setId2(trimmed === '' ? undefined : Number(trimmed));
+      setId(trimmed === '' ? undefined : Number(trimmed));
       setClientName(clientNameInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
   }, [idInput, clientNameInput]);
 
-  const { data, error, isLoading } = useGetBookingsForManageQuery(
-    {
-      restaurantId,
-      page,
-      size: rowsPerPage,
-      sort,
-      id: id2,
-      statuses: statuses.length > 0 ? statuses : undefined,
-      clientName: clientName || undefined,
-      from: fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined,
-      to: toDate ? format(toDate, 'yyyy-MM-dd') : undefined,
-    },
-    { skip: isNaN(restaurantId) }
-  );
+  const { data, error, isLoading } = useGetRestaurantBookingsQuery({
+    page,
+    size: rowsPerPage,
+    sort,
+    id,
+    statuses: statuses.length > 0 ? statuses : undefined,
+    clientName: clientName || undefined,
+    from: fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined,
+    to: toDate ? format(toDate, 'yyyy-MM-dd') : undefined,
+  });
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -189,8 +184,46 @@ const AdminRestaurantBookingsPage: React.FC = () => {
   const emptyRows = data ? Math.max(0, rowsPerPage - data.content.length) : 0;
 
   return (
-    <Container maxWidth="md" sx={{ mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
-      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 3, sm: 5 }, mb: 4, px: { xs: 1, sm: 2 } }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: 2,
+            mb: 3
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                borderRadius: '50%',
+                width: 48,
+                height: 48,
+                flexShrink: 0
+              }}
+            >
+              <CalendarMonthIcon />
+            </Box>
+            <Box>
+              <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                {t('managerBookings.title')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('managerBookings.subtitle')}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
           <TextField
             label={t('employeeBookings.searchById')}
@@ -329,12 +362,12 @@ const AdminRestaurantBookingsPage: React.FC = () => {
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.id')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>{t('employeeBookings.client')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('employeeBookings.dateAndTime')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>{t('employeeBookings.guests')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>{t('employeeBookings.smoking')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.status')}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.actions')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>{t('employeeBookings.client')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('employeeBookings.dateAndTime')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.guests')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.smoking')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.status')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -365,12 +398,12 @@ const AdminRestaurantBookingsPage: React.FC = () => {
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>{t('employeeBookings.client')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('employeeBookings.dateAndTime')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>{t('employeeBookings.guests')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>{t('employeeBookings.smoking')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.status')}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.actions')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '32%' }}>{t('employeeBookings.client')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('employeeBookings.dateAndTime')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.guests')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.smoking')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('employeeBookings.status')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '8%' }}>{t('employeeBookings.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -438,7 +471,7 @@ const AdminRestaurantBookingsPage: React.FC = () => {
                           <Tooltip title={t('employeeBookings.bookingDetailsTooltip')} arrow>
                             <IconButton
                               component={Link}
-                              to={`/admin/bookings/${booking.id}`}
+                              to={`/manager/bookings/${booking.id}`}
                               state={{ booking }}
                               color="primary"
                               size="small"
@@ -485,4 +518,4 @@ const AdminRestaurantBookingsPage: React.FC = () => {
   );
 };
 
-export default AdminRestaurantBookingsPage;
+export default ManagerBookingsPage;

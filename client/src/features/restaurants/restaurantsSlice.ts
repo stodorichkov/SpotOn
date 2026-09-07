@@ -94,6 +94,16 @@ export interface BookingEmployeeResponse {
   dateTime: string;
 }
 
+export interface BookingStatusHistoryResponse {
+  id: number;
+  status: string;
+  changedAt: string;
+  changedByUserId: number;
+  changedByFirstName: string | null;
+  changedByLastName: string | null;
+  changedByRole: string | null;
+}
+
 export interface PaginatedEmployeeBookingsResponse {
   content: BookingEmployeeResponse[];
   totalPages: number;
@@ -676,6 +686,10 @@ export const restaurantsSlice = api.injectEndpoints({
       },
       providesTags: ['Bookings'],
     }),
+    getBookingStatusHistory: builder.query<BookingStatusHistoryResponse[], number>({
+      query: (bookingId) => `booking/bookings/${bookingId}/status-history`,
+      providesTags: ['Bookings'],
+    }),
     confirmBooking: builder.mutation<any, { bookingId: number; body: BookingConfirmRequest }>({
       query: ({ bookingId, body }) => ({
         url: `booking/bookings/${bookingId}/confirmed`,
@@ -701,4 +715,4 @@ export const restaurantsSlice = api.injectEndpoints({
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetRestaurantsForManageQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useGetCategoriesPageQuery, useGetCategoryByIdQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useUpdateCategoryActiveStatusMutation, useCreateRestaurantMutation, useUpdateRestaurantActiveStatusMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useUpdateReservationDurationMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useGetTablesForManageQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useGetBookingsForManageQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantsForManageQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useGetCategoriesPageQuery, useGetCategoryByIdQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useUpdateCategoryActiveStatusMutation, useCreateRestaurantMutation, useUpdateRestaurantActiveStatusMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useUpdateReservationDurationMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useGetTablesForManageQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useGetBookingsForManageQuery, useGetBookingStatusHistoryQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;

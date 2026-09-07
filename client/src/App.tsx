@@ -15,6 +15,8 @@ import AdminRestaurantDetailsLayout from './pages/AdminRestaurantDetailsLayout';
 import AdminRestaurantDetailsTab from './pages/AdminRestaurantDetailsTab';
 import AdminRestaurantTablesPage from './pages/AdminRestaurantTablesPage';
 import AdminRestaurantBookingsPage from './pages/AdminRestaurantBookingsPage';
+import RestaurantBookingDetailPage from './pages/RestaurantBookingDetailPage';
+import ManagerBookingsPage from './pages/ManagerBookingsPage';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import AddManagerPage from './pages/AddManagerPage';
 import ManagerRestaurantPage from './pages/ManagerRestaurantPage';
@@ -119,6 +121,7 @@ function App() {
               </Route>
               <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
               <Route path="/admin/restaurants/:restaurantId/employees/:id" element={<UserDetailsPage />} />
+              <Route path="/admin/bookings/:id" element={<RestaurantBookingDetailPage />} />
             </Route>
             <Route element={<ManagerRoute />}>
               <Route path="/manager/restaurant" element={<ManagerRestaurantPage />} />
@@ -128,6 +131,8 @@ function App() {
               <Route path="/manager/tables" element={<ManagerTablesPage />} />
               <Route path="/manager/tables/new" element={<AddTablePage />} />
               <Route path="/manager/tables/:id" element={<TableDetailPage />} />
+              <Route path="/manager/bookings" element={<ManagerBookingsPage />} />
+              <Route path="/manager/bookings/:id" element={<RestaurantBookingDetailPage />} />
             </Route>
             {/* Fallback route to redirect undefined paths to the home page */}
             <Route path="*" element={<Navigate to="/" replace />} />

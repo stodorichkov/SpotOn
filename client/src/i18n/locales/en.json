@@ -554,6 +554,7 @@
     "noBookings": "No active reservations found for your restaurant.",
     "errorLoading": "Failed to load restaurant bookings. Please try again later.",
     "bookingDetailsTooltip": "Booking Details",
+    "bookingDetailsHeading": "Booking Details #{{id}}",
     "menuDetails": "Details",
     "menuConfirm": "Confirm Booking",
     "menuArrived": "Mark as Arrived",
@@ -581,6 +582,17 @@
     "statusDialogTitle": "Filter by status",
     "sortBy": "Sort by",
     "clearFilters": "Clear filters"
+  },
+  "managerBookings": {
+    "title": "Restaurant bookings",
+    "subtitle": "View your restaurant's bookings with filtering and sorting"
+  },
+  "bookingStatusHistory": {
+    "title": "Status History",
+    "errorLoading": "Error loading status history.",
+    "noHistory": "No status history recorded.",
+    "changedByUserId": "User #{{id}}",
+    "changedByName": "#{{id}} {{firstName}} {{lastName}}"
   },
   "reservation": {
     "errorTitle": "Error Loading Reservation Form",
