@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/bookings")
 @RequiredArgsConstructor
@@ -51,14 +53,21 @@ public class BookingController {
     @GetMapping("/restaurant")
     public Page<BookingEmployeeResponse> getRestaurantBookings(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
-            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantId,
+            @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
+            @RequestParam(required = false) Long restaurantId,
             BookingFilter filter,
             @RequestParam(required = false) String clientName,
             Pageable pageable
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.EMPLOYEE);
 
-        return this.bookingService.getRestaurantBookings(restaurantId, filter, clientName, pageable);
+        if (userRoleHeader == RoleEnum.ADMIN) {
+            return Optional.ofNullable(restaurantId)
+                    .map(rid -> this.bookingService.getRestaurantBookings(rid, filter, clientName, pageable))
+                    .orElseGet(() -> Page.empty(pageable));
+        }
+
+        return this.bookingService.getRestaurantBookings(restaurantIdHeader, filter, clientName, pageable);
     }
 
     @PatchMapping("/{bookingId}/confirmed")
