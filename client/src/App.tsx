@@ -8,7 +8,13 @@ import ProfilePage from './pages/ProfilePage';
 import UsersPage from './pages/UsersPage';
 import UserDetailsPage from './pages/UserDetailsPage';
 import RestaurantsPage from './pages/RestaurantsPage';
+import CategoriesPage from './pages/CategoriesPage';
+import CategoryDetailsPage from './pages/CategoryDetailsPage';
 import RestaurantEmployeesPage from './pages/RestaurantEmployeesPage';
+import AdminRestaurantDetailsLayout from './pages/AdminRestaurantDetailsLayout';
+import AdminRestaurantDetailsTab from './pages/AdminRestaurantDetailsTab';
+import AdminRestaurantTablesPage from './pages/AdminRestaurantTablesPage';
+import AdminRestaurantBookingsPage from './pages/AdminRestaurantBookingsPage';
 import AddRestaurantPage from './pages/AddRestaurantPage';
 import AddManagerPage from './pages/AddManagerPage';
 import ManagerRestaurantPage from './pages/ManagerRestaurantPage';
@@ -102,8 +108,15 @@ function App() {
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/users/:id" element={<UserDetailsPage />} />
               <Route path="/admin/restaurants" element={<RestaurantsPage />} />
+              <Route path="/admin/categories" element={<CategoriesPage />} />
+              <Route path="/admin/categories/:id" element={<CategoryDetailsPage />} />
               <Route path="/admin/restaurants/new" element={<AddRestaurantPage />} />
-              <Route path="/admin/restaurants/:id/employees" element={<RestaurantEmployeesPage />} />
+              <Route path="/admin/restaurants/:id" element={<AdminRestaurantDetailsLayout />}>
+                <Route index element={<AdminRestaurantDetailsTab />} />
+                <Route path="employees" element={<RestaurantEmployeesPage />} />
+                <Route path="tables" element={<AdminRestaurantTablesPage />} />
+                <Route path="bookings" element={<AdminRestaurantBookingsPage />} />
+              </Route>
               <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
               <Route path="/admin/restaurants/:restaurantId/employees/:id" element={<UserDetailsPage />} />
             </Route>

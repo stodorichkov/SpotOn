@@ -25,6 +25,7 @@ const AddRestaurantPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const { data: availableCategories = [], isLoading, error } = useGetRestaurantFormQuery();
   const [createRestaurant, { isLoading: isCreating }] = useCreateRestaurantMutation();
 
@@ -35,15 +36,10 @@ const AddRestaurantPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleToggleCategory = (catId: number) => {
-    let nextCategoryIds;
     if (selectedCategoryIds.includes(catId)) {
-      nextCategoryIds = selectedCategoryIds.filter((id) => id !== catId);
+      setSelectedCategoryIds(selectedCategoryIds.filter((id) => id !== catId));
     } else {
-      nextCategoryIds = [...selectedCategoryIds, catId];
-    }
-    setSelectedCategoryIds(nextCategoryIds);
-    if (nextCategoryIds.length > 0 && errors.categories) {
-      setErrors({ ...errors, categories: '' });
+      setSelectedCategoryIds([...selectedCategoryIds, catId]);
     }
   };
 
@@ -61,9 +57,6 @@ const AddRestaurantPage: React.FC = () => {
       newErrors.phoneNumber = t('validation.blankField');
     } else if (!RegexConstants.PHONE_NUMBER_REGEX.test(phoneNumber.trim())) {
       newErrors.phoneNumber = t('validation.invalidPhoneNumber');
-    }
-    if (selectedCategoryIds.length === 0) {
-      newErrors.categories = t('addRestaurant.atLeastOneCategory');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -200,7 +193,7 @@ const AddRestaurantPage: React.FC = () => {
                   overflowY: 'auto',
                   p: 1.5,
                   border: '1px solid',
-                  borderColor: errors.categories ? 'error.main' : 'divider',
+                  borderColor: 'divider',
                   borderRadius: 2.5,
                   backgroundColor: 'background.paper',
                   transition: 'border-color 0.2s',
@@ -240,11 +233,6 @@ const AddRestaurantPage: React.FC = () => {
                     <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>{t('addRestaurant.noCategoriesAvailable')}</Typography>
                   )}
                 </Box>
-                {errors.categories && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5, display: 'block' }}>
-                    {errors.categories}
-                  </Typography>
-                )}
               </Grid>
 
               <Grid item xs={12} sx={{ mt: 2 }}>

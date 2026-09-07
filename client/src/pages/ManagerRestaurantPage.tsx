@@ -301,15 +301,6 @@ const ManagerRestaurantPage: React.FC = () => {
     }
   };
 
-  const formatReservationDuration = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const parts: string[] = [];
-    if (hours > 0) parts.push(`${hours}${t('managerRestaurant.hoursShort')}`);
-    if (mins > 0) parts.push(`${mins}${t('managerRestaurant.minutesShort')}`);
-    return parts.length > 0 ? parts.join(' ') : `0${t('managerRestaurant.minutesShort')}`;
-  };
-
   const hasChanges = restaurant && (
     name.trim() !== (restaurant.name || '') ||
     address.trim() !== (restaurant.address || '') ||
@@ -822,9 +813,6 @@ const ManagerRestaurantPage: React.FC = () => {
 
           {isEditingDuration ? (
             <Box component="form" onSubmit={handleSaveDuration} noValidate>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t('managerRestaurant.reservationDurationHint')}
-              </Typography>
               <TextField
                 required
                 fullWidth
@@ -871,7 +859,7 @@ const ManagerRestaurantPage: React.FC = () => {
                   {t('managerRestaurant.reservationDurationLabel')}
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                  {formatReservationDuration(restaurant.reservationDurationMinutes)}
+                  {restaurant.reservationDurationMinutes}
                 </Typography>
               </Box>
             </Box>

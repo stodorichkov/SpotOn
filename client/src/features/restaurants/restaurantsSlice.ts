@@ -3,6 +3,44 @@ import { api } from '../../services/api';
 export interface CategoryResponse {
   id: number;
   name: string;
+  isActive: boolean;
+}
+
+export interface CategoryRequest {
+  name: string;
+}
+
+export interface CategoryActiveStatusRequest {
+  isActive: boolean;
+}
+
+export interface PaginatedCategoriesResponse {
+  content: CategoryResponse[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      sorted: boolean;
+      unsorted: boolean;
+      empty: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  last: boolean;
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  sort: {
+    sorted: boolean;
+    unsorted: boolean;
+    empty: boolean;
+  };
+  first: boolean;
+  numberOfElements: number;
+  empty: boolean;
 }
 
 export interface RestaurantContactResponse {
@@ -70,6 +108,7 @@ export interface RestaurantResponse {
   categories: CategoryResponse[];
   address: string;
   isOpen: boolean;
+  isActive: boolean;
 }
 
 export interface PaginatedRestaurantsResponse {
@@ -108,6 +147,7 @@ export interface EmployeeResponse {
   lastName: string;
   phoneNumber: string;
   role: string;
+  isActive: boolean;
 }
 
 export interface PaginatedEmployeesResponse {
@@ -164,10 +204,15 @@ export interface RestaurantDetailsResponse {
   isOpen: boolean;
   workingHours: WorkingHoursEntry[];
   reservationDurationMinutes: number;
+  isActive: boolean;
 }
 
 export interface RestaurantStatusRequest {
   isOpen: boolean;
+}
+
+export interface RestaurantActiveStatusRequest {
+  isActive: boolean;
 }
 
 export interface RestaurantWorkingHoursRequest {
@@ -249,6 +294,36 @@ export const restaurantsSlice = api.injectEndpoints({
       },
       providesTags: ['Restaurants'],
     }),
+    getRestaurantsForManage: builder.query<
+      PaginatedRestaurantsResponse,
+      { page: number; size: number; sort?: string; id?: number; name?: string; address?: string; categoryIds?: number[]; isOpen?: boolean; isActive?: boolean }
+    >({
+      query: ({ page, size, sort = 'id,asc', id, name, address, categoryIds, isOpen, isActive }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
+        if (name) {
+          params.set('name', name);
+        }
+        if (address) {
+          params.set('address', address);
+        }
+        if (isOpen !== undefined) {
+          params.set('isOpen', String(isOpen));
+        }
+        if (isActive !== undefined) {
+          params.set('isActive', String(isActive));
+        }
+        (categoryIds || []).forEach((catId) => params.append('categoryIds', String(catId)));
+
+        return `restaurant/restaurants/manage?${params.toString()}`;
+      },
+      providesTags: ['Restaurants'],
+    }),
     getRestaurantById: builder.query<RestaurantDetailsResponse, number>({
       query: (id) => `restaurant/restaurants/${id}`,
       providesTags: (result, error, id) => [{ type: 'Restaurants', id }],
@@ -286,11 +361,68 @@ export const restaurantsSlice = api.injectEndpoints({
     }),
     getCategories: builder.query<CategoryResponse[], void>({
       query: () => 'restaurant/categories',
+      providesTags: ['Categories'],
+    }),
+    getCategoriesPage: builder.query<PaginatedCategoriesResponse, { page: number; size: number; sort?: string; id?: number; name?: string; isActive?: boolean }>({
+      query: ({ page, size, sort = 'id,asc', id, name, isActive }) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
+        if (name) {
+          params.set('name', name);
+        }
+        if (isActive !== undefined) {
+          params.set('isActive', String(isActive));
+        }
+
+        return `restaurant/categories/manage?${params.toString()}`;
+      },
+      providesTags: ['Categories'],
+    }),
+    getCategoryById: builder.query<CategoryResponse, number>({
+      query: (id) => `restaurant/categories/${id}`,
+      providesTags: ['Categories'],
+    }),
+    createCategory: builder.mutation<CategoryResponse, CategoryRequest>({
+      query: (body) => ({
+        url: 'restaurant/categories',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Categories'],
+    }),
+    updateCategory: builder.mutation<CategoryResponse, { id: number; body: CategoryRequest }>({
+      query: ({ id, body }) => ({
+        url: `restaurant/categories/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Categories'],
+    }),
+    updateCategoryActiveStatus: builder.mutation<CategoryResponse, { id: number; body: CategoryActiveStatusRequest }>({
+      query: ({ id, body }) => ({
+        url: `restaurant/categories/${id}/active`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Categories'],
     }),
     createRestaurant: builder.mutation<RestaurantResponse, RestaurantRequest>({
       query: (body) => ({
         url: 'restaurant/restaurants',
         method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Restaurants'],
+    }),
+    updateRestaurantActiveStatus: builder.mutation<RestaurantDetailsResponse, { id: number; body: RestaurantActiveStatusRequest }>({
+      query: ({ id, body }) => ({
+        url: `restaurant/restaurants/${id}/active`,
+        method: 'PATCH',
         body,
       }),
       invalidatesTags: ['Restaurants'],
@@ -371,6 +503,36 @@ export const restaurantsSlice = api.injectEndpoints({
     >({
       query: ({ page, size, sort = 'id,asc', id, name, isSmokingAllowed, minCapacity, maxCapacity }) => {
         const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
+        if (name) {
+          params.set('name', name);
+        }
+        if (isSmokingAllowed !== undefined) {
+          params.set('isSmokingAllowed', String(isSmokingAllowed));
+        }
+        if (minCapacity !== undefined) {
+          params.set('minCapacity', String(minCapacity));
+        }
+        if (maxCapacity !== undefined) {
+          params.set('maxCapacity', String(maxCapacity));
+        }
+
+        return `restaurant/tables?${params.toString()}`;
+      },
+      providesTags: ['Tables'],
+    }),
+    getTablesForManage: builder.query<
+      PaginatedTablesResponse,
+      { restaurantId: number; page: number; size: number; sort?: string; id?: number; name?: string; isSmokingAllowed?: boolean; minCapacity?: number; maxCapacity?: number }
+    >({
+      query: ({ restaurantId, page, size, sort = 'id,asc', id, name, isSmokingAllowed, minCapacity, maxCapacity }) => {
+        const params = new URLSearchParams();
+        params.set('restaurantId', String(restaurantId));
         params.set('page', String(page));
         params.set('size', String(size));
         params.set('sort', sort);
@@ -486,6 +648,34 @@ export const restaurantsSlice = api.injectEndpoints({
       },
       providesTags: ['Bookings'],
     }),
+    getBookingsForManage: builder.query<
+      PaginatedEmployeeBookingsResponse,
+      { restaurantId: number; page: number; size: number; sort?: string; id?: number; statuses?: string[]; clientName?: string; from?: string; to?: string }
+    >({
+      query: ({ restaurantId, page, size, sort = 'id,desc', id, statuses, clientName, from, to }) => {
+        const params = new URLSearchParams();
+        params.set('restaurantId', String(restaurantId));
+        params.set('page', String(page));
+        params.set('size', String(size));
+        params.set('sort', sort);
+        if (id !== undefined) {
+          params.set('id', String(id));
+        }
+        (statuses || []).forEach((status) => params.append('statuses', status));
+        if (clientName) {
+          params.set('clientName', clientName);
+        }
+        if (from) {
+          params.set('from', from);
+        }
+        if (to) {
+          params.set('to', to);
+        }
+
+        return `booking/bookings/restaurant?${params.toString()}`;
+      },
+      providesTags: ['Bookings'],
+    }),
     confirmBooking: builder.mutation<any, { bookingId: number; body: BookingConfirmRequest }>({
       query: ({ bookingId, body }) => ({
         url: `booking/bookings/${bookingId}/confirmed`,
@@ -511,4 +701,4 @@ export const restaurantsSlice = api.injectEndpoints({
   }),
 });
 
-export const { useGetRestaurantsQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useCreateRestaurantMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useUpdateReservationDurationMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;
+export const { useGetRestaurantsQuery, useGetRestaurantsForManageQuery, useGetRestaurantByIdQuery, useGetEmployeesQuery, useGetRestaurantFormQuery, useGetCategoriesQuery, useGetCategoriesPageQuery, useGetCategoryByIdQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useUpdateCategoryActiveStatusMutation, useCreateRestaurantMutation, useUpdateRestaurantActiveStatusMutation, useGetRestaurantProfileQuery, useUpdateRestaurantProfileMutation, useUpdateRestaurantStatusMutation, useUpdateWorkingHoursMutation, useUpdateReservationDurationMutation, useGetManagerEmployeesQuery, useDeleteEmployeeMutation, useGetManagerTablesQuery, useGetTablesForManageQuery, useCreateTableMutation, useUpdateTableMutation, useDeleteTableMutation, useGetClientBookingsQuery, useCreateBookingMutation, useCancelBookingMutation, useGetRestaurantBookingsQuery, useGetBookingsForManageQuery, useConfirmBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } = restaurantsSlice;

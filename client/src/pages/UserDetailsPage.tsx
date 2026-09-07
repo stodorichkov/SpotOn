@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { useGetUserDetailsQuery } from '../features/users/usersSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { useGetUserDetailsQuery, useUpdateUserActiveStatusMutation } from '../features/users/usersSlice';
 import { useTranslation } from 'react-i18next';
+import { RootState } from '../store/store';
+import { addAlert } from '../features/alerts/alertsSlice';
 import {
   Container,
   Paper,
@@ -11,7 +14,16 @@ import {
   Grid,
   Skeleton,
   Divider,
-  Button
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -40,8 +52,11 @@ const getRoleChipColor = (role?: string) => {
 
 const UserDetailsPage: React.FC = () => {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const currentRole = useSelector((state: RootState) => state.auth.role);
+  const currentUserId = useSelector((state: RootState) => state.auth.id);
 
   const stateUser = location.state?.user;
 
@@ -55,7 +70,36 @@ const UserDetailsPage: React.FC = () => {
     { skip: !!hasFullStateData }
   );
 
+  const [overrideActive, setOverrideActive] = useState<boolean | null>(null);
+  const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false);
+  const [updateUserActiveStatus, { isLoading: isTogglingActive }] = useUpdateUserActiveStatusMutation();
+
   const user = hasFullStateData ? stateUser : queryUser;
+  const isActive = overrideActive !== null ? overrideActive : user?.isActive;
+  const isSelf = !!user && currentUserId === user.id;
+
+  const handleToggleActiveConfirm = async () => {
+    if (!user) return;
+    try {
+      const result = await updateUserActiveStatus({
+        id: user.id,
+        body: { isActive: !isActive }
+      }).unwrap();
+      setOverrideActive(result.isActive);
+      dispatch(addAlert({
+        message: isActive ? t('users.deactivateSuccess') : t('users.activateSuccess'),
+        type: 'success'
+      }));
+    } catch (err: any) {
+      console.error('Failed to update user active status:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || t('users.toggleActiveFailure'),
+        type: 'error'
+      }));
+    } finally {
+      setIsToggleDialogOpen(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -107,12 +151,12 @@ const UserDetailsPage: React.FC = () => {
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: { xs: 'flex-start', sm: 'center' },
+            alignItems: 'flex-start',
             gap: 2,
             mb: 3
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1.5, sm: 2 } }}>
             <Box
               sx={{
                 display: 'flex',
@@ -138,19 +182,53 @@ const UserDetailsPage: React.FC = () => {
             </Box>
           </Box>
 
-          <Chip
-            label={user.role}
-            color={getRoleChipColor(user.role)}
-            variant="outlined"
-            sx={{
-              fontWeight: 'bold',
-              px: 1.5,
-              py: 0.5,
-              fontSize: '0.85rem',
-              borderRadius: 2,
-              alignSelf: { xs: 'flex-end', sm: 'auto' }
-            }}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+            <Chip
+              label={user.role}
+              color={getRoleChipColor(user.role)}
+              variant="outlined"
+              sx={{
+                fontWeight: 'bold',
+                px: 1.5,
+                py: 0.5,
+                fontSize: '0.85rem',
+                borderRadius: 2,
+                alignSelf: { xs: 'flex-end', sm: 'auto' }
+              }}
+            />
+            {isActive !== undefined && (
+              <Tooltip title={isSelf ? t('users.cannotDeactivateSelf') : ''} arrow disableHoverListener={!isSelf}>
+                <span>
+                  <ToggleButtonGroup
+                    value={isActive ? 'active' : 'inactive'}
+                    exclusive
+                    size="small"
+                    disabled={currentRole !== Role.ADMIN || isSelf}
+                    onChange={(e, newValue) => {
+                      if (newValue !== null && newValue !== (isActive ? 'active' : 'inactive')) {
+                        setIsToggleDialogOpen(true);
+                      }
+                    }}
+                  >
+                    <ToggleButton
+                      value="active"
+                      color="success"
+                      sx={{ textTransform: 'none', fontWeight: 'bold', px: 2 }}
+                    >
+                      {t('users.activeStatusActive')}
+                    </ToggleButton>
+                    <ToggleButton
+                      value="inactive"
+                      color="error"
+                      sx={{ textTransform: 'none', fontWeight: 'bold', px: 2 }}
+                    >
+                      {t('users.activeStatusInactive')}
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </span>
+              </Tooltip>
+            )}
+          </Box>
         </Box>
 
         <Divider sx={{ mb: 3 }} />
@@ -243,6 +321,46 @@ const UserDetailsPage: React.FC = () => {
           </>
         )}
       </Paper>
+
+      {/* Activate / Deactivate Confirmation Dialog */}
+      <Dialog
+        open={isToggleDialogOpen}
+        onClose={() => setIsToggleDialogOpen(false)}
+        aria-labelledby="toggle-active-dialog-title"
+        PaperProps={{ sx: { borderRadius: 3, px: 1, py: 0.5 } }}
+      >
+        <DialogTitle id="toggle-active-dialog-title" fontWeight="bold">
+          {isActive ? t('users.deactivateTitle') : t('users.activateTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {isActive
+              ? t('users.deactivateBody', { email: user.email })
+              : t('users.activateBody', { email: user.email })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setIsToggleDialogOpen(false)}
+            color="inherit"
+            sx={{ textTransform: 'none', fontWeight: 'bold' }}
+            disabled={isTogglingActive}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleToggleActiveConfirm}
+            color={isActive ? 'error' : 'success'}
+            variant="contained"
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+            disabled={isTogglingActive}
+            startIcon={isTogglingActive ? <CircularProgress size={16} color="inherit" /> : undefined}
+            autoFocus
+          >
+            {isActive ? t('users.menuDeactivate') : t('users.menuActivate')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

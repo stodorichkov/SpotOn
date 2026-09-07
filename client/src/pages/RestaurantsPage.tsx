@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useGetRestaurantsQuery, useGetCategoriesQuery } from '../features/restaurants/restaurantsSlice';
+import { useGetRestaurantsForManageQuery, useGetCategoriesQuery, RestaurantResponse } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -26,7 +26,6 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
-import PeopleIcon from '@mui/icons-material/People';
 import AddIcon from '@mui/icons-material/Add';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -36,11 +35,21 @@ import SortIcon from '@mui/icons-material/Sort';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import InfoIcon from '@mui/icons-material/Info';
 import { getCategoryStyle } from '../utils/categoryColor';
 import SortDialog, { SortDirection } from '../components/SortDialog';
 
-type StatusFilter = 'all' | 'open' | 'closed';
-const STATUS_FILTER_OPTIONS: StatusFilter[] = ['all', 'open', 'closed'];
+type StatusFilter = 'all' | 'open' | 'closed' | 'inactive';
+const STATUS_FILTER_OPTIONS: StatusFilter[] = ['all', 'open', 'closed', 'inactive'];
+
+const getRestaurantStatusChip = (restaurant: RestaurantResponse): { labelKey: string; color: 'success' | 'error' | 'default' } => {
+  if (!restaurant.isActive) {
+    return { labelKey: 'restaurants.activeStatusInactive', color: 'default' };
+  }
+  return restaurant.isOpen
+    ? { labelKey: 'restaurants.statusOpen', color: 'success' }
+    : { labelKey: 'restaurants.statusClosed', color: 'error' };
+};
 
 const RestaurantsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -97,9 +106,20 @@ const RestaurantsPage: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [addressInput]);
 
-  const isOpen = statusFilter === 'all' ? undefined : statusFilter === 'open';
+  const { isOpen, isActive } = (() => {
+    switch (statusFilter) {
+      case 'open':
+        return { isOpen: true, isActive: true };
+      case 'closed':
+        return { isOpen: false, isActive: true };
+      case 'inactive':
+        return { isOpen: undefined, isActive: false };
+      default:
+        return { isOpen: undefined, isActive: undefined };
+    }
+  })();
 
-  const { data, error, isFetching } = useGetRestaurantsQuery({
+  const { data, error, isFetching } = useGetRestaurantsForManageQuery({
     page,
     size: rowsPerPage,
     sort,
@@ -108,6 +128,7 @@ const RestaurantsPage: React.FC = () => {
     address: address || undefined,
     categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
     isOpen,
+    isActive,
   });
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -183,14 +204,20 @@ const RestaurantsPage: React.FC = () => {
     setIsStatusDialogOpen(false);
   };
 
+  const handleClearStatusDialog = () => {
+    setDraftStatusFilter('all');
+  };
+
   const statusFilterLabel = (() => {
     switch (statusFilter) {
       case 'open':
         return t('restaurants.statusOpen');
       case 'closed':
         return t('restaurants.statusClosed');
+      case 'inactive':
+        return t('restaurants.activeStatusInactive');
       default:
-        return t('restaurants.statusFilterAll');
+        return t('restaurants.statusColumn');
     }
   })();
 
@@ -435,13 +462,16 @@ const RestaurantsPage: React.FC = () => {
                   ? t('restaurants.statusFilterAll')
                   : option === 'open'
                     ? t('restaurants.statusOpen')
-                    : t('restaurants.statusClosed');
+                    : option === 'closed'
+                      ? t('restaurants.statusClosed')
+                      : t('restaurants.activeStatusInactive');
+                const color = option === 'closed' ? 'error' : option === 'open' ? 'success' : option === 'inactive' ? 'default' : 'primary';
                 return (
                   <Chip
                     key={option}
                     label={label}
                     onClick={() => setDraftStatusFilter(option)}
-                    color={isSelected ? (option === 'closed' ? 'error' : option === 'open' ? 'success' : 'primary') : undefined}
+                    color={isSelected ? color : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
                     sx={{
                       fontWeight: isSelected ? 'bold' : 'normal',
@@ -458,7 +488,7 @@ const RestaurantsPage: React.FC = () => {
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
             <Button
-              onClick={() => setDraftStatusFilter('all')}
+              onClick={handleClearStatusDialog}
               variant="contained"
               color="error"
               startIcon={<ClearIcon />}
@@ -523,19 +553,20 @@ const RestaurantsPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="restaurants table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>{t('restaurants.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurants.name')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurants.address')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>{t('restaurants.categories')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurants.statusColumn')}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('restaurants.actions')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '7%' }}>{t('restaurants.id')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '17%' }}>{t('restaurants.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '17%' }}>{t('restaurants.address')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '19%' }}>{t('restaurants.categories')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurants.statusColumn')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>{t('restaurants.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data?.content.map((restaurant) => {
                     if (!restaurant) return null;
+                    const statusChip = getRestaurantStatusChip(restaurant);
                     return (
-                      <TableRow key={restaurant.id}>
+                      <TableRow key={restaurant.id} sx={{ opacity: restaurant.isActive ? 1 : 0.6 }}>
                         <TableCell>{restaurant.id}</TableCell>
                         <TableCell>{restaurant.name}</TableCell>
                         <TableCell>{restaurant.address}</TableCell>
@@ -557,22 +588,21 @@ const RestaurantsPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={restaurant.isOpen ? t('restaurants.statusOpen') : t('restaurants.statusClosed')}
-                            color={restaurant.isOpen ? 'success' : 'error'}
+                            label={t(statusChip.labelKey)}
+                            color={statusChip.color}
                             size="small"
                             sx={{ fontWeight: 'bold' }}
                           />
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip title={t('restaurants.viewEmployeesTooltip')} arrow>
+                          <Tooltip title={t('restaurants.detailsTooltip')} arrow>
                             <IconButton
                               component={Link}
-                              to={`/admin/restaurants/${restaurant.id}/employees`}
-                              state={{ restaurantName: restaurant.name }}
+                              to={`/admin/restaurants/${restaurant.id}`}
                               color="primary"
                               size="small"
                             >
-                              <PeopleIcon />
+                              <InfoIcon />
                             </IconButton>
                           </Tooltip>
                         </TableCell>
@@ -588,15 +618,9 @@ const RestaurantsPage: React.FC = () => {
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell align="right">
-                          <Button
-                            variant="text"
-                            size="small"
-                            startIcon={<PeopleIcon />}
-                            sx={{ visibility: 'hidden' }}
-                            aria-hidden="true"
-                          >
-                            {t('restaurants.viewEmployeesTooltip')}
-                          </Button>
+                          <IconButton size="small" sx={{ visibility: 'hidden' }} aria-hidden="true">
+                            <InfoIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}

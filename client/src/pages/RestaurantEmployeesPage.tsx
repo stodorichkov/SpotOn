@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
-import { useGetEmployeesQuery } from '../features/restaurants/restaurantsSlice';
+import { useParams, useLocation, useOutletContext, Link } from 'react-router-dom';
+import { useGetEmployeesQuery, RestaurantDetailsResponse } from '../features/restaurants/restaurantsSlice';
 import { useTranslation } from 'react-i18next';
 import { Role } from '../constants';
 import {
@@ -62,6 +62,7 @@ const RestaurantEmployeesPage: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const restaurant = useOutletContext<RestaurantDetailsResponse | undefined>();
   const restaurantId = Number(id);
   const restaurantName = location.state?.restaurantName || `Restaurant #${restaurantId}`;
 
@@ -246,21 +247,26 @@ const RestaurantEmployeesPage: React.FC = () => {
                 </Typography>
               </Box>
             </Box>
-            <Button
-              component={Link}
-              to={`/admin/restaurants/${restaurantId}/employees/new`}
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                width: { xs: '100%', sm: 'auto' }
-              }}
-            >
-              {t('restaurantEmployees.addManager')}
-            </Button>
+            <Tooltip title={restaurant?.isActive === false ? t('restaurantEmployees.addManagerDisabledTooltip') : ''} arrow disableHoverListener={restaurant?.isActive !== false}>
+              <span style={{ width: '100%' }}>
+                <Button
+                  component={Link}
+                  to={`/admin/restaurants/${restaurantId}/employees/new`}
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  disabled={restaurant?.isActive === false}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    borderRadius: 2,
+                    width: { xs: '100%', sm: 'auto' }
+                  }}
+                >
+                  {t('restaurantEmployees.addManager')}
+                </Button>
+              </span>
+            </Tooltip>
           </Box>
         </Box>
         <Divider />
@@ -460,7 +466,7 @@ const RestaurantEmployeesPage: React.FC = () => {
                   {data.content.map((employee) => {
                     if (!employee) return null;
                     return (
-                      <TableRow key={employee.id} style={{ height: rowHeight }}>
+                      <TableRow key={employee.id} style={{ height: rowHeight, opacity: employee.isActive ? 1 : 0.6 }}>
                         <TableCell>{employee.id}</TableCell>
                         <TableCell>{employee.email || ''}</TableCell>
                         <TableCell>{`${employee.firstName || ''} ${employee.lastName || ''}`}</TableCell>
@@ -500,15 +506,9 @@ const RestaurantEmployeesPage: React.FC = () => {
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell align="right">
-                          <Button
-                            variant="text"
-                            size="small"
-                            startIcon={<InfoIcon />}
-                            sx={{ visibility: 'hidden' }}
-                            aria-hidden="true"
-                          >
-                            {t('users.info')}
-                          </Button>
+                          <IconButton size="small" sx={{ visibility: 'hidden' }} aria-hidden="true">
+                            <InfoIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}

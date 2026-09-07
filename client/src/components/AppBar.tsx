@@ -13,6 +13,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import TableBarIcon from '@mui/icons-material/TableBar';
+import CategoryIcon from '@mui/icons-material/Category';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CheckIcon from '@mui/icons-material/Check';
 import { addAlert } from '../features/alerts/alertsSlice';
@@ -141,6 +142,8 @@ const AppTopBar = () => {
     ? '/admin/users'
     : location.pathname.startsWith('/admin/restaurants')
     ? '/admin/restaurants'
+    : location.pathname.startsWith('/admin/categories')
+    ? '/admin/categories'
     : location.pathname.startsWith('/manager/restaurant')
     ? '/manager/restaurant'
     : location.pathname.startsWith('/manager/employees')
@@ -157,7 +160,8 @@ const AppTopBar = () => {
   if (role === Role.ADMIN) {
     menuItems.push(
       { label: t('appBar.users'), path: '/admin/users', icon: <GroupIcon /> },
-      { label: t('appBar.restaurants'), path: '/admin/restaurants', icon: <RestaurantIcon /> }
+      { label: t('appBar.restaurants'), path: '/admin/restaurants', icon: <RestaurantIcon /> },
+      { label: t('appBar.categories'), path: '/admin/categories', icon: <CategoryIcon /> }
     );
   } else if (role === Role.MANAGER) {
     menuItems.push(
@@ -231,6 +235,14 @@ const AppTopBar = () => {
                   iconPosition="start"
                   component={Link}
                   to="/admin/restaurants"
+                />
+                <Tab
+                  label={t('appBar.categories')}
+                  value="/admin/categories"
+                  icon={<CategoryIcon />}
+                  iconPosition="start"
+                  component={Link}
+                  to="/admin/categories"
                 />
               </Tabs>
             )}

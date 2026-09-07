@@ -4,6 +4,7 @@ export interface User {
   id: number;
   email: string;
   role: string;
+  isActive: boolean;
 }
 
 export interface UserDetailsResponse {
@@ -13,6 +14,11 @@ export interface UserDetailsResponse {
     lastName: string;
     phoneNumber: string;
     role: string;
+    isActive: boolean;
+}
+
+export interface UserActiveStatusRequest {
+    isActive: boolean;
 }
 
 export interface PaginatedUsersResponse {
@@ -49,9 +55,9 @@ export const usersSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query<
       PaginatedUsersResponse,
-      { page: number; size: number; sort?: string; id?: number; email?: string; roles?: string[] }
+      { page: number; size: number; sort?: string; id?: number; email?: string; roles?: string[]; isActive?: boolean }
     >({
-      query: ({ page, size, sort = 'id,asc', id, email, roles }) => {
+      query: ({ page, size, sort = 'id,asc', id, email, roles, isActive }) => {
         const params = new URLSearchParams();
         params.set('page', String(page));
         params.set('size', String(size));
@@ -62,15 +68,28 @@ export const usersSlice = api.injectEndpoints({
         if (email) {
           params.set('email', email);
         }
+        if (isActive !== undefined) {
+          params.set('isActive', String(isActive));
+        }
         (roles || []).forEach((role) => params.append('roles', role));
 
         return `auth/users?${params.toString()}`;
       },
+      providesTags: ['Users'],
     }),
     getUserDetails: builder.query<UserDetailsResponse, number>({
         query: (id) => `auth/users/${id}`,
+        providesTags: ['Users'],
+    }),
+    updateUserActiveStatus: builder.mutation<UserDetailsResponse, { id: number; body: UserActiveStatusRequest }>({
+      query: ({ id, body }) => ({
+        url: `auth/users/${id}/active`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Users', 'Employees'],
     }),
   }),
 });
 
-export const { useGetUsersQuery, useGetUserDetailsQuery } = usersSlice;
+export const { useGetUsersQuery, useGetUserDetailsQuery, useUpdateUserActiveStatusMutation } = usersSlice;
