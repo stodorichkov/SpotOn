@@ -248,7 +248,7 @@ const RestaurantEmployeesPage: React.FC = () => {
               </Box>
             </Box>
             <Tooltip title={restaurant?.isActive === false ? t('restaurantEmployees.addManagerDisabledTooltip') : ''} arrow disableHoverListener={restaurant?.isActive !== false}>
-              <span style={{ width: '100%' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: { xs: '100%', sm: 'auto' }, ml: { sm: 'auto' } }}>
                 <Button
                   component={Link}
                   to={`/admin/restaurants/${restaurantId}/employees/new`}
@@ -265,7 +265,7 @@ const RestaurantEmployeesPage: React.FC = () => {
                 >
                   {t('restaurantEmployees.addManager')}
                 </Button>
-              </span>
+              </Box>
             </Tooltip>
           </Box>
         </Box>

@@ -148,6 +148,15 @@ const RestaurantDetailPage: React.FC = () => {
 
             <Divider sx={{ mb: 4 }} />
 
+            {restaurant.images?.[0] && (
+              <Box
+                component="img"
+                src={restaurant.images[0].url}
+                alt={restaurant.name}
+                sx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2, mb: 4 }}
+              />
+            )}
+
             {/* Specifications Section */}
             <Box sx={{ mb: 5 }}>
               <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 3 }}>

@@ -60,6 +60,22 @@ const AdminRestaurantDetailsTab: React.FC = () => {
     <Container maxWidth="md" sx={{ mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
         <Grid container spacing={4}>
+          {restaurant.images?.[0] && (
+            <Grid item xs={12}>
+              <Box
+                component="img"
+                src={restaurant.images[0].url}
+                alt={restaurant.name}
+                sx={{
+                  width: '100%',
+                  maxHeight: 280,
+                  objectFit: 'cover',
+                  borderRadius: 2
+                }}
+              />
+            </Grid>
+          )}
+
           <Grid item xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
               <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />

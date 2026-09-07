@@ -22,13 +22,20 @@ import {
   DialogActions,
   CircularProgress,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import InfoIcon from '@mui/icons-material/Info';
 import PeopleIcon from '@mui/icons-material/People';
 import TableBarIcon from '@mui/icons-material/TableBar';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 const AdminRestaurantDetailsLayout: React.FC = () => {
   const { t } = useTranslation();
@@ -36,6 +43,9 @@ const AdminRestaurantDetailsLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const restaurantId = Number(id);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [tabMenuAnchorEl, setTabMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   const { data: restaurant, isLoading } = useGetRestaurantByIdQuery(
     restaurantId,
@@ -75,6 +85,14 @@ const AdminRestaurantDetailsLayout: React.FC = () => {
       : location.pathname.startsWith(`${basePath}/bookings`)
         ? `${basePath}/bookings`
         : basePath;
+
+  const tabItems = [
+    { value: basePath, label: t('adminRestaurantDetails.tabDetails'), icon: <InfoIcon fontSize="small" /> },
+    { value: `${basePath}/employees`, label: t('adminRestaurantDetails.tabEmployees'), icon: <PeopleIcon fontSize="small" /> },
+    { value: `${basePath}/tables`, label: t('adminRestaurantDetails.tabTables'), icon: <TableBarIcon fontSize="small" /> },
+    { value: `${basePath}/bookings`, label: t('adminRestaurantDetails.tabBookings'), icon: <CalendarMonthIcon fontSize="small" /> }
+  ];
+  const activeTabItem = tabItems.find((item) => item.value === currentTab) || tabItems[0];
 
   return (
     <>
@@ -121,7 +139,7 @@ const AdminRestaurantDetailsLayout: React.FC = () => {
               </Box>
 
               {restaurant && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, alignSelf: { xs: 'flex-end', sm: 'auto' } }}>
                   <Chip
                     label={restaurant.isOpen ? t('restaurants.statusOpen') : t('restaurants.statusClosed')}
                     color={restaurant.isOpen ? 'success' : 'error'}
@@ -149,44 +167,62 @@ const AdminRestaurantDetailsLayout: React.FC = () => {
             </Box>
           </Box>
           <Divider />
-          <Tabs value={currentTab} variant="scrollable" scrollButtons="auto">
-            <Tab
-              component={Link}
-              to={basePath}
-              value={basePath}
-              icon={<InfoIcon fontSize="small" />}
-              iconPosition="start"
-              label={t('adminRestaurantDetails.tabDetails')}
-              sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            />
-            <Tab
-              component={Link}
-              to={`${basePath}/employees`}
-              value={`${basePath}/employees`}
-              icon={<PeopleIcon fontSize="small" />}
-              iconPosition="start"
-              label={t('adminRestaurantDetails.tabEmployees')}
-              sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            />
-            <Tab
-              component={Link}
-              to={`${basePath}/tables`}
-              value={`${basePath}/tables`}
-              icon={<TableBarIcon fontSize="small" />}
-              iconPosition="start"
-              label={t('adminRestaurantDetails.tabTables')}
-              sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            />
-            <Tab
-              component={Link}
-              to={`${basePath}/bookings`}
-              value={`${basePath}/bookings`}
-              icon={<CalendarMonthIcon fontSize="small" />}
-              iconPosition="start"
-              label={t('adminRestaurantDetails.tabBookings')}
-              sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            />
-          </Tabs>
+          {isMobile ? (
+            <Box sx={{ p: 1.5 }}>
+              <Button
+                fullWidth
+                onClick={(e) => setTabMenuAnchorEl(e.currentTarget)}
+                startIcon={activeTabItem.icon}
+                endIcon={<ArrowDropDownIcon />}
+                sx={{
+                  justifyContent: 'space-between',
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  color: 'text.primary',
+                  px: 2
+                }}
+              >
+                {activeTabItem.label}
+              </Button>
+              <Menu
+                anchorEl={tabMenuAnchorEl}
+                open={Boolean(tabMenuAnchorEl)}
+                onClose={() => setTabMenuAnchorEl(null)}
+                PaperProps={{ sx: { borderRadius: 2, minWidth: 200 } }}
+              >
+                {tabItems.map((item) => (
+                  <MenuItem
+                    key={item.value}
+                    component={Link}
+                    to={item.value}
+                    selected={item.value === currentTab}
+                    onClick={() => setTabMenuAnchorEl(null)}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 'bold' }} />
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
+          ) : (
+            <Tabs value={currentTab} variant="scrollable" scrollButtons="auto">
+              {tabItems.map((item) => (
+                <Tab
+                  key={item.value}
+                  component={Link}
+                  to={item.value}
+                  value={item.value}
+                  icon={item.icon}
+                  iconPosition="start"
+                  label={item.label}
+                  sx={{ textTransform: 'none', fontWeight: 'bold' }}
+                />
+              ))}
+            </Tabs>
+          )}
         </Paper>
       </Container>
       <Outlet context={restaurant} />

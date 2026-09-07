@@ -10,6 +10,7 @@ import {
   Container,
   Grid,
   Card,
+  CardMedia,
   CardContent,
   CardActions,
   Typography,
@@ -546,21 +547,31 @@ const HomePage: React.FC = () => {
                         }
                       }}
                     >
-                      {/* Card Cover Placeholder */}
-                      <Box
-                        sx={{
-                          height: 120,
-                          background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(21, 101, 192, 0.15) 100%)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderTopLeftRadius: 'inherit',
-                          borderTopRightRadius: 'inherit',
-                          color: 'primary.main'
-                        }}
-                      >
-                        <RestaurantIcon sx={{ fontSize: 44, opacity: 0.8 }} />
-                      </Box>
+                      {/* Card Cover */}
+                      {restaurant.images?.[0] ? (
+                        <CardMedia
+                          component="img"
+                          height={120}
+                          image={restaurant.images[0].url}
+                          alt={restaurant.name}
+                          sx={{ objectFit: 'cover', borderTopLeftRadius: 'inherit', borderTopRightRadius: 'inherit' }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            height: 120,
+                            background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(21, 101, 192, 0.15) 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderTopLeftRadius: 'inherit',
+                            borderTopRightRadius: 'inherit',
+                            color: 'primary.main'
+                          }}
+                        >
+                          <RestaurantIcon sx={{ fontSize: 44, opacity: 0.8 }} />
+                        </Box>
+                      )}
 
                       {/* Card Content */}
                       <CardContent sx={{ flexGrow: 1, p: 3 }}>

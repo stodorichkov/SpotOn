@@ -4,6 +4,8 @@ import {
   useGetRestaurantFormQuery,
   useUpdateRestaurantProfileMutation,
   useUpdateRestaurantStatusMutation,
+  useUploadRestaurantImageMutation,
+  useDeleteRestaurantImageMutation,
   useUpdateWorkingHoursMutation,
   useUpdateReservationDurationMutation,
   DayOfWeek,
@@ -39,6 +41,8 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteIcon from '@mui/icons-material/Delete';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -97,6 +101,8 @@ const ManagerRestaurantPage: React.FC = () => {
   const [updateRestaurantStatus, { isLoading: isUpdatingStatus }] = useUpdateRestaurantStatusMutation();
   const [updateWorkingHours, { isLoading: isSavingHours }] = useUpdateWorkingHoursMutation();
   const [updateReservationDuration, { isLoading: isSavingDuration }] = useUpdateReservationDurationMutation();
+  const [uploadRestaurantImage, { isLoading: isUploadingImage }] = useUploadRestaurantImageMutation();
+  const [deleteRestaurantImage, { isLoading: isDeletingImage }] = useDeleteRestaurantImageMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
@@ -196,6 +202,43 @@ const ManagerRestaurantPage: React.FC = () => {
       console.error('Failed to update restaurant status:', err);
       dispatch(addAlert({
         message: err?.data?.message || t('managerRestaurant.statusFailure'),
+        type: 'error'
+      }));
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await uploadRestaurantImage(formData).unwrap();
+      dispatch(addAlert({ message: t('managerRestaurant.imageUploadSuccess'), type: 'success' }));
+      refetch();
+    } catch (err: any) {
+      console.error('Failed to upload restaurant image:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || t('managerRestaurant.imageUploadFailure'),
+        type: 'error'
+      }));
+    }
+  };
+
+  const handleDeleteImage = async (imageId: number) => {
+    try {
+      await deleteRestaurantImage(imageId).unwrap();
+      dispatch(addAlert({ message: t('managerRestaurant.imageDeleteSuccess'), type: 'success' }));
+      refetch();
+    } catch (err: any) {
+      console.error('Failed to delete restaurant image:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || t('managerRestaurant.imageDeleteFailure'),
         type: 'error'
       }));
     }
@@ -424,6 +467,64 @@ const ManagerRestaurantPage: React.FC = () => {
               {t('managerRestaurant.statusClosed')}
             </ToggleButton>
           </ToggleButtonGroup>
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ alignSelf: 'flex-start', mb: 2 }}>
+            {t('managerRestaurant.imagesTitle')}
+          </Typography>
+
+          {restaurant.images?.[0] ? (
+            <Box
+              component="img"
+              src={restaurant.images[0].url}
+              alt={restaurant.name}
+              sx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2 }}
+            />
+          ) : (
+            <Box
+              sx={{
+                width: '100%',
+                height: 280,
+                borderRadius: 2,
+                backgroundColor: 'action.hover',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary'
+              }}
+            >
+              <RestaurantIcon sx={{ fontSize: 64, opacity: 0.5 }} />
+            </Box>
+          )}
+
+          <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+            <Button
+              component="label"
+              variant={restaurant.images?.[0] ? 'outlined' : 'contained'}
+              color="primary"
+              startIcon={isUploadingImage ? <CircularProgress size={16} color="inherit" /> : <PhotoCameraIcon />}
+              disabled={isUploadingImage}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+            >
+              {restaurant.images?.[0] ? t('managerRestaurant.changeImage') : t('managerRestaurant.uploadImage')}
+              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+            </Button>
+            {restaurant.images?.[0] && (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={isDeletingImage ? <CircularProgress size={16} color="inherit" /> : <DeleteIcon />}
+                disabled={isDeletingImage}
+                onClick={() => handleDeleteImage(restaurant.images[0].id)}
+                sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+              >
+                {t('managerRestaurant.removeImage')}
+              </Button>
+            )}
+          </Box>
         </Box>
 
         <Divider sx={{ mb: 3 }} />
