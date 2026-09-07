@@ -20,6 +20,9 @@ public class MessageConstants {
     public static final String RESTAURANT_NOT_FOUND = "{restaurant.not.found}";
     public static final String RESTAURANT_INACTIVE = "{restaurant.inactive}";
 
+    public static final String RESTAURANT_IMAGE_NOT_FOUND = "{restaurant.image.not.found}";
+    public static final String INVALID_IMAGE_TYPE = "{invalid.image.type}";
+
     public static final String EMPLOYEE_NOT_FOUND = "{employee.not.found}";
     public static final String EMPLOYEE_RESTAURANT_INACTIVE = "{employee.restaurant.inactive}";
     public static final String CANNOT_ADD_EMPLOYEE_TO_INACTIVE_RESTAURANT = "{restaurant.inactive.add.employee}";

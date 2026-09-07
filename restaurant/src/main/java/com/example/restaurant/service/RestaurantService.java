@@ -11,6 +11,7 @@ import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,6 +26,8 @@ public interface RestaurantService {
     RestaurantDetailsResponse updateRestaurantActiveStatus(Long id, RestaurantActiveStatusRequest request);
     RestaurantDetailsResponse updateWorkingHours(Long id, RestaurantWorkingHoursRequest request);
     RestaurantDetailsResponse updateReservationDuration(Long id, RestaurantReservationDurationRequest request);
+    RestaurantDetailsResponse uploadRestaurantImage(Long id, MultipartFile file);
+    RestaurantDetailsResponse deleteRestaurantImage(Long id, Long imageId);
 
     List<RestaurantContactResponse> getRestaurantsContact(List<Long> restaurantIds);
     void restaurantExists(Long id);

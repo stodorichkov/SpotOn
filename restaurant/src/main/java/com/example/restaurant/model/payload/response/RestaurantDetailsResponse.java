@@ -12,6 +12,7 @@ public record RestaurantDetailsResponse(
         Boolean isOpen,
         List<WorkingHoursEntryResponse> workingHours,
         Integer reservationDurationMinutes,
-        Boolean isActive
+        Boolean isActive,
+        List<RestaurantImageResponse> images
 ) {
 }

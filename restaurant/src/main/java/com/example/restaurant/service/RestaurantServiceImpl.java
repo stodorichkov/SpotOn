@@ -1,10 +1,12 @@
 package com.example.restaurant.service;
 
 import com.example.restaurant.constants.MessageConstants;
+import com.example.restaurant.exception.AccessDeniedException;
 import com.example.restaurant.exception.BadRequestException;
 import com.example.restaurant.exception.NotFoundException;
 import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.enity.Restaurant;
+import com.example.restaurant.model.enity.RestaurantImage;
 import com.example.restaurant.model.enity.RestaurantWorkingHours;
 import com.example.restaurant.model.payload.filter.RestaurantFilter;
 import com.example.restaurant.model.payload.request.RestaurantActiveStatusRequest;
@@ -15,35 +17,58 @@ import com.example.restaurant.model.payload.request.RestaurantWorkingHoursReques
 import com.example.restaurant.model.payload.request.WorkingHoursEntryRequest;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
+import com.example.restaurant.model.payload.response.RestaurantImageResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.repository.CategoryRepository;
+import com.example.restaurant.repository.RestaurantImageRepository;
 import com.example.restaurant.repository.RestaurantRepository;
 import com.example.restaurant.repository.RestaurantWorkingHoursRepository;
 import com.example.restaurant.specification.RestaurantSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RestaurantServiceImpl implements RestaurantService {
+    private static final Map<String, String> ALLOWED_IMAGE_TYPES = Map.of(
+            "image/jpeg", ".jpg",
+            "image/png", ".png",
+            "image/webp", ".webp"
+    );
+
     private final RestaurantRepository restaurantRepository;
     private final CategoryRepository categoryRepository;
     private final RestaurantWorkingHoursRepository restaurantWorkingHoursRepository;
+    private final RestaurantImageRepository restaurantImageRepository;
     private final RestaurantMapper restaurantMapper;
     private final EmployeeService employeeService;
+
+    @Value("${images.upload-dir}")
+    private String imagesUploadDir;
+
+    @Value("${images.base-url}")
+    private String imagesBaseUrl;
 
     @Override
     @Transactional
@@ -62,7 +87,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         final var savedRestaurant = this.restaurantRepository.save(restaurant);
 
-        return this.restaurantMapper.mapToRestaurantResponse(savedRestaurant);
+        return this.restaurantMapper.mapToRestaurantResponse(savedRestaurant, List.of());
     }
 
     @Override
@@ -70,16 +95,33 @@ public class RestaurantServiceImpl implements RestaurantService {
         final var specification = RestaurantSpecification.fromFilter(filter)
                 .and(RestaurantSpecification.hasIsActive(true));
 
-        return this.restaurantRepository.findAll(specification, pageable)
-                .map(this.restaurantMapper::mapToRestaurantResponse);
+        final var restaurantsPage = this.restaurantRepository.findAll(specification, pageable);
+
+        return this.mapToRestaurantResponsePage(restaurantsPage);
     }
 
     @Override
     public Page<RestaurantResponse> getRestaurantsForManage(RestaurantFilter filter, Pageable pageable) {
         final var specification = RestaurantSpecification.fromFilter(filter);
 
-        return this.restaurantRepository.findAll(specification, pageable)
-                .map(this.restaurantMapper::mapToRestaurantResponse);
+        final var restaurantsPage = this.restaurantRepository.findAll(specification, pageable);
+
+        return this.mapToRestaurantResponsePage(restaurantsPage);
+    }
+
+    private Page<RestaurantResponse> mapToRestaurantResponsePage(Page<Restaurant> restaurantsPage) {
+        final var restaurantIds = restaurantsPage.getContent().stream()
+                .map(Restaurant::getId)
+                .toList();
+
+        final var imagesByRestaurantId = this.restaurantImageRepository.findByRestaurantIdIn(restaurantIds)
+                .stream()
+                .collect(Collectors.groupingBy(image -> image.getRestaurant().getId()));
+
+        return restaurantsPage.map(restaurant -> this.restaurantMapper.mapToRestaurantResponse(
+                restaurant,
+                this.buildImageResponses(imagesByRestaurantId.getOrDefault(restaurant.getId(), List.of()))
+        ));
     }
 
     @Override
@@ -210,7 +252,78 @@ public class RestaurantServiceImpl implements RestaurantService {
                 .sorted(Comparator.comparing(RestaurantWorkingHours::getDayOfWeek))
                 .toList();
 
-        return this.restaurantMapper.mapToRestaurantDetailsResponse(restaurant, workingHours);
+        final var images = this.buildImageResponses(
+                this.restaurantImageRepository.findByRestaurantIdOrderByIdAsc(restaurant.getId())
+        );
+
+        return this.restaurantMapper.mapToRestaurantDetailsResponse(restaurant, workingHours, images);
+    }
+
+    private List<RestaurantImageResponse> buildImageResponses(List<RestaurantImage> images) {
+        return images.stream()
+                .map(image -> new RestaurantImageResponse(image.getId(), this.imagesBaseUrl + "/" + image.getFileName()))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse uploadRestaurantImage(Long id, MultipartFile file) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        final var extension = ALLOWED_IMAGE_TYPES.get(file.getContentType());
+        if (extension == null) {
+            throw new BadRequestException(MessageConstants.INVALID_IMAGE_TYPE);
+        }
+
+        final var fileName = UUID.randomUUID() + extension;
+
+        try {
+            Files.createDirectories(Path.of(this.imagesUploadDir));
+            Files.copy(file.getInputStream(), Path.of(this.imagesUploadDir, fileName), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store restaurant image", e);
+        }
+
+        // Only one image per restaurant is supported for now, so a new upload replaces the existing one.
+        final var existingImages = this.restaurantImageRepository.findByRestaurantIdOrderByIdAsc(id);
+        existingImages.forEach(existingImage -> this.deleteImageFile(existingImage.getFileName()));
+        this.restaurantImageRepository.deleteAll(existingImages);
+
+        final var image = new RestaurantImage();
+        image.setRestaurant(restaurant);
+        image.setFileName(fileName);
+        image.setCreatedAt(Instant.now());
+        this.restaurantImageRepository.save(image);
+
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse deleteRestaurantImage(Long id, Long imageId) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        final var image = this.restaurantImageRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_IMAGE_NOT_FOUND));
+
+        if (!image.getRestaurant().getId().equals(id)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        this.deleteImageFile(image.getFileName());
+        this.restaurantImageRepository.delete(image);
+
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
+    private void deleteImageFile(String fileName) {
+        try {
+            Files.deleteIfExists(Path.of(this.imagesUploadDir, fileName));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete restaurant image file", e);
+        }
     }
 
     @Override

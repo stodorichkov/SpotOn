@@ -1,5 +1,6 @@
 package com.example.restaurant.model.payload.response;
 
+import java.util.List;
 import java.util.Set;
 
 public record RestaurantResponse(
@@ -8,6 +9,7 @@ public record RestaurantResponse(
         Set<CategoryResponse> categories,
         String address,
         Boolean isOpen,
-        Boolean isActive
+        Boolean isActive,
+        List<RestaurantImageResponse> images
 ) {
 }

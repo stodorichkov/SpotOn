@@ -13,7 +13,9 @@ import com.example.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/profile")
@@ -90,5 +92,33 @@ public class RestaurantProfileController {
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.restaurantService.updateReservationDuration(restaurantIdHeader, request);
+    }
+
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantDetailsResponse uploadImage(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @RequestParam("file") MultipartFile file
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+
+        return this.restaurantService.uploadRestaurantImage(restaurantIdHeader, file);
+    }
+
+    @DeleteMapping("/images/{imageId}")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantDetailsResponse deleteImage(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
+            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @PathVariable Long imageId
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER);
+        this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
+
+        return this.restaurantService.deleteRestaurantImage(restaurantIdHeader, imageId);
     }
 }

@@ -7,6 +7,7 @@ import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.CategoryResponse;
 import com.example.restaurant.model.payload.response.RestaurantContactResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
+import com.example.restaurant.model.payload.response.RestaurantImageResponse;
 import com.example.restaurant.model.payload.response.RestaurantResponse;
 import com.example.restaurant.model.payload.response.WorkingHoursEntryResponse;
 import org.mapstruct.Mapper;
@@ -22,10 +23,10 @@ public interface RestaurantMapper {
     Restaurant mapFromRestaurantRequest(RestaurantRequest request);
 
     @Mapping(target = "isActive", expression = "java(restaurant.getDeletedAt() == null)")
-    RestaurantResponse mapToRestaurantResponse(Restaurant restaurant);
+    RestaurantResponse mapToRestaurantResponse(Restaurant restaurant, List<RestaurantImageResponse> images);
 
     @Mapping(target = "isActive", expression = "java(restaurant.getDeletedAt() == null)")
-    RestaurantDetailsResponse mapToRestaurantDetailsResponse(Restaurant restaurant, List<RestaurantWorkingHours> workingHours);
+    RestaurantDetailsResponse mapToRestaurantDetailsResponse(Restaurant restaurant, List<RestaurantWorkingHours> workingHours, List<RestaurantImageResponse> images);
 
     RestaurantContactResponse mapToRestaurantContactResponse(Restaurant restaurant);
 
