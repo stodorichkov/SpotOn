@@ -41,4 +41,9 @@ public class MessageConstants {
             "A password reset was requested for your account.\n" +
             "Your new password: %s\n\n" +
             "Please log in and change your password as soon as possible.";
+
+    public static final String BOOKING_STATUS_EMAIL_SUBJECT = "Your SpotOn booking at %s is now %s";
+    public static final String BOOKING_STATUS_EMAIL_BODY = "Hello,\n\n" +
+            "Your booking at %s for %s is now %s.\n\n" +
+            "Thank you for using SpotOn.";
 }

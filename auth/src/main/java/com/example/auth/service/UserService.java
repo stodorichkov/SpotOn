@@ -1,6 +1,7 @@
 package com.example.auth.service;
 
 import com.example.auth.model.payload.filter.UserFilter;
+import com.example.auth.model.payload.request.BookingStatusEmailRequest;
 import com.example.auth.model.payload.request.UserActiveStatusRequest;
 import com.example.auth.model.payload.response.ClientContactResponse;
 import com.example.auth.model.payload.response.UserDetailsResponse;
@@ -16,4 +17,5 @@ public interface UserService {
     UserDetailsResponse updateUserActiveStatus(Long id, UserActiveStatusRequest request, Long requesterId);
     List<ClientContactResponse> getClientContacts(List<Long> userIds);
     List<Long> searchClientIds(String name);
+    void sendBookingStatusEmail(BookingStatusEmailRequest request);
 }

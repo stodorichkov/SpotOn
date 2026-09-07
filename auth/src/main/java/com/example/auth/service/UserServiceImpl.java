@@ -5,6 +5,7 @@ import com.example.auth.constants.RedisConstants;
 import com.example.auth.model.entity.User;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.filter.UserFilter;
+import com.example.auth.model.payload.request.BookingStatusEmailRequest;
 import com.example.auth.model.payload.request.UserActiveStatusRequest;
 import com.example.auth.model.payload.response.ClientContactResponse;
 import com.example.auth.exception.BadRequestException;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final StringRedisTemplate redisTemplate;
+    private final EmailService emailService;
 
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
@@ -95,5 +97,18 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map(User::getId)
                 .toList();
+    }
+
+    @Override
+    public void sendBookingStatusEmail(BookingStatusEmailRequest request) {
+        final var user = this.userRepository.findById(request.userId())
+                .orElseThrow(() -> new NotFoundException(MessageConstants.USER_NOT_FOUND));
+
+        this.emailService.sendBookingStatusEmail(
+                user.getEmail(),
+                request.restaurantName(),
+                request.dateTime(),
+                request.status()
+        );
     }
 }

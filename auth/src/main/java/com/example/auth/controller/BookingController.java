@@ -1,6 +1,7 @@
 package com.example.auth.controller;
 
 import com.example.auth.constants.HeaderConstants;
+import com.example.auth.model.payload.request.BookingStatusEmailRequest;
 import com.example.auth.model.payload.response.ClientContactResponse;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.enums.ServiceEnum;
@@ -42,5 +43,18 @@ public class BookingController {
         this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.BOOKING);
 
         return userService.searchClientIds(name);
+    }
+
+    @PostMapping("/notify")
+    public void sendBookingStatusEmail(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
+            @RequestBody BookingStatusEmailRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT, RoleEnum.EMPLOYEE);
+        this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.BOOKING);
+
+        userService.sendBookingStatusEmail(request);
     }
 }
