@@ -39,6 +39,7 @@ public interface UserMapper {
             @Context PasswordEncoder passwordEncoder
     );
 
+    @Mapping(target = "role", source = "role.name")
     ClientContactResponse mapToBookingClientResponse(User user);
 
     @Named("encodePassword")
