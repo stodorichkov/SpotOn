@@ -1,5 +1,6 @@
 import { api } from '../../services/api';
 import { setCredentials } from './authSlice';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 
 export interface ClientRegistrationRequest {
     email: string;
@@ -114,42 +115,48 @@ export const authApi = api.injectEndpoints({
             }),
             invalidatesTags: ['Employees'],
         }),
-        login: builder.mutation<string, ClientLoginRequest>({
-            query: (body) => ({
-                url: `${AUTH_API_PATH}/login`,
-                method: 'POST',
-                body,
-                responseHandler: async (response) => {
-                    if (response.ok) {
-                        return response.text();
-                    }
-                    try {
-                        return await response.json();
-                    } catch {
-                        return await response.text();
-                    }
-                },
-            }),
-            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
-                try {
-                    const { data: token } = await queryFulfilled;
-                    dispatch(setCredentials({ token, role: null }));
+        login: builder.mutation<{ token: string; role: string }, ClientLoginRequest>({
+            // A plain `query` + `onQueryStarted` can't communicate a later profile-fetch
+            // failure back to the caller's `.unwrap()` (that promise only reflects the
+            // initial POST /login response), which let callers see "success" even when
+            // the follow-up profile fetch (and thus role resolution) failed. Using
+            // `queryFn` ties both steps into the single result callers await.
+            queryFn: async (body, { dispatch }, extraOptions, baseQuery) => {
+                const loginResult = await baseQuery({
+                    url: `${AUTH_API_PATH}/login`,
+                    method: 'POST',
+                    body,
+                    responseHandler: async (response) => {
+                        if (response.ok) {
+                            return response.text();
+                        }
+                        try {
+                            return await response.clone().json();
+                        } catch {
+                            return await response.text();
+                        }
+                    },
+                });
 
-                    const profileResult = await dispatch(
-                        authApi.endpoints.getProfile.initiate(undefined, { forceRefetch: true })
-                    );
-
-                    if (profileResult.data) {
-                        const role = profileResult.data.role;
-                        dispatch(setCredentials({ token, role }));
-                    } else {
-                        throw new Error("Profile fetch failed");
-                    }
-
-                } catch (error) {
-                    console.error("Login process failed:", error);
-                    dispatch(setCredentials({ token: null, role: null }));
+                if (loginResult.error) {
+                    return { error: loginResult.error as FetchBaseQueryError };
                 }
+
+                const token = loginResult.data as string;
+                dispatch(setCredentials({ token, role: null }));
+
+                const profileResult = await baseQuery(`${AUTH_API_PATH}/profile`);
+
+                if (profileResult.error) {
+                    dispatch(setCredentials({ token: null, role: null }));
+                    return { error: profileResult.error as FetchBaseQueryError };
+                }
+
+                const role = (profileResult.data as ProfileResponse).role;
+                dispatch(setCredentials({ token, role }));
+                dispatch(authApi.util.upsertQueryData('getProfile', undefined, profileResult.data as ProfileResponse));
+
+                return { data: { token, role } };
             },
         }),
         resetPassword: builder.mutation<void, PasswordResetRequest>({
