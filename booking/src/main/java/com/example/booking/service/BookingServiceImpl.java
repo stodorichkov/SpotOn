@@ -7,6 +7,8 @@ import com.example.booking.exception.AccessDeniedException;
 import com.example.booking.exception.BadRequestException;
 import com.example.booking.mapper.BookingMapper;
 import com.example.booking.model.entity.Booking;
+import com.example.booking.model.entity.BookingStatusHistory;
+import com.example.booking.model.entity.Status;
 import com.example.booking.model.enums.StatuEnum;
 import com.example.booking.model.enums.RoleEnum;
 import com.example.booking.model.payload.filter.BookingFilter;
@@ -18,7 +20,9 @@ import com.example.booking.model.payload.response.ClientContactResponse;
 import com.example.booking.model.payload.response.RestaurantContactResponse;
 import com.example.booking.model.payload.response.BookingClientResponse;
 import com.example.booking.model.payload.response.BookingEmployeeResponse;
+import com.example.booking.model.payload.response.BookingStatusHistoryResponse;
 import com.example.booking.repository.BookingRepository;
+import com.example.booking.repository.BookingStatusHistoryRepository;
 import com.example.booking.specification.BookingSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Function;
@@ -38,9 +43,20 @@ import java.util.stream.Collectors;
 public class BookingServiceImpl implements BookingService {
     private final StatusService statusService;
     private final BookingRepository bookingRepository;
+    private final BookingStatusHistoryRepository bookingStatusHistoryRepository;
     private final BookingMapper bookingMapper;
     private final RestaurantBookingClient restaurantBookingClient;
     private final AuthBookingClient authBookingClient;
+
+    private void recordStatusChange(Booking booking, Status status, Long changedByUserId) {
+        final var history = new BookingStatusHistory();
+        history.setBooking(booking);
+        history.setStatus(status);
+        history.setChangedAt(Instant.now());
+        history.setChangedByUserId(changedByUserId);
+
+        this.bookingStatusHistoryRepository.save(history);
+    }
 
     @Override
     @Transactional
@@ -59,6 +75,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(status);
 
         final var savedBooking = this.bookingRepository.save(booking);
+        this.recordStatusChange(savedBooking, status, clientId);
 
         final var restaurantContact = this.restaurantBookingClient.getRestaurantsContact(List.of(restaurantId))
                 .stream()
@@ -138,7 +155,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public void markBookingAsConfirmed(Long bookingId, Long restaurantId, BookingConfirmRequest request) {
+    public void markBookingAsConfirmed(Long bookingId, Long restaurantId, Long employeeId, BookingConfirmRequest request) {
         final var booking = this.bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
 
@@ -183,11 +200,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setTableId(request.tableId());
 
         this.bookingRepository.save(booking);
+        this.recordStatusChange(booking, status, employeeId);
     }
 
     @Override
     @Transactional
-    public void markBookingAsArrived(Long bookingId, Long restaurantId) {
+    public void markBookingAsArrived(Long bookingId, Long restaurantId, Long employeeId) {
         final var booking = this.bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
 
@@ -203,11 +221,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(status);
 
         this.bookingRepository.save(booking);
+        this.recordStatusChange(booking, status, employeeId);
     }
 
     @Override
     @Transactional
-    public void markBookingAsCompleted(Long bookingId, Long restaurantId) {
+    public void markBookingAsCompleted(Long bookingId, Long restaurantId, Long employeeId) {
         final var booking = this.bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
 
@@ -223,11 +242,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(status);
 
         this.bookingRepository.save(booking);
+        this.recordStatusChange(booking, status, employeeId);
     }
 
     @Override
     @Transactional
-    public void markBookingAsCanceled(Long bookingId, RoleEnum role, Long id) {
+    public void markBookingAsCanceled(Long bookingId, RoleEnum role, Long id, Long actorUserId) {
         final var booking = this.bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
 
@@ -253,5 +273,34 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(status);
 
         this.bookingRepository.save(booking);
+        this.recordStatusChange(booking, status, actorUserId);
+    }
+
+    @Override
+    public List<BookingStatusHistoryResponse> getBookingStatusHistory(Long bookingId, RoleEnum role, Long restaurantId) {
+        final var booking = this.bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BadRequestException(MessageConstants.BOOKING_NOT_FOUND));
+
+        if (role == RoleEnum.MANAGER && !booking.getRestaurantId().equals(restaurantId)) {
+            throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
+        }
+
+        final var historyEntries = this.bookingStatusHistoryRepository.findByBookingIdOrderByChangedAtAsc(bookingId);
+
+        final var userIds = historyEntries.stream()
+                .map(BookingStatusHistory::getChangedByUserId)
+                .distinct()
+                .toList();
+
+        final var usersById = this.authBookingClient.getUsers(userIds)
+                .stream()
+                .collect(Collectors.toMap(ClientContactResponse::id, Function.identity()));
+
+        return historyEntries.stream()
+                .map(entry -> this.bookingMapper.mapToBookingStatusHistoryResponse(
+                        entry,
+                        usersById.get(entry.getChangedByUserId())
+                ))
+                .toList();
     }
 }
