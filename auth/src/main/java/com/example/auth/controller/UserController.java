@@ -3,10 +3,12 @@ package com.example.auth.controller;
 import com.example.auth.constants.HeaderConstants;
 import com.example.auth.model.enums.RoleEnum;
 import com.example.auth.model.payload.filter.UserFilter;
+import com.example.auth.model.payload.request.UserActiveStatusRequest;
 import com.example.auth.model.payload.response.UserDetailsResponse;
 import com.example.auth.model.payload.response.UserResponse;
 import com.example.auth.service.AuthorizationService;
 import com.example.auth.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,5 +43,18 @@ public class UserController {
         this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
 
         return this.userService.getUser(id);
+    }
+
+    @PatchMapping("/{id}/active")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDetailsResponse updateUserActiveStatus(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
+            @PathVariable Long id,
+            @Valid @RequestBody UserActiveStatusRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+
+        return this.userService.updateUserActiveStatus(id, request, userIdHeader);
     }
 }

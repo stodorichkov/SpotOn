@@ -29,11 +29,15 @@ public class UserSpecification {
             specification = specification.and(hasRoles(filter.roles()));
         }
 
+        if (filter.isActive() != null) {
+            specification = specification.and(hasIsActive(filter.isActive()));
+        }
+
         return specification;
     }
 
     public static Specification<User> fromFilter(Specification<User> base, EmployeeSearchFilter filter) {
-        var specification = base;
+        var specification = base.and(isNotDeleted());
 
         if (StringUtils.hasText(filter.email())) {
             specification = specification.and(hasEmailContaining(filter.email()));
@@ -84,5 +88,15 @@ public class UserSpecification {
     public static Specification<User> hasPhoneNumberContaining(String phoneNumber) {
         return (root, query, cb) ->
                 cb.like(root.get("phoneNumber"), "%" + phoneNumber + "%");
+    }
+
+    public static Specification<User> isNotDeleted() {
+        return (root, query, cb) -> cb.isNull(root.get("deletedAt"));
+    }
+
+    public static Specification<User> hasIsActive(Boolean isActive) {
+        return (root, query, cb) -> isActive
+                ? cb.isNull(root.get("deletedAt"))
+                : cb.isNotNull(root.get("deletedAt"));
     }
 }

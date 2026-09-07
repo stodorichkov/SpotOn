@@ -25,7 +25,7 @@ public class BookingController {
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
             @RequestBody List<Long> userIds
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.EMPLOYEE);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER ,RoleEnum.EMPLOYEE);
         this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.BOOKING);
 
         return userService.getClientContacts(userIds);

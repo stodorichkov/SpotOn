@@ -8,4 +8,5 @@ import java.util.List;
 public interface EmployeeService {
     void removeEmployee(Long id);
     List<UserDetailsResponse> getEmployees(List<Long> userIds, EmployeeSearchFilter filter, String sort);
+    void invalidateSessions(List<Long> userIds);
 }

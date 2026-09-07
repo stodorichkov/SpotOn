@@ -49,4 +49,16 @@ public class EmployeeController {
 
         return this.employeeService.getEmployees(userIds, filter, sort);
     }
+
+    @PostMapping("/sessions/invalidate")
+    @ResponseStatus(HttpStatus.OK)
+    public void invalidateSessions(
+            @RequestHeader(HeaderConstants.ITERNAL_SERVICE) ServiceEnum service,
+            @RequestHeader(HeaderConstants.ITERNAL_SECRET) String serviceSecret,
+            @RequestBody List<Long> userIds
+    ) {
+        this.authorizationService.hasInternalAccess(serviceSecret, service, ServiceEnum.RESTAURANT);
+
+        this.employeeService.invalidateSessions(userIds);
+    }
 }

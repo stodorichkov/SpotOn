@@ -47,6 +47,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         final var user = this.userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UnauthorizedException(MessageConstants.INVALID_EMAIL_PASSWORD));
 
+        if (user.getDeletedAt() != null) {
+            throw new UnauthorizedException(MessageConstants.ACCOUNT_DEACTIVATED);
+        }
+
         if (!this.passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new UnauthorizedException(MessageConstants.INVALID_EMAIL_PASSWORD);
         }

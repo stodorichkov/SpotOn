@@ -3,6 +3,8 @@ package com.example.auth.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -26,4 +28,7 @@ public class User {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    @Column
+    private Instant deletedAt;
 }

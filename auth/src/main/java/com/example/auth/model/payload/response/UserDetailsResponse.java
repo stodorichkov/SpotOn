@@ -8,6 +8,7 @@ public record UserDetailsResponse(
         String firstName,
         String lastName,
         String phoneNumber,
-        RoleEnum role
+        RoleEnum role,
+        Boolean isActive
 ) {
 }

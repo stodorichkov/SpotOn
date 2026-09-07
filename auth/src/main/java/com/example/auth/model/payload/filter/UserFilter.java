@@ -7,6 +7,7 @@ import java.util.List;
 public record UserFilter(
         Long id,
         String email,
-        List<RoleEnum> roles
+        List<RoleEnum> roles,
+        Boolean isActive
 ) {
 }

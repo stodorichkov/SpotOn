@@ -20,10 +20,12 @@ public interface UserMapper {
     User mapFromEmployeeRegistrationRequest(EmployeeRegistrationRequest request);
 
     @Mapping(target = "role", source = "role.name")
+    @Mapping(target = "isActive", expression = "java(user.getDeletedAt() == null)")
     UserResponse mapToUserResponse(User user);
 
     @Mapping(target = "role", source = "role.name")
-     UserDetailsResponse mapToUserDetailsResponse(User user);
+    @Mapping(target = "isActive", expression = "java(user.getDeletedAt() == null)")
+    UserDetailsResponse mapToUserDetailsResponse(User user);
 
     @Mapping(target = "role", source = "role.name")
     ProfileResponse mapToProfileResponse(User user);

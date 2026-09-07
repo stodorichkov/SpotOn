@@ -5,6 +5,7 @@ import com.example.auth.model.enums.RoleEnum;
 public record UserResponse(
         Long id,
         String email,
-        RoleEnum role
+        RoleEnum role,
+        Boolean isActive
 ) {
 }

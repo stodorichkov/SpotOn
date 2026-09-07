@@ -19,10 +19,12 @@ public class MessageConstants {
     public static final String ADD_ADMIN = "Add admin.";
     public static final String USER_EXISTS = "{user.exists}";
     public static final String INVALID_EMAIL_PASSWORD = "{invalid.email.password}";
+    public static final String ACCOUNT_DEACTIVATED = "{account.deactivated}";
     public static final String WRONG_EMAIL = "{wrong.email}";
     public static final String WRONG_PASSWORD = "{wrong.password}";
     public static final String ACCESS_DENIED = "{access.denied}";
     public static final String USER_NOT_FOUND = "{user.not.found}";
+    public static final String CANNOT_DEACTIVATE_SELF = "{cannot.deactivate.self}";
 
     public static final String ADD_ROLE = "Add role: ";
     public static final String ROLE_NOT_FOUND = "{role.not.found}";

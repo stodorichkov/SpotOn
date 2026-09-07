@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -71,7 +72,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
-        this.userRepository.deleteById(id);
+        user.setDeletedAt(Instant.now());
+        this.userRepository.save(user);
 
         final var redisKey = RedisConstants.DEACTIVATE + id;
         this.redisTemplate.opsForValue().set(
@@ -80,5 +82,18 @@ public class EmployeeServiceImpl implements EmployeeService {
                 jwtExpirationMs,
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    @Override
+    public void invalidateSessions(List<Long> userIds) {
+        for (final var userId : userIds) {
+            final var redisKey = RedisConstants.DEACTIVATE + userId;
+            this.redisTemplate.opsForValue().set(
+                    redisKey,
+                    "",
+                    jwtExpirationMs,
+                    TimeUnit.MILLISECONDS
+            );
+        }
     }
 }
