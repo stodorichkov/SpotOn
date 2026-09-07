@@ -14,6 +14,7 @@ import com.example.booking.model.enums.RoleEnum;
 import com.example.booking.model.payload.filter.BookingFilter;
 import com.example.booking.model.payload.request.BookingClientRequest;
 import com.example.booking.model.payload.request.BookingConfirmRequest;
+import com.example.booking.model.payload.request.BookingStatusEmailRequest;
 import com.example.booking.model.payload.request.RestaurantTableValidationRequest;
 import com.example.booking.model.payload.request.RestaurantWorkingHoursValidationRequest;
 import com.example.booking.model.payload.response.ClientContactResponse;
@@ -58,6 +59,28 @@ public class BookingServiceImpl implements BookingService {
         this.bookingStatusHistoryRepository.save(history);
     }
 
+    private void notifyClientOfStatusChange(Booking booking, Status status, RestaurantContactResponse restaurantContact) {
+        if (restaurantContact == null) {
+            return;
+        }
+
+        this.authBookingClient.sendBookingStatusEmail(new BookingStatusEmailRequest(
+                booking.getClientId(),
+                restaurantContact.name(),
+                booking.getDateTime(),
+                status.getName().toString()
+        ));
+    }
+
+    private void notifyClientOfStatusChange(Booking booking, Status status) {
+        final var restaurantContact = this.restaurantBookingClient.getRestaurantsContact(List.of(booking.getRestaurantId()))
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        this.notifyClientOfStatusChange(booking, status, restaurantContact);
+    }
+
     @Override
     @Transactional
     public BookingClientResponse addBooking(BookingClientRequest request, Long clientId) {
@@ -81,6 +104,8 @@ public class BookingServiceImpl implements BookingService {
                 .stream()
                 .findFirst()
                 .orElse(null);
+
+        this.notifyClientOfStatusChange(savedBooking, status, restaurantContact);
 
         return this.bookingMapper.mapToClientBookingResponse(savedBooking, restaurantContact);
     }
@@ -201,6 +226,7 @@ public class BookingServiceImpl implements BookingService {
 
         this.bookingRepository.save(booking);
         this.recordStatusChange(booking, status, employeeId);
+        this.notifyClientOfStatusChange(booking, status);
     }
 
     @Override
@@ -222,6 +248,7 @@ public class BookingServiceImpl implements BookingService {
 
         this.bookingRepository.save(booking);
         this.recordStatusChange(booking, status, employeeId);
+        this.notifyClientOfStatusChange(booking, status);
     }
 
     @Override
@@ -243,6 +270,7 @@ public class BookingServiceImpl implements BookingService {
 
         this.bookingRepository.save(booking);
         this.recordStatusChange(booking, status, employeeId);
+        this.notifyClientOfStatusChange(booking, status);
     }
 
     @Override
@@ -274,6 +302,7 @@ public class BookingServiceImpl implements BookingService {
 
         this.bookingRepository.save(booking);
         this.recordStatusChange(booking, status, actorUserId);
+        this.notifyClientOfStatusChange(booking, status);
     }
 
     @Override

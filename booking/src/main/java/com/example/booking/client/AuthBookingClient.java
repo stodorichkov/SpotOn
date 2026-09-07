@@ -1,5 +1,6 @@
 package com.example.booking.client;
 
+import com.example.booking.model.payload.request.BookingStatusEmailRequest;
 import com.example.booking.model.payload.response.ClientContactResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,4 +20,7 @@ public interface AuthBookingClient {
 
     @GetMapping("/users/search")
     List<Long> searchClientIds(@RequestParam String name);
+
+    @PostMapping("/notify")
+    void sendBookingStatusEmail(@RequestBody BookingStatusEmailRequest request);
 }
