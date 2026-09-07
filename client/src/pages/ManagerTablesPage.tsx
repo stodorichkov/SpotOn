@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useGetManagerTablesQuery, useDeleteTableMutation } from '../features/restaurants/restaurantsSlice';
+import { useGetManagerTablesQuery } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { Trans, useTranslation } from 'react-i18next';
-import { addAlert } from '../features/alerts/alertsSlice';
+import { useTranslation } from 'react-i18next';
 import {
   Table,
   TableBody,
@@ -23,24 +21,16 @@ import {
   IconButton,
   Tooltip,
   TextField,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions
 } from '@mui/material';
 import TableBarIcon from '@mui/icons-material/TableBar';
 import AddIcon from '@mui/icons-material/Add';
 import InfoIcon from '@mui/icons-material/Info';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -56,15 +46,8 @@ const SMOKING_FILTER_OPTIONS: SmokingFilter[] = ['all', 'smoking', 'nonSmoking']
 
 const ManagerTablesPage: React.FC = () => {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [activeTable, setActiveTable] = useState<any>(null);
-
-  const [deleteTable, { isLoading: isDeleting }] = useDeleteTableMutation();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tableToDelete, setTableToDelete] = useState<{ id: number; name: string } | null>(null);
 
   const [idInput, setIdInput] = useState('');
   const [id, setId] = useState<number | undefined>(undefined);
@@ -166,43 +149,6 @@ const ManagerTablesPage: React.FC = () => {
     setMinCapacity(null);
     setMaxCapacity(null);
     setPage(0);
-  };
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, table: any) => {
-    setAnchorEl(event.currentTarget);
-    setActiveTable(table);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setActiveTable(null);
-  };
-
-  const handleDeleteClick = (tableId: number, name: string) => {
-    setTableToDelete({ id: tableId, name });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!tableToDelete) return;
-    try {
-      await deleteTable(tableToDelete.id).unwrap();
-      dispatch(addAlert({ message: t('managerTables.success'), type: 'success' }));
-    } catch (err: any) {
-      console.error('Failed to remove table:', err);
-      dispatch(addAlert({
-        message: err?.data?.message || t('managerTables.failure'),
-        type: 'error'
-      }));
-    } finally {
-      setDeleteDialogOpen(false);
-      setTableToDelete(null);
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setTableToDelete(null);
   };
 
   const { data, error, isLoading } = useGetManagerTablesQuery({
@@ -523,14 +469,17 @@ const ManagerTablesPage: React.FC = () => {
                           </Box>
                         </TableCell>
                         <TableCell align="right">
-                          <IconButton
-                            color="primary"
-                            size="small"
-                            onClick={(e) => handleMenuOpen(e, table)}
-                            aria-label="actions"
-                          >
-                            <MoreVertIcon />
-                          </IconButton>
+                          <Tooltip title={t('managerTables.menuDetails')} arrow>
+                            <IconButton
+                              component={Link}
+                              to={`/manager/tables/${table.id}`}
+                              state={{ table }}
+                              color="primary"
+                              size="small"
+                            >
+                              <InfoIcon />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );
@@ -548,7 +497,7 @@ const ManagerTablesPage: React.FC = () => {
                             sx={{ visibility: 'hidden' }}
                             aria-hidden="true"
                           >
-                            <MoreVertIcon />
+                            <InfoIcon />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -568,108 +517,6 @@ const ManagerTablesPage: React.FC = () => {
           </>
         )}
       </Paper>
-
-      {/* Responsive Collapsible Actions Menu (only for small/mobile screens) */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 150,
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-          }
-        }}
-      >
-        {activeTable && [
-          <MenuItem
-            key="details"
-            component={Link}
-            to={`/manager/tables/${activeTable.id}`}
-            state={{ table: activeTable }}
-            onClick={handleMenuClose}
-          >
-            <ListItemIcon>
-              <InfoIcon color="primary" fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={t('managerTables.menuDetails')} />
-          </MenuItem>,
-          <MenuItem
-            key="edit"
-            component={Link}
-            to={`/manager/tables/${activeTable.id}`}
-            state={{ table: activeTable, edit: true }}
-            onClick={handleMenuClose}
-          >
-            <ListItemIcon>
-              <EditIcon color="primary" fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={t('managerTables.menuEdit')} />
-          </MenuItem>,
-          <MenuItem
-            key="delete"
-            onClick={() => {
-              handleMenuClose();
-              handleDeleteClick(activeTable.id, activeTable.name);
-            }}
-            sx={{ color: 'error.main' }}
-          >
-            <ListItemIcon>
-              <DeleteIcon color="error" fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={t('managerTables.menuRemove')} />
-          </MenuItem>
-        ]}
-      </Menu>
-
-      {/* Custom Material UI Confirmation Dialog for Deleting Table */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            px: 1,
-            py: 0.5
-          }
-        }}
-      >
-        <DialogTitle id="delete-dialog-title" fontWeight="bold">
-          {t('managerTables.deleteTitle')}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="delete-dialog-description">
-            <Trans
-              i18nKey="managerTables.deleteBody"
-              values={{ name: tableToDelete?.name }}
-              components={{ bold: <strong /> }}
-            />
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={handleDeleteCancel}
-            color="inherit"
-            sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            disabled={isDeleting}
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color="error"
-            variant="contained"
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-            disabled={isDeleting}
-            autoFocus
-          >
-            {t('common.remove')}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };

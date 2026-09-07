@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetUserDetailsQuery, useUpdateUserActiveStatusMutation } from '../features/users/usersSlice';
-import { useTranslation } from 'react-i18next';
+import { useDeleteEmployeeMutation } from '../features/restaurants/restaurantsSlice';
+import { Trans, useTranslation } from 'react-i18next';
 import { RootState } from '../store/store';
 import { addAlert } from '../features/alerts/alertsSlice';
 import {
@@ -29,6 +30,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhoneIcon from '@mui/icons-material/Phone';
 import BadgeIcon from '@mui/icons-material/Badge';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Role } from '../constants';
 
 const getRoleChipColor = (role?: string) => {
@@ -53,6 +55,7 @@ const getRoleChipColor = (role?: string) => {
 const UserDetailsPage: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const currentRole = useSelector((state: RootState) => state.auth.role);
@@ -74,9 +77,14 @@ const UserDetailsPage: React.FC = () => {
   const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false);
   const [updateUserActiveStatus, { isLoading: isTogglingActive }] = useUpdateUserActiveStatusMutation();
 
+  const [deleteEmployee, { isLoading: isDeleting }] = useDeleteEmployeeMutation();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const user = hasFullStateData ? stateUser : queryUser;
   const isActive = overrideActive !== null ? overrideActive : user?.isActive;
   const isSelf = !!user && currentUserId === user.id;
+  const canManagerRemove = !!user && currentRole === Role.MANAGER && !isSelf &&
+    (user.role?.toUpperCase() === Role.EMPLOYEE || user.role?.toUpperCase() === 'STAFF');
 
   const handleToggleActiveConfirm = async () => {
     if (!user) return;
@@ -98,6 +106,23 @@ const UserDetailsPage: React.FC = () => {
       }));
     } finally {
       setIsToggleDialogOpen(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!user) return;
+    try {
+      await deleteEmployee(user.id).unwrap();
+      dispatch(addAlert({ message: t('managerEmployees.success'), type: 'success' }));
+      navigate('/manager/employees');
+    } catch (err: any) {
+      console.error('Failed to remove employee:', err);
+      dispatch(addAlert({
+        message: err?.data?.message || t('managerEmployees.failure'),
+        type: 'error'
+      }));
+    } finally {
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -320,7 +345,67 @@ const UserDetailsPage: React.FC = () => {
             </Box>
           </>
         )}
+
+        {canManagerRemove && (
+          <>
+            <Divider sx={{ my: 3 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setIsDeleteDialogOpen(true)}
+                sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+              >
+                {t('managerEmployees.menuRemove')}
+              </Button>
+            </Box>
+          </>
+        )}
       </Paper>
+
+      {/* Remove Employee Confirmation Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+        PaperProps={{ sx: { borderRadius: 3, px: 1, py: 0.5 } }}
+      >
+        <DialogTitle id="delete-dialog-title" fontWeight="bold">
+          {t('managerEmployees.deleteTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            <Trans
+              i18nKey="managerEmployees.deleteBody"
+              values={{ name: user ? `${user.firstName || ''} ${user.lastName || ''}` : '' }}
+              components={{ bold: <strong /> }}
+            />
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setIsDeleteDialogOpen(false)}
+            color="inherit"
+            sx={{ textTransform: 'none', fontWeight: 'bold' }}
+            disabled={isDeleting}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={16} color="inherit" /> : undefined}
+            autoFocus
+          >
+            {t('common.remove')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Activate / Deactivate Confirmation Dialog */}
       <Dialog

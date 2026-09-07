@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useGetRestaurantBookingsQuery, useCancelBookingMutation, useArrivedBookingMutation, useCompletedBookingMutation } from '../features/restaurants/restaurantsSlice';
+import { useGetRestaurantBookingsQuery } from '../features/restaurants/restaurantsSlice';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { addAlert } from '../features/alerts/alertsSlice';
 import {
   Table,
   TableBody,
@@ -23,17 +21,11 @@ import {
   IconButton,
   Tooltip,
   TextField,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
-  Button,
-  CircularProgress
+  Button
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
@@ -41,11 +33,6 @@ import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 import PersonIcon from '@mui/icons-material/Person';
 import InfoIcon from '@mui/icons-material/Info';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import HowToRegIcon from '@mui/icons-material/HowToReg';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -109,21 +96,8 @@ const getStatusStyles = (status: string) => {
 
 const EmployeeBookingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const dispatch = useDispatch();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [activeBooking, setActiveBooking] = useState<any>(null);
-
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [bookingToCancel, setBookingToCancel] = useState<any>(null);
-
-  const [arrivedDialogOpen, setArrivedDialogOpen] = useState(false);
-  const [bookingToArrive, setBookingToArrive] = useState<any>(null);
-
-  const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
-  const [bookingToComplete, setBookingToComplete] = useState<any>(null);
 
   const [statuses, setStatuses] = useState<string[]>([]);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
@@ -170,10 +144,6 @@ const EmployeeBookingsPage: React.FC = () => {
     from: fromDate ? format(fromDate, 'yyyy-MM-dd') : undefined,
     to: toDate ? format(toDate, 'yyyy-MM-dd') : undefined,
   });
-  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation();
-  const [arrivedBooking, { isLoading: isMarkingArrived }] = useArrivedBookingMutation();
-  const [completedBooking, { isLoading: isCompleting }] = useCompletedBookingMutation();
-
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -250,97 +220,6 @@ const EmployeeBookingsPage: React.FC = () => {
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, booking: any) => {
-    setAnchorEl(event.currentTarget);
-    setActiveBooking(booking);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setActiveBooking(null);
-  };
-
-  const handleCancelClick = (booking: any) => {
-    setBookingToCancel(booking);
-    setCancelDialogOpen(true);
-  };
-
-  const handleCancelConfirm = async () => {
-    if (!bookingToCancel) return;
-    try {
-      await cancelBooking(bookingToCancel.id).unwrap();
-      dispatch(addAlert({ message: t('employeeBookings.cancelSuccess'), type: 'success' }));
-    } catch (err: any) {
-      console.error('Failed to cancel reservation:', err);
-      dispatch(addAlert({
-        message: err?.data?.message || t('employeeBookings.cancelFailure'),
-        type: 'error'
-      }));
-    } finally {
-      setCancelDialogOpen(false);
-      setBookingToCancel(null);
-    }
-  };
-
-  const handleArrivedClick = (booking: any) => {
-    setBookingToArrive(booking);
-    setArrivedDialogOpen(true);
-  };
-
-  const handleArrivedConfirm = async () => {
-    if (!bookingToArrive) return;
-    try {
-      await arrivedBooking(bookingToArrive.id).unwrap();
-      dispatch(addAlert({ message: t('employeeBookings.arrivedSuccess', { id: bookingToArrive.id }), type: 'success' }));
-    } catch (err: any) {
-      console.error('Failed to mark as arrived:', err);
-      dispatch(addAlert({
-        message: err?.data?.message || t('employeeBookings.arrivedFailure'),
-        type: 'error'
-      }));
-    } finally {
-      setArrivedDialogOpen(false);
-      setBookingToArrive(null);
-    }
-  };
-
-  const handleArrivedClose = () => {
-    setArrivedDialogOpen(false);
-    setBookingToArrive(null);
-  };
-
-  const handleCompletedClick = (booking: any) => {
-    setBookingToComplete(booking);
-    setCompletedDialogOpen(true);
-  };
-
-  const handleCompletedConfirm = async () => {
-    if (!bookingToComplete) return;
-    try {
-      await completedBooking(bookingToComplete.id).unwrap();
-      dispatch(addAlert({ message: t('employeeBookings.completedSuccess', { id: bookingToComplete.id }), type: 'success' }));
-    } catch (err: any) {
-      console.error('Failed to mark as completed:', err);
-      dispatch(addAlert({
-        message: err?.data?.message || t('employeeBookings.completedFailure'),
-        type: 'error'
-      }));
-    } finally {
-      setCompletedDialogOpen(false);
-      setBookingToComplete(null);
-    }
-  };
-
-  const handleCompletedClose = () => {
-    setCompletedDialogOpen(false);
-    setBookingToComplete(null);
-  };
-
-  const handleCancelClose = () => {
-    setCancelDialogOpen(false);
-    setBookingToCancel(null);
   };
 
   const rowHeight = 65;
@@ -607,8 +486,6 @@ const EmployeeBookingsPage: React.FC = () => {
                     if (!booking) return null;
                     const bookingDate = new Date(booking.dateTime);
 
-                    const hasMultipleActions = booking.status === BookingStatus.PENDING || booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.ARRIVED;
-
                     return (
                       <TableRow key={booking.id} style={{ height: rowHeight }}>
                         <TableCell>{booking.id}</TableCell>
@@ -677,28 +554,17 @@ const EmployeeBookingsPage: React.FC = () => {
                           />
                         </TableCell>
                         <TableCell align="right">
-                          {hasMultipleActions ? (
+                          <Tooltip title={t('employeeBookings.bookingDetailsTooltip')} arrow>
                             <IconButton
+                              component={Link}
+                              to={`/employee/bookings/${booking.id}`}
+                              state={{ booking }}
                               color="primary"
                               size="small"
-                              onClick={(e) => handleMenuOpen(e, booking)}
-                              aria-label="actions"
                             >
-                              <MoreVertIcon />
+                              <InfoIcon />
                             </IconButton>
-                          ) : (
-                            <Tooltip title={t('employeeBookings.bookingDetailsTooltip')} arrow>
-                              <IconButton
-                                component={Link}
-                                to={`/employee/bookings/${booking.id}`}
-                                state={{ booking }}
-                                color="primary"
-                                size="small"
-                              >
-                                <InfoIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )}
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );
@@ -738,227 +604,6 @@ const EmployeeBookingsPage: React.FC = () => {
           </>
         )}
       </Paper>
-
-      {/* Responsive Collapsible Actions Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 160,
-            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-          }
-        }}
-      >
-        {activeBooking && [
-          <MenuItem
-            key="details"
-            component={Link}
-            to={`/employee/bookings/${activeBooking.id}`}
-            state={{ booking: activeBooking }}
-            onClick={handleMenuClose}
-          >
-            <ListItemIcon>
-              <InfoIcon color="primary" fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary={t('employeeBookings.menuDetails')} />
-          </MenuItem>,
-          activeBooking.status === BookingStatus.PENDING && (
-            <MenuItem
-              key="confirm"
-              component={Link}
-              to={`/employee/bookings/${activeBooking.id}`}
-              state={{ booking: activeBooking, confirm: true }}
-              onClick={handleMenuClose}
-            >
-              <ListItemIcon>
-                <CheckCircleIcon color="success" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary={t('employeeBookings.menuConfirm')} />
-            </MenuItem>
-          ),
-          activeBooking.status === BookingStatus.CONFIRMED && (
-            <MenuItem
-              key="arrived"
-              onClick={() => {
-                handleMenuClose();
-                handleArrivedClick(activeBooking);
-              }}
-            >
-              <ListItemIcon>
-                <HowToRegIcon color="info" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary={t('employeeBookings.menuArrived')} />
-            </MenuItem>
-          ),
-          activeBooking.status === BookingStatus.ARRIVED && (
-            <MenuItem
-              key="completed"
-              onClick={() => {
-                handleMenuClose();
-                handleCompletedClick(activeBooking);
-              }}
-            >
-              <ListItemIcon>
-                <TaskAltIcon color="success" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary={t('employeeBookings.menuCompleted')} />
-            </MenuItem>
-          ),
-          (activeBooking.status === BookingStatus.PENDING || activeBooking.status === BookingStatus.CONFIRMED) && (
-            <MenuItem
-              key="cancel"
-              onClick={() => {
-                handleMenuClose();
-                handleCancelClick(activeBooking);
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              <ListItemIcon>
-                <CancelIcon color="error" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary={t('employeeBookings.menuCancel')} />
-            </MenuItem>
-          )
-        ]}
-      </Menu>
-
-      {/* Custom Material UI Confirmation Dialog for Cancelling Reservation */}
-      <Dialog
-        open={cancelDialogOpen}
-        onClose={handleCancelClose}
-        aria-labelledby="cancel-dialog-title"
-        aria-describedby="cancel-dialog-description"
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            px: 1,
-            py: 0.5
-          }
-        }}
-      >
-        <DialogTitle id="cancel-dialog-title" fontWeight="bold">
-          {t('employeeBookings.cancelDialogTitle')}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="cancel-dialog-description">
-            <Trans i18nKey="employeeBookings.cancelDialogBody" values={{ id: bookingToCancel?.id }} components={{ bold: <strong /> }} />
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={handleCancelClose}
-            color="inherit"
-            sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            disabled={isCancelling}
-          >
-            {t('common.goBack')}
-          </Button>
-          <Button
-            onClick={handleCancelConfirm}
-            color="error"
-            variant="contained"
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-            disabled={isCancelling}
-            startIcon={isCancelling && <CircularProgress size={16} color="inherit" />}
-            autoFocus
-          >
-            {t('employeeBookings.cancelDialogConfirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Custom Material UI Confirmation Dialog for Arrived Reservation */}
-      <Dialog
-        open={arrivedDialogOpen}
-        onClose={handleArrivedClose}
-        aria-labelledby="arrived-dialog-title"
-        aria-describedby="arrived-dialog-description"
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            px: 1,
-            py: 0.5
-          }
-        }}
-      >
-        <DialogTitle id="arrived-dialog-title" fontWeight="bold">
-          {t('employeeBookings.arrivedDialogTitle')}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="arrived-dialog-description">
-            <Trans i18nKey="employeeBookings.arrivedDialogBody" values={{ id: bookingToArrive?.id }} components={{ bold: <strong /> }} />
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={handleArrivedClose}
-            color="inherit"
-            sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            disabled={isMarkingArrived}
-          >
-            {t('common.goBack')}
-          </Button>
-          <Button
-            onClick={handleArrivedConfirm}
-            color="info"
-            variant="contained"
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-            disabled={isMarkingArrived}
-            startIcon={isMarkingArrived && <CircularProgress size={16} color="inherit" />}
-            autoFocus
-          >
-            {t('employeeBookings.arrivedDialogConfirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Custom Material UI Confirmation Dialog for Completed Reservation */}
-      <Dialog
-        open={completedDialogOpen}
-        onClose={handleCompletedClose}
-        aria-labelledby="completed-dialog-title"
-        aria-describedby="completed-dialog-description"
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            px: 1,
-            py: 0.5
-          }
-        }}
-      >
-        <DialogTitle id="completed-dialog-title" fontWeight="bold">
-          {t('employeeBookings.completedDialogTitle')}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="completed-dialog-description">
-            <Trans i18nKey="employeeBookings.completedDialogBody" values={{ id: bookingToComplete?.id }} components={{ bold: <strong /> }} />
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={handleCompletedClose}
-            color="inherit"
-            sx={{ textTransform: 'none', fontWeight: 'bold' }}
-            disabled={isCompleting}
-          >
-            {t('common.goBack')}
-          </Button>
-          <Button
-            onClick={handleCompletedConfirm}
-            color="success"
-            variant="contained"
-            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
-            disabled={isCompleting}
-            startIcon={isCompleting && <CircularProgress size={16} color="inherit" />}
-            autoFocus
-          >
-            {t('employeeBookings.completedDialogConfirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };
