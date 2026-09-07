@@ -24,4 +24,7 @@ public interface AuthEmployeeClient {
 
     @DeleteMapping("/{id}")
     void removeEmployee(@PathVariable Long id);
+
+    @PostMapping("/sessions/invalidate")
+    void invalidateSessions(@RequestBody List<Long> userIds);
 }

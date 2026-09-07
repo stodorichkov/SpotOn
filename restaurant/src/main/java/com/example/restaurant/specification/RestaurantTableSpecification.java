@@ -11,7 +11,7 @@ public class RestaurantTableSpecification {
     }
 
     public static Specification<RestaurantTable> fromFilter(Long restaurantId, TableFilter filter) {
-        var specification = hasRestaurantId(restaurantId);
+        var specification = hasRestaurantId(restaurantId).and(isNotDeleted());
 
         if (filter.id() != null) {
             specification = specification.and(hasId(filter.id()));
@@ -59,5 +59,9 @@ public class RestaurantTableSpecification {
 
     public static Specification<RestaurantTable> hasCapacityAtMost(Integer maxCapacity) {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("capacity"), maxCapacity);
+    }
+
+    public static Specification<RestaurantTable> isNotDeleted() {
+        return (root, query, cb) -> cb.isNull(root.get("deletedAt"));
     }
 }

@@ -3,6 +3,7 @@ package com.example.restaurant.model.enity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,4 +37,7 @@ public class Restaurant {
 
     @Column(nullable = false, columnDefinition = "integer not null default 120")
     private Integer reservationDurationMinutes = 120;
+
+    @Column
+    private Instant deletedAt;
 }

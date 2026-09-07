@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 public class RestaurantTableServiceImpl implements RestaurantTableService {
@@ -49,7 +51,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     @Override
     @Transactional
     public RestaurantTableResponse editTable(Long tableId, Long restaurantId, RestaurantTableRequest request) {
-        final var table = this.restaurantTableRepository.findById(tableId)
+        final var table = this.restaurantTableRepository.findByIdAndDeletedAtIsNull(tableId)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TABLE_NOT_FOUND));
 
         if (!table.getRestaurant().getId().equals(restaurantId)) {
@@ -65,20 +67,21 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     @Override
     @Transactional
     public void removeTable(Long tableId, Long restaurantId) {
-        final var table = this.restaurantTableRepository.findById(tableId)
+        final var table = this.restaurantTableRepository.findByIdAndDeletedAtIsNull(tableId)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TABLE_NOT_FOUND));
 
         if (!table.getRestaurant().getId().equals(restaurantId)) {
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
-        this.restaurantTableRepository.deleteById(tableId);
+        table.setDeletedAt(Instant.now());
+        this.restaurantTableRepository.save(table);
     }
 
     @Override
     @Transactional
     public Integer validateTable(RestaurantTableValidationRequest request, Long restaurantId) {
-        final var table = this.restaurantTableRepository.findById(request.tableId())
+        final var table = this.restaurantTableRepository.findByIdAndDeletedAtIsNull(request.tableId())
                 .orElseThrow(() -> new NotFoundException(MessageConstants.TABLE_NOT_FOUND));
 
         if (!table.getRestaurant().getId().equals(restaurantId)) {

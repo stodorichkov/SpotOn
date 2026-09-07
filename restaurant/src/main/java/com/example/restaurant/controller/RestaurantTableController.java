@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/tables")
 @RequiredArgsConstructor
@@ -42,11 +44,19 @@ public class RestaurantTableController {
     public Page<RestaurantTableResponse> getTables(
             @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
             @RequestHeader(HeaderConstants.USER_ID) Long userIdHeader,
-            @RequestHeader(HeaderConstants.RESTAURANT_ID) Long restaurantIdHeader,
+            @RequestHeader(value = HeaderConstants.RESTAURANT_ID, required = false) Long restaurantIdHeader,
+            @RequestParam(required = false) Long restaurantId,
             TableFilter filter,
             Pageable pageable
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.MANAGER, RoleEnum.EMPLOYEE);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN, RoleEnum.MANAGER, RoleEnum.EMPLOYEE);
+
+        if (userRoleHeader == RoleEnum.ADMIN) {
+            return Optional.ofNullable(restaurantId)
+                    .map(rid -> this.restaurantTableService.getTables(rid, filter, pageable))
+                    .orElseGet(() -> Page.empty(pageable));
+        }
+
         this.employeeService.hasAccessToRestaurant(restaurantIdHeader, userIdHeader);
 
         return this.restaurantTableService.getTables(restaurantIdHeader, filter, pageable);

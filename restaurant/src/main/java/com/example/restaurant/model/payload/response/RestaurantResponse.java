@@ -7,6 +7,7 @@ public record RestaurantResponse(
         String name,
         Set<CategoryResponse> categories,
         String address,
-        Boolean isOpen
+        Boolean isOpen,
+        Boolean isActive
 ) {
 }

@@ -21,8 +21,10 @@ public interface RestaurantMapper {
     @Mapping(target = "categories", ignore = true)
     Restaurant mapFromRestaurantRequest(RestaurantRequest request);
 
+    @Mapping(target = "isActive", expression = "java(restaurant.getDeletedAt() == null)")
     RestaurantResponse mapToRestaurantResponse(Restaurant restaurant);
 
+    @Mapping(target = "isActive", expression = "java(restaurant.getDeletedAt() == null)")
     RestaurantDetailsResponse mapToRestaurantDetailsResponse(Restaurant restaurant, List<RestaurantWorkingHours> workingHours);
 
     RestaurantContactResponse mapToRestaurantContactResponse(Restaurant restaurant);
@@ -36,6 +38,6 @@ public interface RestaurantMapper {
         if (category == null) {
             return null;
         }
-        return new CategoryResponse(category.getId(), category.getName());
+        return new CategoryResponse(category.getId(), category.getName(), category.getDeletedAt() == null);
     }
 }

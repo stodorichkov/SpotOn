@@ -3,6 +3,7 @@ package com.example.restaurant.controller;
 import com.example.restaurant.constants.HeaderConstants;
 import com.example.restaurant.model.enums.RoleEnum;
 import com.example.restaurant.model.payload.filter.RestaurantFilter;
+import com.example.restaurant.model.payload.request.RestaurantActiveStatusRequest;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.response.CategoryResponse;
 import com.example.restaurant.model.payload.response.RestaurantDetailsResponse;
@@ -55,9 +56,33 @@ public class RestaurantController {
         return this.restaurantService.getRestaurants(filter, pageable);
     }
 
+    @GetMapping("/manage")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<RestaurantResponse> getRestaurantsForManage(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            RestaurantFilter filter,
+            Pageable pageable
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+
+        return this.restaurantService.getRestaurantsForManage(filter, pageable);
+    }
+
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public RestaurantDetailsResponse getRestaurant(@PathVariable Long id) {
         return this.restaurantService.getRestaurant(id);
+    }
+
+    @PatchMapping("/{id}/active")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantDetailsResponse updateRestaurantActiveStatus(
+            @RequestHeader(HeaderConstants.USER_ROLE) RoleEnum userRoleHeader,
+            @PathVariable Long id,
+            @Valid @RequestBody RestaurantActiveStatusRequest request
+    ) {
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.ADMIN);
+
+        return this.restaurantService.updateRestaurantActiveStatus(id, request);
     }
 }

@@ -36,6 +36,10 @@ public class RestaurantSpecification {
             specification = specification.and(hasIsOpen(filter.isOpen()));
         }
 
+        if (filter.isActive() != null) {
+            specification = specification.and(hasIsActive(filter.isActive()));
+        }
+
         return specification;
     }
 
@@ -63,5 +67,11 @@ public class RestaurantSpecification {
 
     public static Specification<Restaurant> hasIsOpen(Boolean isOpen) {
         return (root, query, cb) -> cb.equal(root.get("isOpen"), isOpen);
+    }
+
+    public static Specification<Restaurant> hasIsActive(Boolean isActive) {
+        return (root, query, cb) -> isActive
+                ? cb.isNull(root.get("deletedAt"))
+                : cb.isNotNull(root.get("deletedAt"));
     }
 }

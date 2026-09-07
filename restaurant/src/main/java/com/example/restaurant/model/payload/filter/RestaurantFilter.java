@@ -7,6 +7,7 @@ public record RestaurantFilter(
         String name,
         String address,
         List<Long> categoryIds,
-        Boolean isOpen
+        Boolean isOpen,
+        Boolean isActive
 ) {
 }

@@ -7,6 +7,7 @@ import com.example.restaurant.mapper.RestaurantMapper;
 import com.example.restaurant.model.enity.Restaurant;
 import com.example.restaurant.model.enity.RestaurantWorkingHours;
 import com.example.restaurant.model.payload.filter.RestaurantFilter;
+import com.example.restaurant.model.payload.request.RestaurantActiveStatusRequest;
 import com.example.restaurant.model.payload.request.RestaurantRequest;
 import com.example.restaurant.model.payload.request.RestaurantReservationDurationRequest;
 import com.example.restaurant.model.payload.request.RestaurantStatusRequest;
@@ -32,6 +33,7 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,13 +43,15 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final CategoryRepository categoryRepository;
     private final RestaurantWorkingHoursRepository restaurantWorkingHoursRepository;
     private final RestaurantMapper restaurantMapper;
+    private final EmployeeService employeeService;
 
     @Override
     @Transactional
     public RestaurantResponse addRestaurant(RestaurantRequest request) {
         final var restaurant = this.restaurantMapper.mapFromRestaurantRequest(request);
 
-        final var categories = request.categories()
+        final var categoryIds = request.categories() == null ? Set.<Long>of() : request.categories();
+        final var categories = categoryIds
                 .stream()
                 .map(id -> this.categoryRepository.findById(id)
                         .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND))
@@ -63,6 +67,15 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public Page<RestaurantResponse> getRestaurants(RestaurantFilter filter, Pageable pageable) {
+        final var specification = RestaurantSpecification.fromFilter(filter)
+                .and(RestaurantSpecification.hasIsActive(true));
+
+        return this.restaurantRepository.findAll(specification, pageable)
+                .map(this.restaurantMapper::mapToRestaurantResponse);
+    }
+
+    @Override
+    public Page<RestaurantResponse> getRestaurantsForManage(RestaurantFilter filter, Pageable pageable) {
         final var specification = RestaurantSpecification.fromFilter(filter);
 
         return this.restaurantRepository.findAll(specification, pageable)
@@ -83,9 +96,14 @@ public class RestaurantServiceImpl implements RestaurantService {
         final var restaurant = this.restaurantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
 
+        if (restaurant.getDeletedAt() != null) {
+            throw new BadRequestException(MessageConstants.RESTAURANT_INACTIVE);
+        }
+
         this.restaurantMapper.updateFromRestaurantRequest(request, restaurant);
 
-        final var categories = request.categories()
+        final var categoryIds = request.categories() == null ? Set.<Long>of() : request.categories();
+        final var categories = categoryIds
                 .stream()
                 .map(catId -> this.categoryRepository.findById(catId)
                         .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND))
@@ -107,6 +125,22 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         restaurant.setIsOpen(request.isOpen());
         this.restaurantRepository.save(restaurant);
+
+        return this.buildRestaurantDetailsResponse(restaurant);
+    }
+
+    @Override
+    @Transactional
+    public RestaurantDetailsResponse updateRestaurantActiveStatus(Long id, RestaurantActiveStatusRequest request) {
+        final var restaurant = this.restaurantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(MessageConstants.RESTAURANT_NOT_FOUND));
+
+        restaurant.setDeletedAt(request.isActive() ? null : Instant.now());
+        this.restaurantRepository.save(restaurant);
+
+        if (!request.isActive()) {
+            this.employeeService.invalidateSessionsForRestaurant(id);
+        }
 
         return this.buildRestaurantDetailsResponse(restaurant);
     }

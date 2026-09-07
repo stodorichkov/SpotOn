@@ -10,8 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
-    Optional<Employee> findByUserId(Long userId);
+    Optional<Employee> findByUserIdAndDeletedAtIsNull(Long userId);
 
-    @Query("select e.userId from Employee e where e.restaurant.id = :restaurantId")
+    @Query("select e.userId from Employee e where e.restaurant.id = :restaurantId and e.deletedAt is null")
     List<Long> findUserIdsByRestaurantId(Long restaurantId);
 }

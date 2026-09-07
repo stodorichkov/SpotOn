@@ -13,6 +13,7 @@ public interface EmployeeService {
     void removeEmployee(Long restaurantId, Long employeeId);
     void removeEmployee(Long employeeId);
     Page<UserDetailsResponse> getEmployees(Long restaurantId, EmployeeFilter filter, Pageable pageable);
+    void invalidateSessionsForRestaurant(Long restaurantId);
 
     Long getRestaurantId(Long userId);
 

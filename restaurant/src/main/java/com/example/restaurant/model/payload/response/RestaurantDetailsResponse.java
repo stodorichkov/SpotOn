@@ -11,6 +11,7 @@ public record RestaurantDetailsResponse(
         String phoneNumber,
         Boolean isOpen,
         List<WorkingHoursEntryResponse> workingHours,
-        Integer reservationDurationMinutes
+        Integer reservationDurationMinutes,
+        Boolean isActive
 ) {
 }
