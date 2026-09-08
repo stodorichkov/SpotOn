@@ -9,5 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long>, JpaSpecificationExecutor<Category> {
-    Optional<Category> findByNameAndDeletedAtIsNull(String name);
+    Optional<Category> findByNameEnAndDeletedAtIsNull(String nameEn);
+
+    Optional<Category> findByNameBgAndDeletedAtIsNull(String nameBg);
 }

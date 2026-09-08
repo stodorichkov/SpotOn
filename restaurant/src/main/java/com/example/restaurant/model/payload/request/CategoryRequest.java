@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public record CategoryRequest(
         @NotBlank(message = MessageConstants.BLANK_FIELD)
-        String name
+        String nameEn,
+        @NotBlank(message = MessageConstants.BLANK_FIELD)
+        String nameBg
 ) {
 }

@@ -33,8 +33,13 @@ public class CategorySpecification {
     }
 
     public static Specification<Category> hasNameContaining(String name) {
-        return (root, query, cb) ->
-                cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%");
+        return (root, query, cb) -> {
+            final var pattern = "%" + name.toLowerCase() + "%";
+            return cb.or(
+                    cb.like(cb.lower(root.get("nameEn")), pattern),
+                    cb.like(cb.lower(root.get("nameBg")), pattern)
+            );
+        };
     }
 
     public static Specification<Category> hasIsActive(Boolean isActive) {

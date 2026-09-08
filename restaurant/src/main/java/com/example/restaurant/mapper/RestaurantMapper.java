@@ -39,6 +39,6 @@ public interface RestaurantMapper {
         if (category == null) {
             return null;
         }
-        return new CategoryResponse(category.getId(), category.getName(), category.getDeletedAt() == null);
+        return new CategoryResponse(category.getId(), category.getNameEn(), category.getNameBg(), category.getDeletedAt() == null);
     }
 }

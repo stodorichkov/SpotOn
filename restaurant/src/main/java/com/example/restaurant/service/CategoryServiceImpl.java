@@ -26,27 +26,28 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-    private static final List<String> DEFAULT_CATEGORIES = List.of(
-            "Fine Dining",
-            "Casual",
-            "Fast Food",
-            "Cafe",
-            "Bar",
-            "Pizzeria",
-            "Sushi",
-            "Night Club"
+    private static final List<String[]> DEFAULT_CATEGORIES = List.of(
+            new String[]{"Fine Dining", "Изискана кухня"},
+            new String[]{"Casual", "Небрежен стил"},
+            new String[]{"Fast Food", "Бързо хранене"},
+            new String[]{"Cafe", "Кафене"},
+            new String[]{"Bar", "Бар"},
+            new String[]{"Pizzeria", "Пицария"},
+            new String[]{"Sushi", "Суши"},
+            new String[]{"Night Club", "Нощен клуб"}
     );
 
     @Override
     @Transactional
     public void saveAllCategories() {
         DEFAULT_CATEGORIES.stream()
-                .filter(name -> this.categoryRepository.findByNameAndDeletedAtIsNull(name).isEmpty())
-                .forEach(name -> {
+                .filter(names -> this.categoryRepository.findByNameEnAndDeletedAtIsNull(names[0]).isEmpty())
+                .forEach(names -> {
                     final var category = new Category();
-                    category.setName(name);
+                    category.setNameEn(names[0]);
+                    category.setNameBg(names[1]);
                     this.categoryRepository.saveAndFlush(category);
-                    System.out.println(MessageConstants.ADD_CATEGORY + category.getName());
+                    System.out.println(MessageConstants.ADD_CATEGORY + category.getNameEn());
                 });
     }
 
@@ -76,15 +77,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryResponse addCategory(CategoryRequest request) {
-        final var name = request.name().trim();
+        final var nameEn = request.nameEn().trim();
+        final var nameBg = request.nameBg().trim();
 
-        this.categoryRepository.findByNameAndDeletedAtIsNull(name)
-                .ifPresent(existing -> {
-                    throw new BadRequestException(MessageConstants.CATEGORY_EXISTS);
-                });
+        this.assertNamesNotTaken(nameEn, nameBg, null);
 
         final var category = new Category();
-        category.setName(name);
+        category.setNameEn(nameEn);
+        category.setNameBg(nameBg);
 
         final var savedCategory = this.categoryRepository.save(category);
 
@@ -97,15 +97,13 @@ public class CategoryServiceImpl implements CategoryService {
         final var category = this.categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
 
-        final var name = request.name().trim();
+        final var nameEn = request.nameEn().trim();
+        final var nameBg = request.nameBg().trim();
 
-        this.categoryRepository.findByNameAndDeletedAtIsNull(name)
-                .filter(existing -> !existing.getId().equals(id))
-                .ifPresent(existing -> {
-                    throw new BadRequestException(MessageConstants.CATEGORY_EXISTS);
-                });
+        this.assertNamesNotTaken(nameEn, nameBg, id);
 
-        category.setName(name);
+        category.setNameEn(nameEn);
+        category.setNameBg(nameBg);
         this.categoryRepository.save(category);
 
         return this.categoryMapper.mapToCategoryResponse(category);
@@ -118,16 +116,26 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new NotFoundException(MessageConstants.CATEGORY_NOT_FOUND));
 
         if (request.isActive()) {
-            this.categoryRepository.findByNameAndDeletedAtIsNull(category.getName())
-                    .filter(existing -> !existing.getId().equals(id))
-                    .ifPresent(existing -> {
-                        throw new BadRequestException(MessageConstants.CATEGORY_EXISTS);
-                    });
+            this.assertNamesNotTaken(category.getNameEn(), category.getNameBg(), id);
         }
 
         category.setDeletedAt(request.isActive() ? null : Instant.now());
         this.categoryRepository.save(category);
 
         return this.categoryMapper.mapToCategoryResponse(category);
+    }
+
+    private void assertNamesNotTaken(String nameEn, String nameBg, Long excludingId) {
+        this.categoryRepository.findByNameEnAndDeletedAtIsNull(nameEn)
+                .filter(existing -> excludingId == null || !existing.getId().equals(excludingId))
+                .ifPresent(existing -> {
+                    throw new BadRequestException(MessageConstants.CATEGORY_EXISTS);
+                });
+
+        this.categoryRepository.findByNameBgAndDeletedAtIsNull(nameBg)
+                .filter(existing -> excludingId == null || !existing.getId().equals(excludingId))
+                .ifPresent(existing -> {
+                    throw new BadRequestException(MessageConstants.CATEGORY_EXISTS);
+                });
     }
 }
