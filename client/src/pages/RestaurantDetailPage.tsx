@@ -6,6 +6,7 @@ import { RootState } from '../store/store';
 import { Role } from '../constants';
 import { useGetRestaurantByIdQuery } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import {
   Container,
   Paper,
@@ -27,7 +28,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { DAYS_OF_WEEK, formatWorkingHoursTime } from '../utils/workingHours';
 
 const RestaurantDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const restaurantId = Number(id);
   const navigate = useNavigate();
@@ -235,11 +236,11 @@ const RestaurantDetailPage: React.FC = () => {
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                         {restaurant.categories && restaurant.categories.length > 0 ? (
                           Array.from(restaurant.categories).map((category) => {
-                            const style = getCategoryStyle(category.name);
+                            const style = getCategoryStyle(getCategoryColorSeed(category));
                             return (
                               <Chip
                                 key={category.id}
-                                label={category.name}
+                                label={getCategoryDisplayName(category, i18n.language)}
                                 sx={{
                                   fontWeight: 'semibold',
                                   fontSize: '0.85rem',

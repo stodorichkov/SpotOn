@@ -37,10 +37,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import InfoIcon from '@mui/icons-material/Info';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import SortDialog, { SortDirection } from '../components/SortDialog';
 
-type StatusFilter = 'all' | 'open' | 'closed' | 'inactive';
-const STATUS_FILTER_OPTIONS: StatusFilter[] = ['all', 'open', 'closed', 'inactive'];
+type StatusFilter = 'open' | 'closed' | 'inactive';
+const STATUS_FILTER_OPTIONS: StatusFilter[] = ['open', 'closed', 'inactive'];
 
 const getRestaurantStatusChip = (restaurant: RestaurantResponse): { labelKey: string; color: 'success' | 'error' | 'default' } => {
   if (!restaurant.isActive) {
@@ -52,7 +53,7 @@ const getRestaurantStatusChip = (restaurant: RestaurantResponse): { labelKey: st
 };
 
 const RestaurantsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [sortField, setSortField] = useState('id');
@@ -75,9 +76,9 @@ const RestaurantsPage: React.FC = () => {
   const [draftCategoryIds, setDraftCategoryIds] = useState<number[]>([]);
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter | null>(null);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
-  const [draftStatusFilter, setDraftStatusFilter] = useState<StatusFilter>('all');
+  const [draftStatusFilter, setDraftStatusFilter] = useState<StatusFilter | null>(null);
 
   const { data: availableCategories = [] } = useGetCategoriesQuery();
 
@@ -184,7 +185,8 @@ const RestaurantsPage: React.FC = () => {
       return '';
     }
     if (categoryIds.length === 1) {
-      return availableCategories.find((c) => c.id === categoryIds[0])?.name || '';
+      const match = availableCategories.find((c) => c.id === categoryIds[0]);
+      return match ? getCategoryDisplayName(match, i18n.language) : '';
     }
     return t('restaurants.categoriesCount', { count: categoryIds.length });
   })();
@@ -205,7 +207,7 @@ const RestaurantsPage: React.FC = () => {
   };
 
   const handleClearStatusDialog = () => {
-    setDraftStatusFilter('all');
+    setDraftStatusFilter(null);
   };
 
   const statusFilterLabel = (() => {
@@ -221,14 +223,14 @@ const RestaurantsPage: React.FC = () => {
     }
   })();
 
-  const hasActiveFilters = idInput !== '' || nameInput !== '' || addressInput !== '' || categoryIds.length > 0 || statusFilter !== 'all';
+  const hasActiveFilters = idInput !== '' || nameInput !== '' || addressInput !== '' || categoryIds.length > 0 || statusFilter !== null;
 
   const handleClearFilters = () => {
     setIdInput('');
     setNameInput('');
     setAddressInput('');
     setCategoryIds([]);
-    setStatusFilter('all');
+    setStatusFilter(null);
     setPage(0);
   };
 
@@ -332,8 +334,8 @@ const RestaurantsPage: React.FC = () => {
             {categoryIds.length === 0 ? t('restaurants.categoriesButton') : categoryFieldValue}
           </Button>
           <Button
-            variant={statusFilter !== 'all' ? 'contained' : 'outlined'}
-            color={statusFilter !== 'all' ? 'primary' : 'inherit'}
+            variant={statusFilter !== null ? 'contained' : 'outlined'}
+            color={statusFilter !== null ? 'primary' : 'inherit'}
             onClick={handleOpenStatusDialog}
             startIcon={<FilterAltIcon />}
             endIcon={<ArrowDropDownIcon />}
@@ -394,11 +396,11 @@ const RestaurantsPage: React.FC = () => {
                   return (
                     <Chip
                       key={category.id}
-                      label={category.name}
+                      label={getCategoryDisplayName(category, i18n.language)}
                       onClick={() => handleToggleDraftCategory(category.id)}
                       variant="outlined"
                       sx={{
-                        ...(isSelected ? getCategoryStyle(category.name) : { borderColor: 'divider', color: 'text.secondary' }),
+                        ...(isSelected ? getCategoryStyle(getCategoryColorSeed(category)) : { borderColor: 'divider', color: 'text.secondary' }),
                         fontWeight: isSelected ? 'bold' : 'normal',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -458,19 +460,17 @@ const RestaurantsPage: React.FC = () => {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {STATUS_FILTER_OPTIONS.map((option) => {
                 const isSelected = draftStatusFilter === option;
-                const label = option === 'all'
-                  ? t('restaurants.statusFilterAll')
-                  : option === 'open'
-                    ? t('restaurants.statusOpen')
-                    : option === 'closed'
-                      ? t('restaurants.statusClosed')
-                      : t('restaurants.activeStatusInactive');
-                const color = option === 'closed' ? 'error' : option === 'open' ? 'success' : option === 'inactive' ? 'default' : 'primary';
+                const label = option === 'open'
+                  ? t('restaurants.statusOpen')
+                  : option === 'closed'
+                    ? t('restaurants.statusClosed')
+                    : t('restaurants.activeStatusInactive');
+                const color = option === 'closed' ? 'error' : option === 'open' ? 'success' : 'default';
                 return (
                   <Chip
                     key={option}
                     label={label}
-                    onClick={() => setDraftStatusFilter(option)}
+                    onClick={() => setDraftStatusFilter(isSelected ? null : option)}
                     color={isSelected ? color : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
                     sx={{
@@ -576,9 +576,9 @@ const RestaurantsPage: React.FC = () => {
                               restaurant.categories.map((category) => (
                                 <Chip
                                   key={category.id}
-                                  label={category.name}
+                                  label={getCategoryDisplayName(category, i18n.language)}
                                   size="small"
-                                  sx={{ ...getCategoryStyle(category.name), fontWeight: 'bold' }}
+                                  sx={{ ...getCategoryStyle(getCategoryColorSeed(category)), fontWeight: 'bold' }}
                                 />
                               ))
                             ) : (

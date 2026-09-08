@@ -65,7 +65,7 @@
     "bookTable": "Резервирай маса",
     "statusOpen": "Отворено",
     "statusClosed": "Затворено",
-    "statusFilterAll": "Всички",
+    "statusButton": "Статус",
     "statusDialogTitle": "Филтриране по статус",
     "searchByName": "Търси по име",
     "searchByAddress": "Търси по адрес",
@@ -158,7 +158,6 @@
     "activeStatusColumn": "Статус",
     "activeStatusActive": "Активен",
     "activeStatusInactive": "Неактивен",
-    "activeStatusFilterAll": "Всички",
     "activeStatusDialogTitle": "Филтриране по статус",
     "menuActivate": "Активирай",
     "menuDeactivate": "Деактивирай",
@@ -209,12 +208,10 @@
     "statusColumn": "Статус",
     "statusOpen": "Отворено",
     "statusClosed": "Затворено",
-    "statusFilterAll": "Всички",
     "statusDialogTitle": "Филтриране по статус",
     "activeStatusColumn": "Видимост",
     "activeStatusActive": "Активно",
     "activeStatusInactive": "Неактивно",
-    "activeStatusFilterAll": "Всички",
     "activeStatusDialogTitle": "Филтриране по видимост",
     "menuActivate": "Активирай",
     "menuDeactivate": "Деактивирай",
@@ -396,7 +393,7 @@
     "menuDetails": "Детайли",
     "searchById": "ID",
     "searchByName": "Търси по име",
-    "smokingFilterAll": "Всички",
+    "smokingButton": "Пушене",
     "smokingDialogTitle": "Филтриране по пушене",
     "capacityButton": "Капацитет",
     "capacityDialogTitle": "Филтриране по капацитет",
@@ -632,7 +629,8 @@
     "sortBy": "Подреди по",
     "clearFilters": "Изчисти филтрите",
     "addDialogTitle": "Добавяне на категория",
-    "nameLabel": "Име на категория",
+    "nameEnLabel": "Име на английски",
+    "nameBgLabel": "Име на български",
     "cancel": "Отказ",
     "save": "Запази",
     "createSuccess": "Категорията беше създадена успешно!",
@@ -650,7 +648,6 @@
     "activeStatusColumn": "Статус",
     "activeStatusActive": "Активна",
     "activeStatusInactive": "Неактивна",
-    "activeStatusFilterAll": "Всички",
     "activeStatusDialogTitle": "Филтриране по статус",
     "detailsTooltip": "Детайли за категорията",
     "detailsSubtitle": "Детайли за категорията",
@@ -667,5 +664,20 @@
     "newPasswordMatchesCurrent": "Новата парола не може да е същата като текущата.",
     "noCategory": "Моля, изберете поне една категория.",
     "tableMinCapacity": "Капацитетът трябва да е поне 1."
+  },
+  "enums": {
+    "bookingStatus": {
+      "PENDING": "Изчакваща",
+      "CONFIRMED": "Потвърдена",
+      "ARRIVED": "Пристигнала",
+      "COMPLETED": "Завършена",
+      "CANCELED": "Отменена"
+    },
+    "role": {
+      "ADMIN": "Администратор",
+      "MANAGER": "Мениджър",
+      "EMPLOYEE": "Служител",
+      "CLIENT": "Клиент"
+    }
   }
 }

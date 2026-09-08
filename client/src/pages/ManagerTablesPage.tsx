@@ -40,9 +40,9 @@ import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortDialog, { SortDirection } from '../components/SortDialog';
 import NumberRangeDialog from '../components/NumberRangeDialog';
 
-type SmokingFilter = 'all' | 'smoking' | 'nonSmoking';
+type SmokingFilter = 'smoking' | 'nonSmoking';
 
-const SMOKING_FILTER_OPTIONS: SmokingFilter[] = ['all', 'smoking', 'nonSmoking'];
+const SMOKING_FILTER_OPTIONS: SmokingFilter[] = ['smoking', 'nonSmoking'];
 
 const ManagerTablesPage: React.FC = () => {
   const { t } = useTranslation();
@@ -54,9 +54,9 @@ const ManagerTablesPage: React.FC = () => {
   const [nameInput, setNameInput] = useState('');
   const [name, setName] = useState('');
 
-  const [smokingFilter, setSmokingFilter] = useState<SmokingFilter>('all');
+  const [smokingFilter, setSmokingFilter] = useState<SmokingFilter | null>(null);
   const [isSmokingDialogOpen, setIsSmokingDialogOpen] = useState(false);
-  const [draftSmokingFilter, setDraftSmokingFilter] = useState<SmokingFilter>('all');
+  const [draftSmokingFilter, setDraftSmokingFilter] = useState<SmokingFilter | null>(null);
 
   const [minCapacity, setMinCapacity] = useState<number | null>(null);
   const [maxCapacity, setMaxCapacity] = useState<number | null>(null);
@@ -90,7 +90,7 @@ const ManagerTablesPage: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [nameInput]);
 
-  const isSmokingAllowed = smokingFilter === 'all' ? undefined : smokingFilter === 'smoking';
+  const isSmokingAllowed = smokingFilter === null ? undefined : smokingFilter === 'smoking';
 
   const handleSortFieldSelect = (value: string) => {
     setSortField(value);
@@ -120,7 +120,7 @@ const ManagerTablesPage: React.FC = () => {
       case 'nonSmoking':
         return t('managerTables.nonSmoking');
       default:
-        return t('managerTables.smokingFilterAll');
+        return t('managerTables.smokingButton');
     }
   })();
 
@@ -140,12 +140,12 @@ const ManagerTablesPage: React.FC = () => {
     return minCapacity !== null ? `${t('common.fromCapacity')}: ${minCapacity}` : `${t('common.toCapacity')}: ${maxCapacity}`;
   })();
 
-  const hasActiveFilters = idInput !== '' || nameInput !== '' || smokingFilter !== 'all' || minCapacity !== null || maxCapacity !== null;
+  const hasActiveFilters = idInput !== '' || nameInput !== '' || smokingFilter !== null || minCapacity !== null || maxCapacity !== null;
 
   const handleClearFilters = () => {
     setIdInput('');
     setNameInput('');
-    setSmokingFilter('all');
+    setSmokingFilter(null);
     setMinCapacity(null);
     setMaxCapacity(null);
     setPage(0);
@@ -262,8 +262,8 @@ const ManagerTablesPage: React.FC = () => {
             sx={{ minWidth: 180, flex: '1 1 180px' }}
           />
           <Button
-            variant={smokingFilter !== 'all' ? 'contained' : 'outlined'}
-            color={smokingFilter !== 'all' ? 'primary' : 'inherit'}
+            variant={smokingFilter !== null ? 'contained' : 'outlined'}
+            color={smokingFilter !== null ? 'primary' : 'inherit'}
             onClick={handleOpenSmokingDialog}
             startIcon={smokingFilter === 'nonSmoking' ? <SmokeFreeIcon /> : <SmokingRoomsIcon />}
             endIcon={<ArrowDropDownIcon />}
@@ -335,16 +335,14 @@ const ManagerTablesPage: React.FC = () => {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {SMOKING_FILTER_OPTIONS.map((option) => {
                 const isSelected = draftSmokingFilter === option;
-                const label = option === 'all'
-                  ? t('managerTables.smokingFilterAll')
-                  : option === 'smoking'
-                    ? t('managerTables.smokingAllowed')
-                    : t('managerTables.nonSmoking');
+                const label = option === 'smoking'
+                  ? t('managerTables.smokingAllowed')
+                  : t('managerTables.nonSmoking');
                 return (
                   <Chip
                     key={option}
                     label={label}
-                    onClick={() => setDraftSmokingFilter(option)}
+                    onClick={() => setDraftSmokingFilter(isSelected ? null : option)}
                     color={isSelected ? 'primary' : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
                     sx={{
@@ -362,7 +360,7 @@ const ManagerTablesPage: React.FC = () => {
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
             <Button
-              onClick={() => setDraftSmokingFilter('all')}
+              onClick={() => setDraftSmokingFilter(null)}
               variant="contained"
               color="error"
               startIcon={<ClearIcon />}

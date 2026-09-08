@@ -1,6 +1,6 @@
 export const RegexConstants = {
     PASSWORD_REGEX: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,50}$/,
-    NAME_REGEX: /^[A-Z][a-z]{2,29}$/,
+    NAME_REGEX: /^[A-ZА-Я][a-zа-я]{2,29}$/,
     PHONE_NUMBER_REGEX: /^\+?[0-9]{7,15}$/,
 };
 

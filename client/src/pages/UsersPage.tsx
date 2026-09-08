@@ -37,11 +37,12 @@ import CloseIcon from '@mui/icons-material/Close';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import { Role } from '../constants';
 import SortDialog, { SortDirection } from '../components/SortDialog';
+import { translateRole } from '../utils/enumLabels';
 
 const ROLE_OPTIONS = [Role.ADMIN, Role.MANAGER, Role.EMPLOYEE, Role.CLIENT];
 
-type ActiveFilter = 'all' | 'active' | 'inactive';
-const ACTIVE_FILTER_OPTIONS: ActiveFilter[] = ['all', 'active', 'inactive'];
+type ActiveFilter = 'active' | 'inactive';
+const ACTIVE_FILTER_OPTIONS: ActiveFilter[] = ['active', 'inactive'];
 
 const getRoleChipColor = (role: string) => {
   switch (role?.toUpperCase()) {
@@ -83,9 +84,9 @@ const UsersPage: React.FC = () => {
   const [draftRoles, setDraftRoles] = useState<string[]>([]);
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
 
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter | null>(null);
   const [isActiveDialogOpen, setIsActiveDialogOpen] = useState(false);
-  const [draftActiveFilter, setDraftActiveFilter] = useState<ActiveFilter>('all');
+  const [draftActiveFilter, setDraftActiveFilter] = useState<ActiveFilter | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -97,7 +98,7 @@ const UsersPage: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [idInput, emailInput]);
 
-  const isActive = activeFilter === 'all' ? undefined : activeFilter === 'active';
+  const isActive = activeFilter === null ? undefined : activeFilter === 'active';
 
   const { data, error, isFetching } = useGetUsersQuery({
     page,
@@ -162,7 +163,7 @@ const UsersPage: React.FC = () => {
       return '';
     }
     if (roles.length === 1) {
-      return roles[0];
+      return translateRole(t, roles[0]);
     }
     return t('users.rolesCount', { count: roles.length });
   })();
@@ -193,13 +194,13 @@ const UsersPage: React.FC = () => {
     }
   })();
 
-  const hasActiveFilters = idInput !== '' || emailInput !== '' || roles.length > 0 || activeFilter !== 'all';
+  const hasActiveFilters = idInput !== '' || emailInput !== '' || roles.length > 0 || activeFilter !== null;
 
   const handleClearFilters = () => {
     setIdInput('');
     setEmailInput('');
     setRoles([]);
-    setActiveFilter('all');
+    setActiveFilter(null);
     setPage(0);
   };
 
@@ -271,8 +272,8 @@ const UsersPage: React.FC = () => {
             {roles.length === 0 ? t('users.rolesButton') : rolesFieldValue}
           </Button>
           <Button
-            variant={activeFilter !== 'all' ? 'contained' : 'outlined'}
-            color={activeFilter !== 'all' ? 'primary' : 'inherit'}
+            variant={activeFilter !== null ? 'contained' : 'outlined'}
+            color={activeFilter !== null ? 'primary' : 'inherit'}
             onClick={handleOpenActiveDialog}
             startIcon={<FilterAltIcon />}
             endIcon={<ArrowDropDownIcon />}
@@ -330,7 +331,7 @@ const UsersPage: React.FC = () => {
                 return (
                   <Chip
                     key={role}
-                    label={role}
+                    label={translateRole(t, role)}
                     onClick={() => handleToggleDraftRole(role)}
                     color={isSelected ? getRoleChipColor(role) : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
@@ -393,17 +394,15 @@ const UsersPage: React.FC = () => {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {ACTIVE_FILTER_OPTIONS.map((option) => {
                 const isSelected = draftActiveFilter === option;
-                const label = option === 'all'
-                  ? t('users.activeStatusFilterAll')
-                  : option === 'active'
-                    ? t('users.activeStatusActive')
-                    : t('users.activeStatusInactive');
+                const label = option === 'active'
+                  ? t('users.activeStatusActive')
+                  : t('users.activeStatusInactive');
                 return (
                   <Chip
                     key={option}
                     label={label}
-                    onClick={() => setDraftActiveFilter(option)}
-                    color={isSelected ? (option === 'inactive' ? 'error' : option === 'active' ? 'success' : 'primary') : undefined}
+                    onClick={() => setDraftActiveFilter(isSelected ? null : option)}
+                    color={isSelected ? (option === 'inactive' ? 'error' : 'success') : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
                     sx={{
                       fontWeight: isSelected ? 'bold' : 'normal',
@@ -420,7 +419,7 @@ const UsersPage: React.FC = () => {
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
             <Button
-              onClick={() => setDraftActiveFilter('all')}
+              onClick={() => setDraftActiveFilter(null)}
               variant="contained"
               color="error"
               startIcon={<ClearIcon />}
@@ -498,7 +497,7 @@ const UsersPage: React.FC = () => {
                       <TableCell>
                         {user.role ? (
                           <Chip
-                            label={user.role}
+                            label={translateRole(t, user.role)}
                             size="small"
                             color={getRoleChipColor(user.role)}
                             variant="outlined"

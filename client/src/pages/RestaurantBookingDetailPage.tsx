@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useGetBookingStatusHistoryQuery, BookingEmployeeResponse } from '../features/restaurants/restaurantsSlice';
 import { BookingStatus } from '../constants';
 import { getIntlLocale } from '../utils/dateLocale';
+import { translateBookingStatus, translateRole } from '../utils/enumLabels';
 import {
   Container,
   Paper,
@@ -110,7 +111,7 @@ const RestaurantBookingDetailPage: React.FC = () => {
             </Typography>
           </Box>
           <Chip
-            label={booking.status || 'PENDING'}
+            label={translateBookingStatus(t, booking.status || BookingStatus.PENDING)}
             variant="outlined"
             sx={{ ...getStatusStyles(booking.status), fontWeight: 'bold' }}
           />
@@ -242,7 +243,7 @@ const RestaurantBookingDetailPage: React.FC = () => {
                 }}
               >
                 <Chip
-                  label={entry.status}
+                  label={translateBookingStatus(t, entry.status)}
                   size="small"
                   variant="outlined"
                   sx={{ ...getStatusStyles(entry.status), fontSize: '0.75rem', borderWidth: 1, borderStyle: 'solid' }}
@@ -262,7 +263,7 @@ const RestaurantBookingDetailPage: React.FC = () => {
                   </Typography>
                   {entry.changedByRole && (
                     <Chip
-                      label={entry.changedByRole}
+                      label={translateRole(t, entry.changedByRole)}
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: '0.7rem' }}

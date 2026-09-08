@@ -20,9 +20,10 @@ import { RegexConstants } from '../constants';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { useGetRestaurantFormQuery, useCreateRestaurantMutation } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 
 const AddRestaurantPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -214,11 +215,11 @@ const AddRestaurantPage: React.FC = () => {
                       return (
                         <Chip
                           key={cat.id}
-                          label={cat.name}
+                          label={getCategoryDisplayName(cat, i18n.language)}
                           onClick={() => handleToggleCategory(cat.id)}
                           variant="outlined"
                           sx={{
-                            ...(isSelected ? getCategoryStyle(cat.name) : { borderColor: 'divider', color: 'text.secondary' }),
+                            ...(isSelected ? getCategoryStyle(getCategoryColorSeed(cat)) : { borderColor: 'divider', color: 'text.secondary' }),
                             fontWeight: isSelected ? 'bold' : 'normal',
                             cursor: 'pointer',
                             transition: 'all 0.2s',

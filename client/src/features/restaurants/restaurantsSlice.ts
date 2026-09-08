@@ -2,12 +2,14 @@ import { api } from '../../services/api';
 
 export interface CategoryResponse {
   id: number;
-  name: string;
+  nameEn: string;
+  nameBg: string;
   isActive: boolean;
 }
 
 export interface CategoryRequest {
-  name: string;
+  nameEn: string;
+  nameBg: string;
 }
 
 export interface CategoryActiveStatusRequest {

@@ -65,7 +65,7 @@
     "bookTable": "Book Table",
     "statusOpen": "Open",
     "statusClosed": "Closed",
-    "statusFilterAll": "All",
+    "statusButton": "Status",
     "statusDialogTitle": "Filter by status",
     "searchByName": "Search by name",
     "searchByAddress": "Search by address",
@@ -158,7 +158,6 @@
     "activeStatusColumn": "Status",
     "activeStatusActive": "Active",
     "activeStatusInactive": "Inactive",
-    "activeStatusFilterAll": "All",
     "activeStatusDialogTitle": "Filter by status",
     "menuActivate": "Activate",
     "menuDeactivate": "Deactivate",
@@ -209,12 +208,10 @@
     "statusColumn": "Status",
     "statusOpen": "Open",
     "statusClosed": "Closed",
-    "statusFilterAll": "All",
     "statusDialogTitle": "Filter by status",
     "activeStatusColumn": "Visibility",
     "activeStatusActive": "Active",
     "activeStatusInactive": "Inactive",
-    "activeStatusFilterAll": "All",
     "activeStatusDialogTitle": "Filter by visibility",
     "menuActivate": "Activate",
     "menuDeactivate": "Deactivate",
@@ -396,7 +393,7 @@
     "menuDetails": "Details",
     "searchById": "ID",
     "searchByName": "Search by name",
-    "smokingFilterAll": "All",
+    "smokingButton": "Smoking",
     "smokingDialogTitle": "Filter by smoking policy",
     "capacityButton": "Capacity",
     "capacityDialogTitle": "Filter by capacity",
@@ -632,7 +629,8 @@
     "sortBy": "Sort by",
     "clearFilters": "Clear filters",
     "addDialogTitle": "Add Category",
-    "nameLabel": "Category Name",
+    "nameEnLabel": "Name (English)",
+    "nameBgLabel": "Name (Bulgarian)",
     "cancel": "Cancel",
     "save": "Save",
     "createSuccess": "Category created successfully!",
@@ -650,7 +648,6 @@
     "activeStatusColumn": "Status",
     "activeStatusActive": "Active",
     "activeStatusInactive": "Inactive",
-    "activeStatusFilterAll": "All",
     "activeStatusDialogTitle": "Filter by status",
     "detailsTooltip": "Category Details",
     "detailsSubtitle": "Category details",
@@ -667,5 +664,20 @@
     "newPasswordMatchesCurrent": "New password cannot be the same as the current one.",
     "noCategory": "Please select at least one category.",
     "tableMinCapacity": "Capacity must be at least 1."
+  },
+  "enums": {
+    "bookingStatus": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "ARRIVED": "Arrived",
+      "COMPLETED": "Completed",
+      "CANCELED": "Canceled"
+    },
+    "role": {
+      "ADMIN": "Admin",
+      "MANAGER": "Manager",
+      "EMPLOYEE": "Employee",
+      "CLIENT": "Client"
+    }
   }
 }

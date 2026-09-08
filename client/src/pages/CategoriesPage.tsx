@@ -8,6 +8,7 @@ import {
 } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import {
   Table,
   TableBody,
@@ -45,11 +46,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortDialog, { SortDirection } from '../components/SortDialog';
 
-type ActiveFilter = 'all' | 'active' | 'inactive';
-const ACTIVE_FILTER_OPTIONS: ActiveFilter[] = ['all', 'active', 'inactive'];
+type ActiveFilter = 'active' | 'inactive';
+const ACTIVE_FILTER_OPTIONS: ActiveFilter[] = ['active', 'inactive'];
 
 const CategoriesPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
 
   const [page, setPage] = useState(0);
@@ -70,9 +71,9 @@ const CategoriesPage: React.FC = () => {
   const [nameFilterInput, setNameFilterInput] = useState('');
   const [nameFilter, setNameFilter] = useState('');
 
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter | null>(null);
   const [isActiveDialogOpen, setIsActiveDialogOpen] = useState(false);
-  const [draftActiveFilter, setDraftActiveFilter] = useState<ActiveFilter>('all');
+  const [draftActiveFilter, setDraftActiveFilter] = useState<ActiveFilter | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -84,7 +85,7 @@ const CategoriesPage: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [idFilterInput, nameFilterInput]);
 
-  const isActive = activeFilter === 'all' ? undefined : activeFilter === 'active';
+  const isActive = activeFilter === null ? undefined : activeFilter === 'active';
 
   const { data, error, isFetching } = useGetCategoriesPageQuery({
     page,
@@ -97,15 +98,17 @@ const CategoriesPage: React.FC = () => {
   const [createCategory, { isLoading: isSaving }] = useCreateCategoryMutation();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [nameError, setNameError] = useState('');
+  const [nameEnInput, setNameEnInput] = useState('');
+  const [nameBgInput, setNameBgInput] = useState('');
+  const [nameEnError, setNameEnError] = useState('');
+  const [nameBgError, setNameBgError] = useState('');
 
-  const hasActiveFilters = idFilterInput !== '' || nameFilterInput !== '' || activeFilter !== 'all';
+  const hasActiveFilters = idFilterInput !== '' || nameFilterInput !== '' || activeFilter !== null;
 
   const handleClearFilters = () => {
     setIdFilterInput('');
     setNameFilterInput('');
-    setActiveFilter('all');
+    setActiveFilter(null);
     setPage(0);
   };
 
@@ -154,8 +157,10 @@ const CategoriesPage: React.FC = () => {
   };
 
   const handleOpenAddForm = () => {
-    setNameInput('');
-    setNameError('');
+    setNameEnInput('');
+    setNameBgInput('');
+    setNameEnError('');
+    setNameBgError('');
     setIsFormOpen(true);
   };
 
@@ -166,13 +171,19 @@ const CategoriesPage: React.FC = () => {
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nameInput.trim()) {
-      setNameError(t('validation.blankField'));
-      return;
+    let hasError = false;
+    if (!nameEnInput.trim()) {
+      setNameEnError(t('validation.blankField'));
+      hasError = true;
     }
+    if (!nameBgInput.trim()) {
+      setNameBgError(t('validation.blankField'));
+      hasError = true;
+    }
+    if (hasError) return;
 
     try {
-      await createCategory({ name: nameInput.trim() }).unwrap();
+      await createCategory({ nameEn: nameEnInput.trim(), nameBg: nameBgInput.trim() }).unwrap();
       dispatch(addAlert({ message: t('categories.createSuccess'), type: 'success' }));
       setIsFormOpen(false);
     } catch (err: any) {
@@ -268,8 +279,8 @@ const CategoriesPage: React.FC = () => {
             sx={{ minWidth: 180, flex: '1 1 180px' }}
           />
           <Button
-            variant={activeFilter !== 'all' ? 'contained' : 'outlined'}
-            color={activeFilter !== 'all' ? 'primary' : 'inherit'}
+            variant={activeFilter !== null ? 'contained' : 'outlined'}
+            color={activeFilter !== null ? 'primary' : 'inherit'}
             onClick={handleOpenActiveDialog}
             startIcon={<FilterAltIcon />}
             endIcon={<ArrowDropDownIcon />}
@@ -334,17 +345,15 @@ const CategoriesPage: React.FC = () => {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {ACTIVE_FILTER_OPTIONS.map((option) => {
                 const isSelected = draftActiveFilter === option;
-                const label = option === 'all'
-                  ? t('categories.activeStatusFilterAll')
-                  : option === 'active'
-                    ? t('categories.activeStatusActive')
-                    : t('categories.activeStatusInactive');
+                const label = option === 'active'
+                  ? t('categories.activeStatusActive')
+                  : t('categories.activeStatusInactive');
                 return (
                   <Chip
                     key={option}
                     label={label}
-                    onClick={() => setDraftActiveFilter(option)}
-                    color={isSelected ? (option === 'inactive' ? 'error' : option === 'active' ? 'success' : 'primary') : undefined}
+                    onClick={() => setDraftActiveFilter(isSelected ? null : option)}
+                    color={isSelected ? (option === 'inactive' ? 'error' : 'success') : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
                     sx={{
                       fontWeight: isSelected ? 'bold' : 'normal',
@@ -361,7 +370,7 @@ const CategoriesPage: React.FC = () => {
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2, gap: 2 }}>
             <Button
-              onClick={() => setDraftActiveFilter('all')}
+              onClick={() => setDraftActiveFilter(null)}
               variant="contained"
               color="error"
               startIcon={<ClearIcon />}
@@ -435,9 +444,9 @@ const CategoriesPage: React.FC = () => {
                       <TableCell>{category.id}</TableCell>
                       <TableCell>
                         <Chip
-                          label={category.name}
+                          label={getCategoryDisplayName(category, i18n.language)}
                           size="small"
-                          sx={{ ...getCategoryStyle(category.name), fontWeight: 'bold' }}
+                          sx={{ ...getCategoryStyle(getCategoryColorSeed(category)), fontWeight: 'bold' }}
                         />
                       </TableCell>
                       <TableCell>
@@ -509,14 +518,32 @@ const CategoriesPage: React.FC = () => {
               autoFocus
               required
               fullWidth
-              label={t('categories.nameLabel')}
-              value={nameInput}
+              label={t('categories.nameEnLabel')}
+              value={nameEnInput}
               onChange={(e) => {
-                setNameInput(e.target.value);
-                if (nameError) setNameError('');
+                setNameEnInput(e.target.value);
+                if (nameEnError) setNameEnError('');
               }}
-              error={!!nameError}
-              helperText={nameError}
+              error={!!nameEnError}
+              helperText={nameEnError}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2.5,
+                },
+                mb: 2
+              }}
+            />
+            <TextField
+              required
+              fullWidth
+              label={t('categories.nameBgLabel')}
+              value={nameBgInput}
+              onChange={(e) => {
+                setNameBgInput(e.target.value);
+                if (nameBgError) setNameBgError('');
+              }}
+              error={!!nameBgError}
+              helperText={nameBgError}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2.5,

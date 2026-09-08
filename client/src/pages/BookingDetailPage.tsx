@@ -8,6 +8,7 @@ import { BookingStatus, Role } from '../constants';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { getIntlLocale } from '../utils/dateLocale';
+import { translateBookingStatus } from '../utils/enumLabels';
 import TableSelectionDialog from '../components/TableSelectionDialog';
 import {
   Container,
@@ -312,7 +313,7 @@ const BookingDetailPage: React.FC = () => {
           </Box>
 
           <Chip
-            label={booking.status || 'PENDING'}
+            label={translateBookingStatus(t, booking.status || BookingStatus.PENDING)}
             variant="outlined"
             sx={{
               ...getStatusStyles(booking.status),

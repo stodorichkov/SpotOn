@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { RegexConstants } from '../constants';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import {
   Container,
   Paper,
@@ -141,9 +142,6 @@ const ManagerRestaurantPage: React.FC = () => {
       nextCategoryIds = [...selectedCategoryIds, catId];
     }
     setSelectedCategoryIds(nextCategoryIds);
-    if (nextCategoryIds.length > 0 && errors.categories) {
-      setErrors({ ...errors, categories: '' });
-    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -160,9 +158,6 @@ const ManagerRestaurantPage: React.FC = () => {
       newErrors.phoneNumber = t('validation.blankField');
     } else if (!RegexConstants.PHONE_NUMBER_REGEX.test(phoneNumber.trim())) {
       newErrors.phoneNumber = t('validation.invalidPhoneNumber');
-    }
-    if (selectedCategoryIds.length === 0) {
-      newErrors.categories = t('validation.noCategory');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -613,7 +608,7 @@ const ManagerRestaurantPage: React.FC = () => {
                   overflowY: 'auto',
                   p: 1.5,
                   border: '1px solid',
-                  borderColor: errors.categories ? 'error.main' : 'divider',
+                  borderColor: 'divider',
                   borderRadius: 2.5,
                   backgroundColor: 'background.paper',
                   transition: 'border-color 0.2s',
@@ -632,11 +627,11 @@ const ManagerRestaurantPage: React.FC = () => {
                       return (
                         <Chip
                           key={cat.id}
-                          label={cat.name}
+                          label={getCategoryDisplayName(cat, i18n.language)}
                           onClick={() => handleToggleCategory(cat.id)}
                           variant="outlined"
                           sx={{
-                            ...(isSelected ? getCategoryStyle(cat.name) : { borderColor: 'divider', color: 'text.secondary' }),
+                            ...(isSelected ? getCategoryStyle(getCategoryColorSeed(cat)) : { borderColor: 'divider', color: 'text.secondary' }),
                             fontWeight: isSelected ? 'bold' : 'normal',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
@@ -651,11 +646,6 @@ const ManagerRestaurantPage: React.FC = () => {
                     <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>{t('managerRestaurant.noCategoriesAvailable')}</Typography>
                   )}
                 </Box>
-                {errors.categories && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5, display: 'block' }}>
-                    {errors.categories}
-                  </Typography>
-                )}
               </Grid>
             </Grid>
 
@@ -757,8 +747,8 @@ const ManagerRestaurantPage: React.FC = () => {
                       restaurant.categories.map((category) => (
                         <Chip
                           key={category.id}
-                          label={category.name}
-                          sx={{ ...getCategoryStyle(category.name), fontWeight: 'bold' }}
+                          label={getCategoryDisplayName(category, i18n.language)}
+                          sx={{ ...getCategoryStyle(getCategoryColorSeed(category)), fontWeight: 'bold' }}
                         />
                       ))
                     ) : (

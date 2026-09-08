@@ -32,6 +32,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import BadgeIcon from '@mui/icons-material/Badge';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Role } from '../constants';
+import { translateRole } from '../utils/enumLabels';
 
 const getRoleChipColor = (role?: string) => {
   if (!role) return 'default';
@@ -209,7 +210,7 @@ const UserDetailsPage: React.FC = () => {
 
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
             <Chip
-              label={user.role}
+              label={translateRole(t, user.role)}
               color={getRoleChipColor(user.role)}
               variant="outlined"
               sx={{

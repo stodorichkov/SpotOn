@@ -42,6 +42,7 @@ import { BookingStatus } from '../constants';
 import SortDialog, { SortDirection } from '../components/SortDialog';
 import DateRangeDialog from '../components/DateRangeDialog';
 import { getIntlLocale } from '../utils/dateLocale';
+import { translateBookingStatus } from '../utils/enumLabels';
 
 const STATUS_OPTIONS = [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.ARRIVED, BookingStatus.COMPLETED, BookingStatus.CANCELED];
 
@@ -163,7 +164,7 @@ const AdminRestaurantBookingsPage: React.FC = () => {
 
   const statusFieldValue = (() => {
     if (statuses.length === 0) return '';
-    if (statuses.length === 1) return statuses[0];
+    if (statuses.length === 1) return translateBookingStatus(t, statuses[0]);
     return t('employeeBookings.statusesCount', { count: statuses.length });
   })();
 
@@ -263,7 +264,7 @@ const AdminRestaurantBookingsPage: React.FC = () => {
                 return (
                   <Chip
                     key={status}
-                    label={status}
+                    label={translateBookingStatus(t, status)}
                     onClick={() => handleToggleDraftStatus(status)}
                     variant="outlined"
                     sx={{
@@ -428,7 +429,7 @@ const AdminRestaurantBookingsPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={booking.status || 'PENDING'}
+                            label={translateBookingStatus(t, booking.status || BookingStatus.PENDING)}
                             size="small"
                             variant="outlined"
                             sx={{ ...getStatusStyles(booking.status), fontSize: '0.75rem', borderWidth: 1, borderStyle: 'solid' }}

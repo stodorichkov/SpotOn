@@ -13,6 +13,7 @@ import { updateChangePasswordFormField, clearChangePasswordForm } from '../featu
 import { addAlert } from '../features/alerts/alertsSlice';
 import * as yup from 'yup';
 import { RegexConstants, Role } from '../constants';
+import { translateRole } from '../utils/enumLabels';
 
 type ChangePasswordFormState = ChangePasswordRequest;
 type EditProfileFormState = EditProfileRequest;
@@ -322,7 +323,7 @@ const ProfilePage = () => {
                     </Box>
 
                     <Chip
-                        label={user.role}
+                        label={translateRole(t, user.role)}
                         color={getRoleChipColor(user.role)}
                         variant="outlined"
                         sx={{

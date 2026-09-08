@@ -3,6 +3,7 @@ import { useGetManagerEmployeesQuery } from '../features/restaurants/restaurants
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Role } from '../constants';
+import { translateRole } from '../utils/enumLabels';
 import {
   Table,
   TableBody,
@@ -160,7 +161,7 @@ const ManagerEmployeesPage: React.FC = () => {
       return '';
     }
     if (roles.length === 1) {
-      return roles[0];
+      return translateRole(t, roles[0]);
     }
     return t('managerEmployees.rolesCount', { count: roles.length });
   })();
@@ -340,7 +341,7 @@ const ManagerEmployeesPage: React.FC = () => {
                 return (
                   <Chip
                     key={role}
-                    label={role}
+                    label={translateRole(t, role)}
                     onClick={() => handleToggleDraftRole(role)}
                     color={isSelected ? getRoleChipColor(role) : undefined}
                     variant={isSelected ? 'filled' : 'outlined'}
@@ -449,7 +450,7 @@ const ManagerEmployeesPage: React.FC = () => {
                         <TableCell>
                           {employee.role ? (
                             <Chip
-                              label={employee.role}
+                              label={translateRole(t, employee.role)}
                               size="small"
                               color={getRoleChipColor(employee.role)}
                               variant="outlined"

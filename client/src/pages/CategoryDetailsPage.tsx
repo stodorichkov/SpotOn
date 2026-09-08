@@ -9,6 +9,7 @@ import {
 } from '../features/restaurants/restaurantsSlice';
 import { addAlert } from '../features/alerts/alertsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import {
   Container,
   Paper,
@@ -37,7 +38,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 const CategoryDetailsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const { id } = useParams<{ id: string }>();
   const categoryId = Number(id);
@@ -51,38 +52,51 @@ const CategoryDetailsPage: React.FC = () => {
   const [updateCategoryActiveStatus, { isLoading: isTogglingActive }] = useUpdateCategoryActiveStatusMutation();
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [nameError, setNameError] = useState('');
+  const [nameEnInput, setNameEnInput] = useState('');
+  const [nameBgInput, setNameBgInput] = useState('');
+  const [nameEnError, setNameEnError] = useState('');
+  const [nameBgError, setNameBgError] = useState('');
   const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false);
 
   useEffect(() => {
     if (category) {
-      setNameInput(category.name);
+      setNameEnInput(category.nameEn);
+      setNameBgInput(category.nameBg);
     }
   }, [category]);
 
   const handleStartEditName = () => {
-    setNameInput(category?.name || '');
-    setNameError('');
+    setNameEnInput(category?.nameEn || '');
+    setNameBgInput(category?.nameBg || '');
+    setNameEnError('');
+    setNameBgError('');
     setIsEditingName(true);
   };
 
   const handleCancelEditName = () => {
-    setNameInput(category?.name || '');
-    setNameError('');
+    setNameEnInput(category?.nameEn || '');
+    setNameBgInput(category?.nameBg || '');
+    setNameEnError('');
+    setNameBgError('');
     setIsEditingName(false);
   };
 
   const handleSaveName = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nameInput.trim()) {
-      setNameError(t('validation.blankField'));
-      return;
+    let hasError = false;
+    if (!nameEnInput.trim()) {
+      setNameEnError(t('validation.blankField'));
+      hasError = true;
     }
+    if (!nameBgInput.trim()) {
+      setNameBgError(t('validation.blankField'));
+      hasError = true;
+    }
+    if (hasError) return;
 
     try {
-      await updateCategory({ id: categoryId, body: { name: nameInput.trim() } }).unwrap();
+      await updateCategory({ id: categoryId, body: { nameEn: nameEnInput.trim(), nameBg: nameBgInput.trim() } }).unwrap();
       dispatch(addAlert({ message: t('categories.updateSuccess'), type: 'success' }));
       setIsEditingName(false);
     } catch (err: any) {
@@ -180,7 +194,7 @@ const CategoryDetailsPage: React.FC = () => {
             </Box>
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
-                {category.name}
+                {getCategoryDisplayName(category, i18n.language)}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                 {t('categories.detailsSubtitle')}
@@ -243,14 +257,28 @@ const CategoryDetailsPage: React.FC = () => {
                     autoFocus
                     required
                     fullWidth
-                    label={t('categories.nameLabel')}
-                    value={nameInput}
+                    label={t('categories.nameEnLabel')}
+                    value={nameEnInput}
                     onChange={(e) => {
-                      setNameInput(e.target.value);
-                      if (nameError) setNameError('');
+                      setNameEnInput(e.target.value);
+                      if (nameEnError) setNameEnError('');
                     }}
-                    error={!!nameError}
-                    helperText={nameError}
+                    error={!!nameEnError}
+                    helperText={nameEnError}
+                    size="small"
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2.5 }, mb: 1.5 }}
+                  />
+                  <TextField
+                    required
+                    fullWidth
+                    label={t('categories.nameBgLabel')}
+                    value={nameBgInput}
+                    onChange={(e) => {
+                      setNameBgInput(e.target.value);
+                      if (nameBgError) setNameBgError('');
+                    }}
+                    error={!!nameBgError}
+                    helperText={nameBgError}
                     size="small"
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2.5 }, mb: 1.5 }}
                   />
@@ -283,15 +311,27 @@ const CategoryDetailsPage: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                     <CategoryIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                        {t('categories.nameLabel')}
-                      </Typography>
-                      <Chip
-                        label={category.name}
-                        size="small"
-                        sx={{ ...getCategoryStyle(category.name), fontWeight: 'bold', mt: 0.5 }}
-                      />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                          {t('categories.nameEnLabel')}
+                        </Typography>
+                        <Chip
+                          label={category.nameEn}
+                          size="small"
+                          sx={{ ...getCategoryStyle(getCategoryColorSeed(category)), fontWeight: 'bold', mt: 0.5 }}
+                        />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                          {t('categories.nameBgLabel')}
+                        </Typography>
+                        <Chip
+                          label={category.nameBg}
+                          size="small"
+                          sx={{ ...getCategoryStyle(getCategoryColorSeed(category)), fontWeight: 'bold', mt: 0.5 }}
+                        />
+                      </Box>
                     </Box>
                   </Box>
                   <IconButton onClick={handleStartEditName} color="primary" size="small">
@@ -317,8 +357,8 @@ const CategoryDetailsPage: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             {category.isActive
-              ? t('categories.deactivateBody', { name: category.name })
-              : t('categories.activateBody', { name: category.name })}
+              ? t('categories.deactivateBody', { name: getCategoryDisplayName(category, i18n.language) })
+              : t('categories.activateBody', { name: getCategoryDisplayName(category, i18n.language) })}
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

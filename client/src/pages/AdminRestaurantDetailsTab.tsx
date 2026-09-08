@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGetRestaurantByIdQuery } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
+import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import { DAYS_OF_WEEK, formatWorkingHoursTime } from '../utils/workingHours';
 import {
   Container,
@@ -21,7 +22,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import TimerIcon from '@mui/icons-material/Timer';
 
 const AdminRestaurantDetailsTab: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const restaurantId = Number(id);
 
@@ -144,8 +145,8 @@ const AdminRestaurantDetailsTab: React.FC = () => {
                     restaurant.categories.map((category) => (
                       <Chip
                         key={category.id}
-                        label={category.name}
-                        sx={{ ...getCategoryStyle(category.name), fontWeight: 'bold' }}
+                        label={getCategoryDisplayName(category, i18n.language)}
+                        sx={{ ...getCategoryStyle(getCategoryColorSeed(category)), fontWeight: 'bold' }}
                       />
                     ))
                   ) : (
