@@ -17,6 +17,7 @@ import { addAlert } from '../features/alerts/alertsSlice';
 import { RegexConstants } from '../constants';
 import { getCategoryStyle } from '../utils/categoryColor';
 import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
+import RestaurantCoverImage from '../components/RestaurantCoverImage';
 import {
   Container,
   Paper,
@@ -33,7 +34,12 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -185,6 +191,8 @@ const ManagerRestaurantPage: React.FC = () => {
     }
   };
 
+  const [pendingStatus, setPendingStatus] = useState<boolean | null>(null);
+
   const handleToggleStatus = async (isOpen: boolean) => {
     try {
       await updateRestaurantStatus({ isOpen }).unwrap();
@@ -199,6 +207,8 @@ const ManagerRestaurantPage: React.FC = () => {
         message: err?.data?.message || t('managerRestaurant.statusFailure'),
         type: 'error'
       }));
+    } finally {
+      setPendingStatus(null);
     }
   };
 
@@ -432,8 +442,8 @@ const ManagerRestaurantPage: React.FC = () => {
             value={restaurant.isOpen ? 'open' : 'closed'}
             exclusive
             onChange={(e, value) => {
-              if (value !== null) {
-                handleToggleStatus(value === 'open');
+              if (value !== null && value !== (restaurant.isOpen ? 'open' : 'closed')) {
+                setPendingStatus(value === 'open');
               }
             }}
             disabled={isUpdatingStatus}
@@ -471,29 +481,23 @@ const ManagerRestaurantPage: React.FC = () => {
             {t('managerRestaurant.imagesTitle')}
           </Typography>
 
-          {restaurant.images?.[0] ? (
-            <Box
-              component="img"
-              src={restaurant.images[0].url}
-              alt={restaurant.name}
-              sx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2 }}
-            />
-          ) : (
-            <Box
-              sx={{
-                width: '100%',
-                height: 280,
-                borderRadius: 2,
-                backgroundColor: 'action.hover',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'text.secondary'
-              }}
-            >
-              <RestaurantIcon sx={{ fontSize: 64, opacity: 0.5 }} />
-            </Box>
-          )}
+          <RestaurantCoverImage
+            url={restaurant.images?.[0]?.url}
+            alt={restaurant.name}
+            imgSx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2 }}
+            placeholderSx={{
+              width: '100%',
+              height: 280,
+              borderRadius: 2,
+              backgroundColor: 'action.hover',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'text.secondary'
+            }}
+            iconFontSize={64}
+            iconOpacity={0.5}
+          />
 
           <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
             <Button
@@ -957,6 +961,45 @@ const ManagerRestaurantPage: React.FC = () => {
           )}
         </Box>
       </Paper>
+
+      <Dialog
+        open={pendingStatus !== null}
+        onClose={() => setPendingStatus(null)}
+        aria-labelledby="status-dialog-title"
+        PaperProps={{ sx: { borderRadius: 3, px: 1, py: 0.5 } }}
+      >
+        <DialogTitle id="status-dialog-title" fontWeight="bold">
+          {pendingStatus ? t('managerRestaurant.openDialogTitle') : t('managerRestaurant.closeDialogTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {pendingStatus
+              ? t('managerRestaurant.openDialogBody', { name: restaurant.name })
+              : t('managerRestaurant.closeDialogBody', { name: restaurant.name })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setPendingStatus(null)}
+            color="inherit"
+            sx={{ textTransform: 'none', fontWeight: 'bold' }}
+            disabled={isUpdatingStatus}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={() => pendingStatus !== null && handleToggleStatus(pendingStatus)}
+            color={pendingStatus ? 'success' : 'error'}
+            variant="contained"
+            sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+            disabled={isUpdatingStatus}
+            startIcon={isUpdatingStatus ? <CircularProgress size={16} color="inherit" /> : undefined}
+            autoFocus
+          >
+            {pendingStatus ? t('managerRestaurant.openDialogConfirm') : t('managerRestaurant.closeDialogConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

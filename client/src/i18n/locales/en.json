@@ -356,6 +356,12 @@
     "statusOpenSuccess": "Restaurant marked as open!",
     "statusClosedSuccess": "Restaurant marked as closed!",
     "statusFailure": "Failed to update restaurant status.",
+    "openDialogTitle": "Open the restaurant?",
+    "closeDialogTitle": "Close the restaurant?",
+    "openDialogBody": "\"{{name}}\" will start accepting bookings from clients again.",
+    "closeDialogBody": "\"{{name}}\" will stop accepting new bookings from clients. Existing bookings are not affected.",
+    "openDialogConfirm": "Open",
+    "closeDialogConfirm": "Close",
     "workingHoursTitle": "Working Hours",
     "workingHoursSuccess": "Working hours updated successfully!",
     "workingHoursFailure": "Failed to update working hours.",
@@ -564,7 +570,9 @@
     "errorLoading": "Error loading status history.",
     "noHistory": "No status history recorded.",
     "changedByUserId": "User #{{id}}",
-    "changedByName": "#{{id}} {{firstName}} {{lastName}}"
+    "changedByName": "#{{id}} {{firstName}} {{lastName}}",
+    "changedByNameOnly": "{{firstName}} {{lastName}}",
+    "unknownUser": "Unknown user"
   },
   "reservation": {
     "errorTitle": "Error Loading Reservation Form",

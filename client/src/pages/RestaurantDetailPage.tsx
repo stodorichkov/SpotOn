@@ -7,6 +7,7 @@ import { Role } from '../constants';
 import { useGetRestaurantByIdQuery } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
 import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
+import RestaurantCoverImage from '../components/RestaurantCoverImage';
 import {
   Container,
   Paper,
@@ -149,14 +150,24 @@ const RestaurantDetailPage: React.FC = () => {
 
             <Divider sx={{ mb: 4 }} />
 
-            {restaurant.images?.[0] && (
-              <Box
-                component="img"
-                src={restaurant.images[0].url}
-                alt={restaurant.name}
-                sx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2, mb: 4 }}
-              />
-            )}
+            <RestaurantCoverImage
+              url={restaurant.images?.[0]?.url}
+              alt={restaurant.name}
+              imgSx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2, mb: 4 }}
+              placeholderSx={{
+                width: '100%',
+                height: 280,
+                borderRadius: 2,
+                mb: 4,
+                backgroundColor: 'action.hover',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary'
+              }}
+              iconFontSize={64}
+              iconOpacity={0.5}
+            />
 
             {/* Specifications Section */}
             <Box sx={{ mb: 5 }}>

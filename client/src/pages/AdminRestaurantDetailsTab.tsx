@@ -5,6 +5,7 @@ import { useGetRestaurantByIdQuery } from '../features/restaurants/restaurantsSl
 import { getCategoryStyle } from '../utils/categoryColor';
 import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import { DAYS_OF_WEEK, formatWorkingHoursTime } from '../utils/workingHours';
+import RestaurantCoverImage from '../components/RestaurantCoverImage';
 import {
   Container,
   Paper,
@@ -61,21 +62,25 @@ const AdminRestaurantDetailsTab: React.FC = () => {
     <Container maxWidth="md" sx={{ mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2 } }}>
       <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3 }}>
         <Grid container spacing={4}>
-          {restaurant.images?.[0] && (
-            <Grid item xs={12}>
-              <Box
-                component="img"
-                src={restaurant.images[0].url}
-                alt={restaurant.name}
-                sx={{
-                  width: '100%',
-                  maxHeight: 280,
-                  objectFit: 'cover',
-                  borderRadius: 2
-                }}
-              />
-            </Grid>
-          )}
+          <Grid item xs={12}>
+            <RestaurantCoverImage
+              url={restaurant.images?.[0]?.url}
+              alt={restaurant.name}
+              imgSx={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 2 }}
+              placeholderSx={{
+                width: '100%',
+                height: 280,
+                borderRadius: 2,
+                backgroundColor: 'action.hover',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary'
+              }}
+              iconFontSize={64}
+              iconOpacity={0.5}
+            />
+          </Grid>
 
           <Grid item xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>

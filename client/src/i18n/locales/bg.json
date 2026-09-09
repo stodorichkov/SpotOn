@@ -356,6 +356,12 @@
     "statusOpenSuccess": "Заведението беше отбелязано като отворено!",
     "statusClosedSuccess": "Заведението беше отбелязано като затворено!",
     "statusFailure": "Неуспешно обновяване на статуса на заведението.",
+    "openDialogTitle": "Отваряне на заведението?",
+    "closeDialogTitle": "Затваряне на заведението?",
+    "openDialogBody": "„{{name}}“ отново ще приема резервации от клиенти.",
+    "closeDialogBody": "„{{name}}“ ще спре да приема нови резервации от клиенти. Съществуващите резервации не се засягат.",
+    "openDialogConfirm": "Отвори",
+    "closeDialogConfirm": "Затвори",
     "workingHoursTitle": "Работно време",
     "workingHoursSuccess": "Работното време беше обновено успешно!",
     "workingHoursFailure": "Неуспешно обновяване на работното време.",
@@ -564,7 +570,9 @@
     "errorLoading": "Грешка при зареждане на историята на статуса.",
     "noHistory": "Няма записана история на статуса.",
     "changedByUserId": "Потребител #{{id}}",
-    "changedByName": "#{{id}} {{firstName}} {{lastName}}"
+    "changedByName": "#{{id}} {{firstName}} {{lastName}}",
+    "changedByNameOnly": "{{firstName}} {{lastName}}",
+    "unknownUser": "Неизвестен потребител"
   },
   "reservation": {
     "errorTitle": "Грешка при зареждане на формата за резервация",

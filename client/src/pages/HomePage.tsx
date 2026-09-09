@@ -1,17 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RootState } from '../store/store';
 import { useGetRestaurantsQuery, useGetCategoriesQuery, RestaurantResponse } from '../features/restaurants/restaurantsSlice';
 import { getCategoryStyle } from '../utils/categoryColor';
+import RestaurantCoverImage from '../components/RestaurantCoverImage';
 import { getCategoryDisplayName, getCategoryColorSeed } from '../utils/categoryLabels';
 import { Role } from '../constants';
 import {
   Container,
   Grid,
   Card,
-  CardMedia,
   CardContent,
   CardActions,
   Typography,
@@ -29,7 +29,6 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -127,28 +126,55 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     if (!data) return;
-    setItems((prev) => (data.number === 0 ? data.content : [...prev, ...data.content]));
+    setItems((prev) => {
+      if (data.number === 0) return data.content;
+      // De-dupe defensively: a fast-scroll race on the observer below could
+      // otherwise request the same page twice and render duplicate cards
+      // with clashing React keys (the visible symptom of that race).
+      const existingIds = new Set(prev.map((r) => r.id));
+      const newOnes = data.content.filter((r) => !existingIds.has(r.id));
+      return [...prev, ...newOnes];
+    });
     setTotalPages(data.totalPages);
   }, [data]);
 
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const hasMore = page + 1 < totalPages;
 
-  useEffect(() => {
-    const node = sentinelRef.current;
+  // Kept in refs (updated on every render) so the observer always reads
+  // fresh values without needing to be recreated — recreating it on every
+  // isFetching/hasMore change left a window, during fast scrolling, where a
+  // stale observer could fire a second time before React committed the new
+  // isFetching state, double-requesting a page.
+  const isFetchingRef = useRef(isFetching);
+  isFetchingRef.current = isFetching;
+  const hasMoreRef = useRef(hasMore);
+  hasMoreRef.current = hasMore;
+
+  const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
+
+  // A callback ref instead of a plain ref: the sentinel <Box> only exists in
+  // the DOM once there's at least one item, so a one-time useEffect(..., [])
+  // can run before it ever mounts and never attach an observer. This fires
+  // exactly when the node actually mounts (and again if it ever unmounts).
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    intersectionObserverRef.current?.disconnect();
+    intersectionObserverRef.current = null;
+
     if (!node) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetching && hasMore) {
+        if (entries[0].isIntersecting && !isFetchingRef.current && hasMoreRef.current) {
           setPage((prev) => prev + 1);
         }
       },
       { rootMargin: '300px' }
     );
     observer.observe(node);
-    return () => observer.disconnect();
-  }, [isFetching, hasMore]);
+    intersectionObserverRef.current = observer;
+  }, []);
+
+  useEffect(() => () => intersectionObserverRef.current?.disconnect(), []);
 
   const handleReserveClick = (restaurantId: number, restaurantName: string) => {
     if (!token) {
@@ -548,30 +574,23 @@ const HomePage: React.FC = () => {
                       }}
                     >
                       {/* Card Cover */}
-                      {restaurant.images?.[0] ? (
-                        <CardMedia
-                          component="img"
-                          height={120}
-                          image={restaurant.images[0].url}
-                          alt={restaurant.name}
-                          sx={{ objectFit: 'cover', borderTopLeftRadius: 'inherit', borderTopRightRadius: 'inherit' }}
-                        />
-                      ) : (
-                        <Box
-                          sx={{
-                            height: 120,
-                            background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(21, 101, 192, 0.15) 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderTopLeftRadius: 'inherit',
-                            borderTopRightRadius: 'inherit',
-                            color: 'primary.main'
-                          }}
-                        >
-                          <RestaurantIcon sx={{ fontSize: 44, opacity: 0.8 }} />
-                        </Box>
-                      )}
+                      <RestaurantCoverImage
+                        url={restaurant.images?.[0]?.url}
+                        alt={restaurant.name}
+                        imgSx={{ height: 120, width: '100%', objectFit: 'cover', borderTopLeftRadius: 'inherit', borderTopRightRadius: 'inherit' }}
+                        placeholderSx={{
+                          height: 120,
+                          background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(21, 101, 192, 0.15) 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderTopLeftRadius: 'inherit',
+                          borderTopRightRadius: 'inherit',
+                          color: 'primary.main'
+                        }}
+                        iconFontSize={44}
+                        iconOpacity={0.8}
+                      />
 
                       {/* Card Content */}
                       <CardContent sx={{ flexGrow: 1, p: 3 }}>

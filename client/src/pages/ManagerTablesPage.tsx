@@ -49,8 +49,6 @@ const ManagerTablesPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [idInput, setIdInput] = useState('');
-  const [id, setId] = useState<number | undefined>(undefined);
   const [nameInput, setNameInput] = useState('');
   const [name, setName] = useState('');
 
@@ -62,25 +60,15 @@ const ManagerTablesPage: React.FC = () => {
   const [maxCapacity, setMaxCapacity] = useState<number | null>(null);
   const [isCapacityDialogOpen, setIsCapacityDialogOpen] = useState(false);
 
-  const [sortField, setSortField] = useState('id');
+  const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const sort = `${sortField},${sortDirection}`;
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
 
   const SORT_FIELDS = [
-    { value: 'id', label: t('common.id') },
     { value: 'name', label: t('common.name') },
     { value: 'capacity', label: t('managerTables.capacity') },
   ];
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const trimmed = idInput.trim();
-      setId(trimmed === '' ? undefined : Number(trimmed));
-      setPage(0);
-    }, 400);
-    return () => clearTimeout(timeout);
-  }, [idInput]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -140,10 +128,9 @@ const ManagerTablesPage: React.FC = () => {
     return minCapacity !== null ? `${t('common.fromCapacity')}: ${minCapacity}` : `${t('common.toCapacity')}: ${maxCapacity}`;
   })();
 
-  const hasActiveFilters = idInput !== '' || nameInput !== '' || smokingFilter !== null || minCapacity !== null || maxCapacity !== null;
+  const hasActiveFilters = nameInput !== '' || smokingFilter !== null || minCapacity !== null || maxCapacity !== null;
 
   const handleClearFilters = () => {
-    setIdInput('');
     setNameInput('');
     setSmokingFilter(null);
     setMinCapacity(null);
@@ -155,7 +142,6 @@ const ManagerTablesPage: React.FC = () => {
     page,
     size: rowsPerPage,
     sort,
-    id,
     name: name || undefined,
     isSmokingAllowed,
     minCapacity: minCapacity ?? undefined,
@@ -246,14 +232,6 @@ const ManagerTablesPage: React.FC = () => {
         </Box>
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
-          <TextField
-            label={t('managerTables.searchById')}
-            size="small"
-            type="number"
-            value={idInput}
-            onChange={(e) => setIdInput(e.target.value)}
-            sx={{ minWidth: 100, flex: '0 1 100px' }}
-          />
           <TextField
             label={t('managerTables.searchByName')}
             size="small"
@@ -407,9 +385,8 @@ const ManagerTablesPage: React.FC = () => {
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerTables.id')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>{t('managerTables.name')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerTables.capacity')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>{t('managerTables.name')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerTables.capacity')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerTables.smokingAllowedColumn')}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerTables.actions')}</TableCell>
                 </TableRow>
@@ -417,7 +394,6 @@ const ManagerTablesPage: React.FC = () => {
               <TableBody>
                 {[...Array(rowsPerPage)].map((_, index) => (
                   <TableRow key={`skeleton-${index}`} style={{ height: rowHeight }}>
-                    <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
@@ -439,9 +415,8 @@ const ManagerTablesPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="tables table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerTables.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>{t('managerTables.name')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerTables.capacity')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '35%' }}>{t('managerTables.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerTables.capacity')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerTables.smokingAllowedColumn')}</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerTables.actions')}</TableCell>
                   </TableRow>
@@ -451,7 +426,6 @@ const ManagerTablesPage: React.FC = () => {
                     if (!table) return null;
                     return (
                       <TableRow key={table.id} style={{ height: rowHeight }}>
-                        <TableCell>{table.id}</TableCell>
                         <TableCell>{table.name || ''}</TableCell>
                         <TableCell>{table.capacity}</TableCell>
                         <TableCell>
@@ -486,7 +460,6 @@ const ManagerTablesPage: React.FC = () => {
                     [...Array(emptyRows)].map((_, index) => (
                       <TableRow key={`empty-${index}`} style={{ height: rowHeight }}>
                         <TableCell component="th" scope="row">&nbsp;</TableCell>
-                        <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell align="right">

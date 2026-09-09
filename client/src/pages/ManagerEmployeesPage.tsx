@@ -62,19 +62,16 @@ const ManagerEmployeesPage: React.FC = () => {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortField, setSortField] = useState('id');
+  const [sortField, setSortField] = useState('firstName');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const sort = `${sortField},${sortDirection}`;
 
   const SORT_FIELDS = [
-    { value: 'id', label: t('common.id') },
-    { value: 'email', label: t('common.email') },
     { value: 'firstName', label: t('common.name') },
+    { value: 'email', label: t('common.email') },
     { value: 'role.name', label: t('common.role') },
   ];
 
-  const [idInput, setIdInput] = useState('');
-  const [id, setId] = useState<number | undefined>(undefined);
   const [emailInput, setEmailInput] = useState('');
   const [email, setEmail] = useState('');
   const [nameInput, setNameInput] = useState('');
@@ -88,21 +85,18 @@ const ManagerEmployeesPage: React.FC = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const trimmed = idInput.trim();
-      setId(trimmed === '' ? undefined : Number(trimmed));
       setEmail(emailInput.trim());
       setName(nameInput.trim());
       setPhoneNumber(phoneNumberInput.trim());
       setPage(0);
     }, 400);
     return () => clearTimeout(timeout);
-  }, [idInput, emailInput, nameInput, phoneNumberInput]);
+  }, [emailInput, nameInput, phoneNumberInput]);
 
   const { data, error, isLoading } = useGetManagerEmployeesQuery({
     page,
     size: rowsPerPage,
     sort,
-    id,
     email: email || undefined,
     name: name || undefined,
     phoneNumber: phoneNumber || undefined,
@@ -166,10 +160,9 @@ const ManagerEmployeesPage: React.FC = () => {
     return t('managerEmployees.rolesCount', { count: roles.length });
   })();
 
-  const hasActiveFilters = idInput !== '' || emailInput !== '' || nameInput !== '' || phoneNumberInput !== '' || roles.length > 0;
+  const hasActiveFilters = emailInput !== '' || nameInput !== '' || phoneNumberInput !== '' || roles.length > 0;
 
   const handleClearFilters = () => {
-    setIdInput('');
     setEmailInput('');
     setNameInput('');
     setPhoneNumberInput('');
@@ -253,25 +246,17 @@ const ManagerEmployeesPage: React.FC = () => {
         <Divider />
         <Box sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
           <TextField
-            label={t('managerEmployees.searchById')}
+            label={t('managerEmployees.searchByName')}
             size="small"
-            type="number"
-            value={idInput}
-            onChange={(e) => setIdInput(e.target.value)}
-            sx={{ minWidth: 100, flex: '0 1 100px' }}
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            sx={{ minWidth: 180, flex: '1 1 180px' }}
           />
           <TextField
             label={t('managerEmployees.searchByEmail')}
             size="small"
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
-            sx={{ minWidth: 180, flex: '1 1 180px' }}
-          />
-          <TextField
-            label={t('managerEmployees.searchByName')}
-            size="small"
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
             sx={{ minWidth: 180, flex: '1 1 180px' }}
           />
           <TextField
@@ -396,18 +381,16 @@ const ManagerEmployeesPage: React.FC = () => {
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ backgroundColor: 'action.hover' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerEmployees.id')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.email')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.name')}</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerEmployees.name')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.email')}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.role')}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.actions')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {[...Array(rowsPerPage)].map((_, index) => (
                   <TableRow key={`skeleton-${index}`} style={{ height: rowHeight }}>
-                    <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
                     <TableCell><Skeleton /></TableCell>
@@ -430,12 +413,11 @@ const ManagerEmployeesPage: React.FC = () => {
               <Table sx={{ minWidth: 650 }} aria-label="employees table">
                 <TableHead sx={{ backgroundColor: 'action.hover' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>{t('managerEmployees.id')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.email')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.name')}</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerEmployees.name')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.email')}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>{t('managerEmployees.phoneNumber')}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.role')}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '20%' }}>{t('managerEmployees.actions')}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', width: '15%' }}>{t('managerEmployees.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -443,9 +425,8 @@ const ManagerEmployeesPage: React.FC = () => {
                     if (!employee) return null;
                     return (
                       <TableRow key={employee.id} style={{ height: rowHeight }}>
-                        <TableCell>{employee.id}</TableCell>
-                        <TableCell>{employee.email || ''}</TableCell>
                         <TableCell>{`${employee.firstName || ''} ${employee.lastName || ''}`}</TableCell>
+                        <TableCell>{employee.email || ''}</TableCell>
                         <TableCell>{employee.phoneNumber || '-'}</TableCell>
                         <TableCell>
                           {employee.role ? (
@@ -477,7 +458,6 @@ const ManagerEmployeesPage: React.FC = () => {
                     [...Array(emptyRows)].map((_, index) => (
                       <TableRow key={`empty-${index}`} style={{ height: rowHeight }}>
                         <TableCell component="th" scope="row">&nbsp;</TableCell>
-                        <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>
                         <TableCell>&nbsp;</TableCell>

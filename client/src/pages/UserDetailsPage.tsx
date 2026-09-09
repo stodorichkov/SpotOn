@@ -265,20 +265,22 @@ const UserDetailsPage: React.FC = () => {
             {t('userDetails.accountDetails')}
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                    {t('userDetails.userId')}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                    {user.id}
-                  </Typography>
+            {currentRole !== Role.MANAGER && (
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
+                      {t('userDetails.userId')}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
+                      {user.id}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            </Grid>
-            <Grid item xs={12} sm={8}>
+              </Grid>
+            )}
+            <Grid item xs={12} sm={currentRole === Role.MANAGER ? 12 : 8}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                 <PersonIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
                 <Box>

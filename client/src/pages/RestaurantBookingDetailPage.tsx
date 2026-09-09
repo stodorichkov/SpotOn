@@ -1,8 +1,10 @@
 import React from 'react';
 import { useParams, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useGetBookingStatusHistoryQuery, BookingEmployeeResponse } from '../features/restaurants/restaurantsSlice';
-import { BookingStatus } from '../constants';
+import { RootState } from '../store/store';
+import { BookingStatus, Role } from '../constants';
 import { getIntlLocale } from '../utils/dateLocale';
 import { translateBookingStatus, translateRole } from '../utils/enumLabels';
 import {
@@ -43,6 +45,7 @@ const getStatusStyles = (status: string) => {
 
 const RestaurantBookingDetailPage: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { role: currentRole } = useSelector((state: RootState) => state.auth);
   const { id } = useParams<{ id: string }>();
   const bookingId = Number(id);
   const location = useLocation();
@@ -254,12 +257,19 @@ const RestaurantBookingDetailPage: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="body2" color="text.secondary">
                     {entry.changedByFirstName || entry.changedByLastName
-                      ? t('bookingStatusHistory.changedByName', {
-                          firstName: entry.changedByFirstName,
-                          lastName: entry.changedByLastName,
-                          id: entry.changedByUserId
-                        })
-                      : t('bookingStatusHistory.changedByUserId', { id: entry.changedByUserId })}
+                      ? (currentRole === Role.MANAGER
+                          ? t('bookingStatusHistory.changedByNameOnly', {
+                              firstName: entry.changedByFirstName,
+                              lastName: entry.changedByLastName
+                            })
+                          : t('bookingStatusHistory.changedByName', {
+                              firstName: entry.changedByFirstName,
+                              lastName: entry.changedByLastName,
+                              id: entry.changedByUserId
+                            }))
+                      : (currentRole === Role.MANAGER
+                          ? t('bookingStatusHistory.unknownUser')
+                          : t('bookingStatusHistory.changedByUserId', { id: entry.changedByUserId }))}
                   </Typography>
                   {entry.changedByRole && (
                     <Chip

@@ -30,7 +30,6 @@ import TableBarIcon from '@mui/icons-material/TableBar';
 import SmokingRoomsIcon from '@mui/icons-material/SmokingRooms';
 import SmokeFreeIcon from '@mui/icons-material/SmokeFree';
 import PeopleIcon from '@mui/icons-material/People';
-import BadgeIcon from '@mui/icons-material/Badge';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -472,21 +471,6 @@ const TableDetailPage: React.FC = () => {
             </Box>
 
             <Grid container spacing={4}>
-              {/* Table ID */}
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <BadgeIcon color="primary" sx={{ mt: 0.5, fontSize: 28 }} />
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" fontWeight="bold">
-                      {t('tableDetail.tableId')}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mt: 0.5, fontSize: '1.1rem' }}>
-                      {currentTable.id}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-
               {/* Table Name */}
               <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
