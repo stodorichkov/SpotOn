@@ -33,7 +33,7 @@ public class BookingController {
             @RequestHeader(HeaderConstants.ITERNAL_SECRET) String secret,
             @RequestBody List<Long> restaurantIds
     ) {
-        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT);
+        this.authorizationService.hasRole(userRoleHeader, RoleEnum.CLIENT, RoleEnum.EMPLOYEE);
         this.authorizationService.hasInternalAccess(secret, service, ServiceEnum.BOOKING);
 
         return this.restaurantService.getRestaurantsContact(restaurantIds);
