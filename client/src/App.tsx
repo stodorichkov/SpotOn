@@ -1,0 +1,146 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ProfilePage from './pages/ProfilePage';
+import UsersPage from './pages/UsersPage';
+import UserDetailsPage from './pages/UserDetailsPage';
+import RestaurantsPage from './pages/RestaurantsPage';
+import CategoriesPage from './pages/CategoriesPage';
+import CategoryDetailsPage from './pages/CategoryDetailsPage';
+import RestaurantEmployeesPage from './pages/RestaurantEmployeesPage';
+import AdminRestaurantDetailsLayout from './pages/AdminRestaurantDetailsLayout';
+import AdminRestaurantDetailsTab from './pages/AdminRestaurantDetailsTab';
+import AdminRestaurantTablesPage from './pages/AdminRestaurantTablesPage';
+import AdminRestaurantBookingsPage from './pages/AdminRestaurantBookingsPage';
+import RestaurantBookingDetailPage from './pages/RestaurantBookingDetailPage';
+import ManagerBookingsPage from './pages/ManagerBookingsPage';
+import AddRestaurantPage from './pages/AddRestaurantPage';
+import AddManagerPage from './pages/AddManagerPage';
+import ManagerRestaurantPage from './pages/ManagerRestaurantPage';
+import ManagerEmployeesPage from './pages/ManagerEmployeesPage';
+import AddEmployeePage from './pages/AddEmployeePage';
+import ManagerTablesPage from './pages/ManagerTablesPage';
+import AddTablePage from './pages/AddTablePage';
+import TableDetailPage from './pages/TableDetailPage';
+import RestaurantDetailPage from './pages/RestaurantDetailPage';
+import ReservationPage from './pages/ReservationPage';
+import ClientBookingsPage from './pages/ClientBookingsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
+import EmployeeBookingsPage from './pages/EmployeeBookingsPage';
+import AppTopBar from './components/AppBar';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { Box } from '@mui/material';
+import Alerts from './components/Alerts';
+import { PrivateRoute, GuestRoute, AdminRoute, ManagerRoute, PublicClientRoute, ClientOnlyRoute, EmployeeRoute } from './components/ProtectedRoute';
+import './App.css';
+
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#b71c1c',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  components: {
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#212121',
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
+
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <AppTopBar />
+        <Alerts />
+        <Box component="main" sx={{ p: 3 }}> {/* Add padding to the main content */}
+          <Routes>
+            {/* Public Client & Guest Routes (Forbidden for Admin & Manager) */}
+            <Route element={<PublicClientRoute />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+            </Route>
+
+            <Route element={<GuestRoute />}>
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            </Route>
+
+            <Route element={<PrivateRoute />}>
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/bookings/:id" element={<BookingDetailPage />} />
+            </Route>
+
+            {/* Client-Only Logged-in Routes (Forbidden for Admin, Manager & Guests) */}
+            <Route element={<ClientOnlyRoute />}>
+              <Route path="/restaurants/:id/reserve" element={<ReservationPage />} />
+              <Route path="/bookings" element={<ClientBookingsPage />} />
+            </Route>
+
+            {/* Employee-Only Logged-in Routes (Forbidden for Admin, Manager, Client & Guests) */}
+            <Route element={<EmployeeRoute />}>
+              <Route path="/employee/bookings" element={<EmployeeBookingsPage />} />
+              <Route path="/employee/bookings/:id" element={<BookingDetailPage />} />
+            </Route>
+            <Route element={<AdminRoute />}>
+              <Route path="/admin/users" element={<UsersPage />} />
+              <Route path="/admin/users/:id" element={<UserDetailsPage />} />
+              <Route path="/admin/restaurants" element={<RestaurantsPage />} />
+              <Route path="/admin/categories" element={<CategoriesPage />} />
+              <Route path="/admin/categories/:id" element={<CategoryDetailsPage />} />
+              <Route path="/admin/restaurants/new" element={<AddRestaurantPage />} />
+              <Route path="/admin/restaurants/:id" element={<AdminRestaurantDetailsLayout />}>
+                <Route index element={<AdminRestaurantDetailsTab />} />
+                <Route path="employees" element={<RestaurantEmployeesPage />} />
+                <Route path="tables" element={<AdminRestaurantTablesPage />} />
+                <Route path="bookings" element={<AdminRestaurantBookingsPage />} />
+              </Route>
+              <Route path="/admin/restaurants/:id/employees/new" element={<AddManagerPage />} />
+              <Route path="/admin/restaurants/:restaurantId/employees/:id" element={<UserDetailsPage />} />
+              <Route path="/admin/restaurants/:restaurantId/bookings/:id" element={<RestaurantBookingDetailPage />} />
+            </Route>
+            <Route element={<ManagerRoute />}>
+              <Route path="/manager/restaurant" element={<ManagerRestaurantPage />} />
+              <Route path="/manager/employees" element={<ManagerEmployeesPage />} />
+              <Route path="/manager/employees/new" element={<AddEmployeePage />} />
+              <Route path="/manager/employees/:id" element={<UserDetailsPage />} />
+              <Route path="/manager/tables" element={<ManagerTablesPage />} />
+              <Route path="/manager/tables/new" element={<AddTablePage />} />
+              <Route path="/manager/tables/:id" element={<TableDetailPage />} />
+              <Route path="/manager/bookings" element={<ManagerBookingsPage />} />
+              <Route path="/manager/bookings/:id" element={<RestaurantBookingDetailPage />} />
+            </Route>
+            {/* Fallback route to redirect undefined paths to the home page */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Box>
+      </Router>
+    </ThemeProvider>
+  );
+}
+
+export default App;
